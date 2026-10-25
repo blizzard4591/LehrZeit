@@ -82,6 +82,36 @@
     <string name="welcome_skip">Überspringen</string>
     <string name="welcome_done">Fertig</string>
 
+    <!-- Tracking -->
+    <string name="action_pause">Pause</string>
+    <string name="action_stop">Stopp</string>
+    <string name="action_resume">Fortsetzen</string>
+    <string name="action_dismiss">Schließen</string>
+    <string name="action_switch">Wechseln</string>
+    <string name="action_turn_on">Einschalten</string>
+    <string name="since_time">Seit %s</string>
+    <string name="paused_at">Pausiert um %s</string>
+    <string name="track_idle_title">Keine Zeiterfassung aktiv</string>
+    <string name="track_idle_hint">Tippe auf eine Kachel, um zu starten.</string>
+    <string name="track_paused">Pausiert</string>
+    <string name="track_today">Heute: %s h</string>
+    <string name="track_all_accounts">Alle Konten…</string>
+    <string name="track_running">Läuft</string>
+    <string name="nudge_earlier">−5 Min.</string>
+    <string name="nudge_later">+5 Min.</string>
+    <string name="switch_title">Wechseln?</string>
+    <string name="switch_text">Damit endet %1$s und %2$s beginnt.</string>
+    <string name="notifications_off">Benachrichtigungen sind aus, deshalb erscheint der laufende Timer nicht in der Benachrichtigungsleiste.</string>
+    <string name="picker_search">Suchen</string>
+    <string name="picker_no_results">Nichts gefunden</string>
+    <string name="picker_manage">Konten verwalten</string>
+    <string name="picker_pin">Auf der Startseite anheften</string>
+    <string name="picker_unpin">Von der Startseite lösen</string>
+    <string name="picker_expand">Tätigkeiten anzeigen</string>
+    <string name="picker_collapse">Tätigkeiten ausblenden</string>
+    <string name="channel_tracking_name">Laufender Timer</string>
+    <string name="channel_tracking_description">Zeigt den laufenden Timer mit Pause und Stopp.</string>
+
     <string-array name="starter_activities">
         <item>Unterricht</item>
         <item>Unterrichtsvorbereitung</item>

@@ -11,6 +11,7 @@ import de.janaberger.lehrzeit.data.db.ActivityWithCount
 import de.janaberger.lehrzeit.data.db.LehrZeitDatabase
 import de.janaberger.lehrzeit.data.db.WorkActivity
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 
 const val MAX_NAME_LENGTH = 40
 
@@ -55,6 +56,20 @@ class CatalogRepository(
     fun observeAccounts(): Flow<List<AccountWithCount>> = accounts.observeAllWithActivityCount()
 
     fun observeActivities(): Flow<List<ActivityWithCount>> = activities.observeAllWithAccountCount()
+
+    fun observeSnapshot(): Flow<CatalogSnapshot> = combine(
+        accounts.observeAll(),
+        activities.observeAll(),
+        links.observeAll(),
+    ) { accounts, activities, links ->
+        CatalogSnapshot(accounts, activities, links.mapTo(HashSet()) { ComboKey(it.accountId, it.activityId) })
+    }
+
+    suspend fun getCombo(key: ComboKey): Combo? {
+        val account = accounts.get(key.accountId) ?: return null
+        val activity = key.activityId?.let { activities.get(it) ?: return null }
+        return Combo(account, activity)
+    }
 
     suspend fun activeActivities(): List<WorkActivity> = activities.getActive()
 

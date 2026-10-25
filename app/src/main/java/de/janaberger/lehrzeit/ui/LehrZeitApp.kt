@@ -48,6 +48,7 @@ import de.janaberger.lehrzeit.ui.navigation.StatsRoute
 import de.janaberger.lehrzeit.ui.navigation.TopLevelDestination
 import de.janaberger.lehrzeit.ui.navigation.TrackRoute
 import de.janaberger.lehrzeit.ui.navigation.WorklogRoute
+import de.janaberger.lehrzeit.ui.track.TrackScreen
 import de.janaberger.lehrzeit.ui.welcome.WelcomeScreen
 
 @Composable
@@ -101,7 +102,7 @@ private fun MainScreen() {
                 .padding(innerPadding)
                 .consumeWindowInsets(innerPadding),
         ) {
-            composable<TrackRoute> { PlaceholderScreen(stringResource(R.string.nav_track)) }
+            composable<TrackRoute> { TrackScreen(onManageAccounts = { navController.navigate(AccountsRoute) }) }
             composable<WorklogRoute> { PlaceholderScreen(stringResource(R.string.nav_worklog)) }
             composable<StatsRoute> { PlaceholderScreen(stringResource(R.string.nav_stats)) }
             navigation<MoreGraph>(startDestination = MoreRoute) {

@@ -84,6 +84,36 @@
     <string name="welcome_skip">Skip</string>
     <string name="welcome_done">Done</string>
 
+    <!-- Tracking -->
+    <string name="action_pause">Pause</string>
+    <string name="action_stop">Stop</string>
+    <string name="action_resume">Resume</string>
+    <string name="action_dismiss">Dismiss</string>
+    <string name="action_switch">Switch</string>
+    <string name="action_turn_on">Turn on</string>
+    <string name="since_time">Since %s</string>
+    <string name="paused_at">Paused at %s</string>
+    <string name="track_idle_title">Not tracking</string>
+    <string name="track_idle_hint">Tap a tile to start.</string>
+    <string name="track_paused">Paused</string>
+    <string name="track_today">Today: %s h</string>
+    <string name="track_all_accounts">All accounts…</string>
+    <string name="track_running">Running</string>
+    <string name="nudge_earlier">−5 min</string>
+    <string name="nudge_later">+5 min</string>
+    <string name="switch_title">Switch?</string>
+    <string name="switch_text">This stops %1$s and starts %2$s.</string>
+    <string name="notifications_off">Notifications are off, so the running timer won’t appear in the notification bar.</string>
+    <string name="picker_search">Search</string>
+    <string name="picker_no_results">Nothing found</string>
+    <string name="picker_manage">Manage accounts</string>
+    <string name="picker_pin">Pin to home screen</string>
+    <string name="picker_unpin">Unpin from home screen</string>
+    <string name="picker_expand">Show activities</string>
+    <string name="picker_collapse">Hide activities</string>
+    <string name="channel_tracking_name">Running timer</string>
+    <string name="channel_tracking_description">Shows the running timer with Pause and Stop.</string>
+
     <!-- Seeded once at first launch; afterwards they are ordinary, editable data. -->
     <string-array name="starter_activities">
         <item>Teaching</item>

@@ -115,7 +115,7 @@ The app uses a single `Activity`: every screen is a Compose destination inside `
 - Leaving it out also avoids Android's restrictions on foreground service types.
 
 **Notification channels:**
-- "Tracking": low importance, silent.
+- "Tracking": default importance with sound and vibration off. Low importance would be quieter in the list, but it hides the status-bar icon on current Android versions.
 - "Reminders": default importance.
 
 **Permissions:**
@@ -211,7 +211,7 @@ Entry            id, accountId, activityId?, startUtc, endUtc?, note, createdAt,
 
 1. **(done 2026-10-25)** Skeleton: Gradle setup, Compose, navigation, string resources in both languages, LICENSE, README.
 2. **(done 2026-10-25)** Data layer: entities, DAOs, General seeding, welcome setup, account and activity management screens.
-3. Tracking: Track screen, picker, switch confirmation, notification (Stop, Pause, Resume, re-post after swipe, reboot).
+3. **(done 2026-10-25)** Tracking: Track screen, picker, switch confirmation, notification (Stop, Pause, Resume, re-post after swipe, reboot).
 4. Worklog and edit sheet, with nudge buttons and overlap handling.
 5. Stats.
 6. Export: CSV, ODS, PDF.
@@ -245,5 +245,11 @@ Unit tests cover the time arithmetic: midnight split, the summer/winter time cha
 - Names are at most 40 characters. They must be unique among non-archived items, ignoring case, and an account can't be called "General"/"Allgemein". Archived items don't block a name, so next school year's "7b" can exist next to last year's archived one. Restoring a duplicate from the archive asks for a rename first.
 - In the editors, *Archive* and *Restore from archive* also save the other changes on the screen. Leaving with unsaved changes asks first. An item restored from the archive goes to the end of its list.
 - The German UI addresses the user with "du".
+- While there is little history, free home tiles are filled with the accounts on their own (e.g. "7b"), so the home screen is useful from day one.
+- Tapping the tile that is already running does nothing.
+- The notification buttons read "Pause" and "Stop"; the combination is the notification's title right above them. Android cuts off long button labels, so "Stop 9a Mathe › Correcting" wouldn't fit.
+- Swiping away the paused notification also clears the paused card in the app.
+- The "notifications are off" banner only appears while a timer runs or is paused, so it never shows before the first permission prompt.
+- The −5/+5 min buttons on the running card can't move the start before the previous entry's end or after now. Setting an exact start time comes with the worklog edit sheet (milestone 4).
 
 Confirmed on 2026-10-25: the overlap edge cases, leaving running entries out of exports, and restore replacing all data.

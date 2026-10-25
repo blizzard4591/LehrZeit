@@ -8,6 +8,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import androidx.room.Relation
 
 /** Top level of what time is booked on: a class, an area, or the permanent General account. */
 @Entity(tableName = "account")
@@ -116,6 +117,12 @@ data class Entry(
     val note: String = "",
     val createdAt: Long,
     val updatedAt: Long,
+)
+
+data class EntryWithCombo(
+    @Embedded val entry: Entry,
+    @Relation(parentColumn = "accountId", entityColumn = "id") val account: Account,
+    @Relation(parentColumn = "activityId", entityColumn = "id") val activity: WorkActivity?,
 )
 
 data class AccountWithCount(

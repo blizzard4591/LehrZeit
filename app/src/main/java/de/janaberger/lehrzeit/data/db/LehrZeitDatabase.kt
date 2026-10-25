@@ -17,6 +17,7 @@ abstract class LehrZeitDatabase : RoomDatabase() {
     abstract fun activityDao(): ActivityDao
     abstract fun accountActivityDao(): AccountActivityDao
     abstract fun entryDao(): EntryDao
+    abstract fun favoriteDao(): FavoriteDao
 
     companion object {
         fun build(context: Context): LehrZeitDatabase =

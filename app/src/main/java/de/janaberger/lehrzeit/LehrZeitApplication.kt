@@ -13,7 +13,12 @@ class LehrZeitApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
-        // Seeds General and the starter activities in the phone's language at first launch.
-        container.applicationScope.launch { container.catalog.seedIfNeeded() }
+        container.trackingNotifier.createChannel()
+        container.applicationScope.launch {
+            // Seeds General and the starter activities in the phone's language at first launch.
+            container.catalog.seedIfNeeded()
+            // The notification may be gone if the app was force-stopped while tracking.
+            container.trackingController.refreshNotification()
+        }
     }
 }
