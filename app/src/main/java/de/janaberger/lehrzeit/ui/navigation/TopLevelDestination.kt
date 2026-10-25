@@ -12,6 +12,9 @@ import kotlinx.serialization.Serializable
 @Serializable data object WorklogRoute
 @Serializable data object StatsRoute
 
+/** Edits an entry, or creates one if [id] is null. Reached from the worklog and the Track screen. */
+@Serializable data class EntryEditRoute(val id: Long? = null)
+
 /** The More tab is a nested graph so that its sub-screens keep the tab selected. */
 @Serializable data object MoreGraph
 @Serializable data object MoreRoute

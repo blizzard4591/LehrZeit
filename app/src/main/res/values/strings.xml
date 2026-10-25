@@ -124,6 +124,42 @@
         <item quantity="other">%d minutes</item>
     </plurals>
 
+    <!-- Worklog and entry editor -->
+    <string name="hours_value">%s h</string>
+    <string name="time_now">now</string>
+    <plurals name="days_later">
+        <item quantity="one">+%d day</item>
+        <item quantity="other">+%d days</item>
+    </plurals>
+    <string name="worklog_add">Add entry</string>
+    <string name="worklog_empty">No entries yet. Start a timer under Track, or add an entry with +.</string>
+    <string name="worklog_today">Today</string>
+    <string name="worklog_yesterday">Yesterday</string>
+    <string name="worklog_show_older">Show older entries</string>
+    <string name="entry_deleted">Entry deleted</string>
+    <string name="action_undo">Undo</string>
+    <string name="action_ok">OK</string>
+    <string name="action_adjust">Adjust</string>
+    <string name="entry_new_title">New entry</string>
+    <string name="entry_edit_title">Edit entry</string>
+    <string name="entry_booked_on">Booked on</string>
+    <string name="entry_time">Time</string>
+    <string name="entry_date">Date</string>
+    <string name="entry_start">Start</string>
+    <string name="entry_end">End</string>
+    <string name="entry_running">Running</string>
+    <string name="entry_duration">Duration: %s h</string>
+    <string name="entry_note">Note</string>
+    <string name="error_in_future">Times can’t be in the future.</string>
+    <string name="error_end_not_after_start">The end must be after the start.</string>
+    <string name="error_entry_stale">This entry was changed in the meantime, e.g. stopped from the notification. Go back and open it again.</string>
+    <string name="overlap_title">Overlapping entries</string>
+    <string name="overlap_text">To make room, these entries will be adjusted:</string>
+    <string name="overlap_shortened">%1$s, %2$s → %3$s</string>
+    <string name="overlap_deleted">%1$s, %2$s → deleted</string>
+    <string name="overlap_blocked_title">Doesn’t fit</string>
+    <string name="overlap_blocked_text">This entry lies completely within %1$s, %2$s. Change the times, or shorten that entry first.</string>
+
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="more_settings_summary">Short entries and other options</string>

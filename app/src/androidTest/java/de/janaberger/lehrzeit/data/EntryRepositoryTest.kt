@@ -20,9 +20,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class TrackingRepositoryTest {
+class EntryRepositoryTest {
     private lateinit var db: LehrZeitDatabase
-    private lateinit var tracking: TrackingRepository
+    private lateinit var tracking: EntryRepository
     private lateinit var a: ComboKey
     private lateinit var b: ComboKey
 
@@ -38,7 +38,7 @@ class TrackingRepositoryTest {
         val accountId = (catalog.saveAccount(null, "7b", color = 0, activityIds = setOf(correcting)) as SaveResult.Saved).id
         a = ComboKey(accountId, null)
         b = ComboKey(accountId, correcting)
-        tracking = TrackingRepository(db)
+        tracking = EntryRepository(db)
     }
 
     @After
@@ -146,5 +146,68 @@ class TrackingRepositoryTest {
 
         assertEquals(listOf(0L, 100L, 300L), tracking.observeEntriesOverlapping(50, 1_000).first().map { it.startUtc })
         assertEquals(listOf(100L), tracking.observeEntriesOverlapping(150, 250).first().map { it.startUtc })
+    }
+
+    private fun finished(key: ComboKey, start: Long, end: Long) =
+        Entry(accountId = key.accountId, activityId = key.activityId, startUtc = start, endUtc = end, createdAt = 0, updatedAt = 0)
+
+    @Test
+    fun save_shortensAndDeletesOverlappedEntriesTogether() = runTest {
+        tracking.save(finished(a, 0, 100), now = 1_000)
+        tracking.save(finished(a, 120, 150), now = 1_000)
+        tracking.save(finished(a, 180, 300), now = 1_000)
+
+        val result = tracking.save(finished(b, 50, 200), now = 1_000)
+
+        assertTrue(result is SaveEntryResult.Saved)
+        assertEquals(
+            listOf(Triple(a, 0L, 50L), Triple(b, 50L, 200L), Triple(a, 200L, 300L)),
+            allEntries().map { Triple(it.comboKey, it.startUtc, it.endUtc) },
+        )
+    }
+
+    @Test
+    fun save_insideAnotherEntry_isBlockedAndChangesNothing() = runTest {
+        tracking.save(finished(a, 0, 1_000), now = 2_000)
+
+        val result = tracking.save(finished(b, 100, 200), now = 2_000)
+
+        assertTrue(result is SaveEntryResult.Blocked)
+        assertEquals(listOf(a), allEntries().map { it.comboKey })
+    }
+
+    @Test
+    fun save_ofAnOutdatedRunningCopy_isRefused() = runTest {
+        tracking.start(a, now = 0)
+        val runningCopy = tracking.getRunning()!!.entry
+        tracking.stop(now = 10 * minute)
+
+        assertEquals(SaveEntryResult.Stale, tracking.save(runningCopy.copy(startUtc = minute), now = 11 * minute))
+        assertNull(tracking.getRunning())
+    }
+
+    @Test
+    fun deleteAndRestore_bringTheEntryBack() = runTest {
+        val id = (tracking.save(finished(a, 0, 100), now = 1_000) as SaveEntryResult.Saved).id
+
+        val deleted = tracking.delete(id, now = 2_000)!!
+        assertEquals(deleted, tracking.recentlyDeleted.value)
+        assertTrue(allEntries().isEmpty())
+
+        tracking.restore(deleted)
+        assertNull(tracking.recentlyDeleted.value)
+        assertEquals(listOf(id), allEntries().map { it.id })
+    }
+
+    @Test
+    fun restoringARunningEntry_whileAnotherRuns_restoresItFinished() = runTest {
+        tracking.start(a, now = 0)
+        val deleted = tracking.delete(tracking.getRunning()!!.entry.id, now = 5 * minute)!!
+        tracking.start(b, now = 6 * minute)
+
+        tracking.restore(deleted)
+
+        assertEquals(b, tracking.getRunning()!!.entry.comboKey)
+        assertEquals(5 * minute, allEntries().single { it.comboKey == a }.endUtc)
     }
 }

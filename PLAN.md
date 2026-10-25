@@ -70,7 +70,7 @@ Status: product decisions agreed on 2026-10-25. Items under [Defaults](#defaults
 - The General tile is always present. Then come pinned favorites, and any free slots fill with the most-used combinations.
 
 **Worklog editing**
-- Tap a time to change it with a picker. Nudge buttons −5 / +5 / +15 min sit next to start and end.
+- Tap a time to change it with a picker. Nudge buttons −15 / −5 / +5 / +15 min sit next to start and end (−15 added so a forgotten stop is one tap).
 - Optional note per entry.
 - Missed entries can be added afterwards.
 - If an edit makes an entry overlap another one, a dialog offers to shorten the other entry, e.g. "Overlaps 7b › Prep (14:00–14:30). Shorten it to 14:10–14:30?" with [Shorten] [Cancel].
@@ -149,12 +149,14 @@ Bottom navigation: **Track · Worklog · Stats · More** (DE: Erfassen · Protok
    - A star to pin a combination as a favorite.
    - Link to "Manage…".
 3. **Worklog**
-   - Entries grouped by day, under sticky date headers that show the day total.
+   - Entries grouped by day, newest first, under sticky date headers that show the day total.
    - The running entry is on top with a live duration.
-   - "+" adds an entry. Tapping an entry opens the edit sheet.
-4. **Edit entry** (bottom sheet)
-   - Fields: account, activity, start date/time, end date/time (with nudge buttons), resulting duration, note.
-   - Delete, with an undo snackbar.
+   - "+" adds an entry. Tapping an entry opens the editor.
+   - Loads the last 60 days; "Show older entries" loads 90 more each time.
+4. **Edit entry** (full screen, like the other editors; also opened by tapping "Since …" on the Track screen's running card)
+   - Fields: account + activity (same searchable picker), date, start and end time (each with nudge buttons), resulting duration, note.
+   - A running entry shows "Running" instead of an end.
+   - Delete, with an Undo snackbar instead of a confirmation.
    - Save runs validation and then the overlap check.
 5. **Stats**
    - Switch between Day, Week and Month, with ‹ › to move between periods.
@@ -213,7 +215,7 @@ Entry            id, accountId, activityId?, startUtc, endUtc?, note, createdAt,
 1. **(done 2026-10-25)** Skeleton: Gradle setup, Compose, navigation, string resources in both languages, LICENSE, README.
 2. **(done 2026-10-25)** Data layer: entities, DAOs, General seeding, welcome setup, account and activity management screens.
 3. **(done 2026-10-25)** Tracking: Track screen, picker, switch confirmation, notification (Stop, Pause, Resume, re-post after swipe, reboot).
-4. Worklog and edit sheet, with nudge buttons and overlap handling.
+4. **(done 2026-10-25)** Worklog and entry editor, with nudge buttons and overlap handling.
 5. Stats.
 6. Export: CSV, ODS, PDF.
 7. Backup and restore.
@@ -250,6 +252,9 @@ Unit tests cover the time arithmetic: midnight split, the summer/winter time cha
 - Tapping the tile that is already running does nothing.
 - Swiping away the paused notification also clears the paused card in the app.
 - The "notifications are off" banner only appears while a timer runs or is paused, so it never shows before the first permission prompt.
-- The −5/+5 min buttons on the running card can't move the start before the previous entry's end or after now. Setting an exact start time comes with the worklog edit sheet (milestone 4).
+- The −5/+5 min buttons on the running card can't move the start before the previous entry's end or after now. For anything else, tapping "Since …" opens the full editor.
+- An entry crossing midnight appears in the worklog under both days; each day's total counts only its own part.
+- A new entry starts as the last full hour (rounded to 5 minutes) on General.
+- If the running entry is stopped (e.g. from the notification) while its editor is open, saving is refused instead of restarting it.
 
 Confirmed on 2026-10-25: the overlap edge cases, leaving running entries out of exports, and restore replacing all data.

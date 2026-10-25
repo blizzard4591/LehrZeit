@@ -122,6 +122,42 @@
         <item quantity="other">%d Minuten</item>
     </plurals>
 
+    <!-- Worklog and entry editor -->
+    <string name="hours_value">%s h</string>
+    <string name="time_now">jetzt</string>
+    <plurals name="days_later">
+        <item quantity="one">+%d Tag</item>
+        <item quantity="other">+%d Tage</item>
+    </plurals>
+    <string name="worklog_add">Eintrag hinzufügen</string>
+    <string name="worklog_empty">Noch keine Einträge. Starte einen Timer unter „Erfassen“ oder füge mit + einen Eintrag hinzu.</string>
+    <string name="worklog_today">Heute</string>
+    <string name="worklog_yesterday">Gestern</string>
+    <string name="worklog_show_older">Ältere Einträge anzeigen</string>
+    <string name="entry_deleted">Eintrag gelöscht</string>
+    <string name="action_undo">Rückgängig</string>
+    <string name="action_ok">OK</string>
+    <string name="action_adjust">Anpassen</string>
+    <string name="entry_new_title">Neuer Eintrag</string>
+    <string name="entry_edit_title">Eintrag bearbeiten</string>
+    <string name="entry_booked_on">Gebucht auf</string>
+    <string name="entry_time">Zeit</string>
+    <string name="entry_date">Datum</string>
+    <string name="entry_start">Beginn</string>
+    <string name="entry_end">Ende</string>
+    <string name="entry_running">Läuft</string>
+    <string name="entry_duration">Dauer: %s h</string>
+    <string name="entry_note">Notiz</string>
+    <string name="error_in_future">Zeiten dürfen nicht in der Zukunft liegen.</string>
+    <string name="error_end_not_after_start">Das Ende muss nach dem Beginn liegen.</string>
+    <string name="error_entry_stale">Dieser Eintrag wurde inzwischen geändert, z. B. über die Benachrichtigung beendet. Geh zurück und öffne ihn erneut.</string>
+    <string name="overlap_title">Überschneidungen</string>
+    <string name="overlap_text">Damit der Eintrag passt, werden diese Einträge angepasst:</string>
+    <string name="overlap_shortened">%1$s, %2$s → %3$s</string>
+    <string name="overlap_deleted">%1$s, %2$s → wird gelöscht</string>
+    <string name="overlap_blocked_title">Passt nicht</string>
+    <string name="overlap_blocked_text">Dieser Eintrag liegt komplett innerhalb von %1$s, %2$s. Ändere die Zeiten oder kürze zuerst den anderen Eintrag.</string>
+
     <!-- Settings -->
     <string name="settings_title">Einstellungen</string>
     <string name="more_settings_summary">Kurze Einträge und weitere Optionen</string>

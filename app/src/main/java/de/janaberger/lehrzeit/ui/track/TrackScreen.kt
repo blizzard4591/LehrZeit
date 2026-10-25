@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -48,12 +49,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
@@ -75,6 +78,7 @@ import de.janaberger.lehrzeit.time.totalWithin
 import de.janaberger.lehrzeit.tracking.TrackingNotifier
 import de.janaberger.lehrzeit.ui.AppViewModelProvider
 import de.janaberger.lehrzeit.ui.components.ColorDot
+import de.janaberger.lehrzeit.ui.components.DeletedEntryUndoEffect
 import de.janaberger.lehrzeit.ui.components.displayName
 import de.janaberger.lehrzeit.ui.components.label
 import de.janaberger.lehrzeit.ui.components.minLengthText
@@ -85,6 +89,7 @@ import de.janaberger.lehrzeit.ui.components.timeOfDay
 @Composable
 fun TrackScreen(
     onManageAccounts: () -> Unit,
+    onEditEntry: (id: Long) -> Unit,
     viewModel: TrackViewModel = viewModel(factory = AppViewModelProvider.Factory),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -103,9 +108,11 @@ fun TrackScreen(
     var showPicker by rememberSaveable { mutableStateOf(false) }
     val now by rememberNow(ticking = state.running != null)
     val snackbarHostState = remember { SnackbarHostState() }
+    val deleted by viewModel.recentlyDeleted.collectAsStateWithLifecycle()
+    DeletedEntryUndoEffect(deleted, snackbarHostState, viewModel::undoDelete, viewModel::forgetDeleted)
+    val resources by rememberUpdatedState(LocalResources.current)
     LaunchedEffect(viewModel) {
         viewModel.discardedNotices.collect { seconds ->
-            val resources = context.resources
             snackbarHostState.showSnackbar(resources.getString(R.string.discarded_short, minLengthText(resources, seconds)))
         }
     }
@@ -141,6 +148,7 @@ fun TrackScreen(
                     onResume = viewModel::resume,
                     onDismissPaused = viewModel::dismissPaused,
                     onNudge = viewModel::nudgeStart,
+                    onEditRunning = onEditEntry,
                 )
             }
             state.today?.let { day ->
@@ -203,6 +211,7 @@ private fun StatusCard(
     onResume: () -> Unit,
     onDismissPaused: () -> Unit,
     onNudge: (minutes: Int) -> Unit,
+    onEditRunning: (entryId: Long) -> Unit,
 ) {
     val running = state.running
     val paused = state.paused
@@ -222,7 +231,13 @@ private fun StatusCard(
                         fontWeight = FontWeight.Medium,
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(stringResource(R.string.since_time, timeOfDay(running.startUtc)), modifier = Modifier.weight(1f))
+                        // Tapping the start time opens the entry for exact editing.
+                        TextButton(onClick = { onEditRunning(running.entryId) }, contentPadding = PaddingValues(horizontal = 4.dp)) {
+                            Text(stringResource(R.string.since_time, timeOfDay(running.startUtc)))
+                            Spacer(Modifier.width(4.dp))
+                            Icon(painterResource(R.drawable.ic_edit), contentDescription = null, modifier = Modifier.size(16.dp))
+                        }
+                        Spacer(Modifier.weight(1f))
                         TextButton(onClick = { onNudge(-5) }) { Text(stringResource(R.string.nudge_earlier)) }
                         TextButton(onClick = { onNudge(5) }) { Text(stringResource(R.string.nudge_later)) }
                     }

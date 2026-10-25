@@ -37,9 +37,11 @@ import de.janaberger.lehrzeit.ui.catalog.AccountEditScreen
 import de.janaberger.lehrzeit.ui.catalog.AccountListScreen
 import de.janaberger.lehrzeit.ui.catalog.ActivityEditScreen
 import de.janaberger.lehrzeit.ui.catalog.ActivityListScreen
+import de.janaberger.lehrzeit.ui.entry.EntryEditScreen
 import de.janaberger.lehrzeit.ui.more.MoreScreen
 import de.janaberger.lehrzeit.ui.navigation.AccountEditRoute
 import de.janaberger.lehrzeit.ui.navigation.AccountsRoute
+import de.janaberger.lehrzeit.ui.navigation.EntryEditRoute
 import de.janaberger.lehrzeit.ui.navigation.ActivitiesRoute
 import de.janaberger.lehrzeit.ui.navigation.ActivityEditRoute
 import de.janaberger.lehrzeit.ui.navigation.MoreGraph
@@ -52,6 +54,7 @@ import de.janaberger.lehrzeit.ui.navigation.TrackRoute
 import de.janaberger.lehrzeit.ui.navigation.WorklogRoute
 import de.janaberger.lehrzeit.ui.track.TrackScreen
 import de.janaberger.lehrzeit.ui.welcome.WelcomeScreen
+import de.janaberger.lehrzeit.ui.worklog.WorklogScreen
 
 @Composable
 fun LehrZeitApp(appViewModel: AppViewModel = viewModel(factory = AppViewModelProvider.Factory)) {
@@ -68,10 +71,12 @@ private fun MainScreen() {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
+    // The entry editor is reached from two tabs, so it hides the bar instead of highlighting either.
+    val showBottomBar = currentDestination?.hasRoute(EntryEditRoute::class) != true
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
+            if (showBottomBar) NavigationBar {
                 TopLevelDestination.entries.forEach { destination ->
                     val selected = currentDestination?.hierarchy
                         ?.any { it.hasRoute(destination.route::class) } == true
@@ -104,8 +109,14 @@ private fun MainScreen() {
                 .padding(innerPadding)
                 .consumeWindowInsets(innerPadding),
         ) {
-            composable<TrackRoute> { TrackScreen(onManageAccounts = { navController.navigate(AccountsRoute) }) }
-            composable<WorklogRoute> { PlaceholderScreen(stringResource(R.string.nav_worklog)) }
+            composable<TrackRoute> {
+                TrackScreen(
+                    onManageAccounts = { navController.navigate(AccountsRoute) },
+                    onEditEntry = { id -> navController.navigate(EntryEditRoute(id)) },
+                )
+            }
+            composable<WorklogRoute> { WorklogScreen(onOpenEntry = { id -> navController.navigate(EntryEditRoute(id)) }) }
+            composable<EntryEditRoute> { EntryEditScreen(onDone = navController::navigateUp) }
             composable<StatsRoute> { PlaceholderScreen(stringResource(R.string.nav_stats)) }
             navigation<MoreGraph>(startDestination = MoreRoute) {
                 composable<MoreRoute> {

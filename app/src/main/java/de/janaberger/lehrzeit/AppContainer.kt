@@ -6,7 +6,7 @@ package de.janaberger.lehrzeit
 import android.content.Context
 import de.janaberger.lehrzeit.data.AppPreferences
 import de.janaberger.lehrzeit.data.CatalogRepository
-import de.janaberger.lehrzeit.data.TrackingRepository
+import de.janaberger.lehrzeit.data.EntryRepository
 import de.janaberger.lehrzeit.data.db.LehrZeitDatabase
 import de.janaberger.lehrzeit.tracking.TrackingController
 import de.janaberger.lehrzeit.tracking.TrackingNotifier
@@ -28,12 +28,12 @@ class AppContainer(context: Context) {
         generalDisplayName = { context.getString(R.string.account_general) },
     )
 
-    val tracking = TrackingRepository(database)
+    val entries = EntryRepository(database)
 
     val trackingNotifier = TrackingNotifier(context)
 
     val trackingController = TrackingController(
-        tracking = tracking,
+        entries = entries,
         catalog = catalog,
         preferences = preferences,
         notifier = trackingNotifier,

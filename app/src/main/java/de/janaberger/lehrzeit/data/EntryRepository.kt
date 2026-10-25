@@ -9,13 +9,17 @@ import de.janaberger.lehrzeit.data.db.EntryWithCombo
 import de.janaberger.lehrzeit.data.db.Favorite
 import de.janaberger.lehrzeit.data.db.LehrZeitDatabase
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 
 /**
  * Running and finished entries, plus the pinned favorites.
  * At most one entry runs at a time; it is the one without an end.
+ * Changes to a running entry must be followed by [de.janaberger.lehrzeit.tracking.TrackingController.refreshNotification].
  */
-class TrackingRepository(private val db: LehrZeitDatabase) {
+class EntryRepository(private val db: LehrZeitDatabase) {
     private val entries = db.entryDao()
     private val favorites = db.favoriteDao()
 
@@ -76,6 +80,70 @@ class TrackingRepository(private val db: LehrZeitDatabase) {
         true
     }
 
+    /** Entries that end after [fromUtc] or are still running, oldest first. */
+    fun observeFrom(fromUtc: Long): Flow<List<Entry>> = entries.observeOverlapping(fromUtc, Long.MAX_VALUE)
+
+    fun observeEarliestStart(): Flow<Long?> = entries.observeEarliestStart()
+
+    suspend fun get(id: Long): Entry? = entries.get(id)
+
+    /** What saving [edited] would do to the entries it overlaps. */
+    suspend fun planSave(edited: Entry): OverlapPlan =
+        planOverlaps(edited, entries.getOverlapping(edited.startUtc, edited.endUtc ?: Long.MAX_VALUE))
+
+    /**
+     * Inserts ([Entry.id] == 0) or updates [edited] and shortens or deletes the entries it overlaps,
+     * all in one transaction. Fails with [SaveEntryResult.Stale] if the entry was deleted or stopped
+     * in the meantime, so an old copy of a running entry can't restart it.
+     */
+    suspend fun save(edited: Entry, now: Long): SaveEntryResult = db.withTransaction {
+        if (edited.id != 0L) {
+            val stored = entries.get(edited.id) ?: return@withTransaction SaveEntryResult.Stale
+            if (edited.endUtc == null && stored.endUtc != null) return@withTransaction SaveEntryResult.Stale
+        } else {
+            require(edited.endUtc != null) { "New entries are always finished" }
+        }
+        when (val plan = planSave(edited)) {
+            is OverlapPlan.Blocked -> return@withTransaction SaveEntryResult.Blocked(plan.by)
+            is OverlapPlan.Adjust -> plan.changes.forEach { change ->
+                if (change.adjusted == null) entries.delete(change.original) else entries.update(change.adjusted.copy(updatedAt = now))
+            }
+            OverlapPlan.None -> Unit
+        }
+        val id = if (edited.id == 0L) {
+            entries.insert(edited.copy(createdAt = now, updatedAt = now))
+        } else {
+            entries.update(edited.copy(updatedAt = now))
+            edited.id
+        }
+        SaveEntryResult.Saved(id)
+    }
+
+    private val _recentlyDeleted = MutableStateFlow<DeletedEntry?>(null)
+
+    /** The last deleted entry, until it was restored or its undo offer has been shown. */
+    val recentlyDeleted: StateFlow<DeletedEntry?> = _recentlyDeleted.asStateFlow()
+
+    suspend fun delete(id: Long, now: Long): DeletedEntry? = db.withTransaction {
+        val entry = entries.get(id) ?: return@withTransaction null
+        entries.delete(entry)
+        DeletedEntry(entry, deletedAt = now).also { _recentlyDeleted.value = it }
+    }
+
+    /** Undo for [delete]. A running entry comes back finished if another one runs by now. */
+    suspend fun restore(deleted: DeletedEntry) {
+        _recentlyDeleted.compareAndSet(deleted, null)
+        db.withTransaction {
+            val entry = deleted.entry
+            val restored = if (entry.endUtc == null && entries.getRunning() != null) entry.copy(endUtc = deleted.deletedAt) else entry
+            entries.insert(restored)
+        }
+    }
+
+    fun forgetDeleted(deleted: DeletedEntry) {
+        _recentlyDeleted.compareAndSet(deleted, null)
+    }
+
     /** Too-short entries are deleted; an empty one (stopped in the same millisecond) always is. */
     private suspend fun finish(entry: Entry, now: Long, minDurationMillis: Long): Finished {
         val finished = entry.copy(endUtc = maxOf(now, entry.startUtc), updatedAt = now)
@@ -91,3 +159,11 @@ class TrackingRepository(private val db: LehrZeitDatabase) {
 data class Finished(val entry: Entry, val discarded: Boolean)
 
 data class StartResult(val started: Boolean, val previous: Finished?)
+
+data class DeletedEntry(val entry: Entry, val deletedAt: Long)
+
+sealed interface SaveEntryResult {
+    data class Saved(val id: Long) : SaveEntryResult
+    data class Blocked(val by: Entry) : SaveEntryResult
+    data object Stale : SaveEntryResult
+}

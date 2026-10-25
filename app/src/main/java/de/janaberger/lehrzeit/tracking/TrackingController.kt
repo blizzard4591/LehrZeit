@@ -7,8 +7,8 @@ import de.janaberger.lehrzeit.data.AppPreferences
 import de.janaberger.lehrzeit.data.CatalogRepository
 import de.janaberger.lehrzeit.data.Combo
 import de.janaberger.lehrzeit.data.ComboKey
+import de.janaberger.lehrzeit.data.EntryRepository
 import de.janaberger.lehrzeit.data.PausedState
-import de.janaberger.lehrzeit.data.TrackingRepository
 import de.janaberger.lehrzeit.data.comboKey
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.first
@@ -24,7 +24,7 @@ import kotlinx.coroutines.withContext
  * Methods that end an entry return true if it was discarded for being too short.
  */
 class TrackingController(
-    private val tracking: TrackingRepository,
+    private val entries: EntryRepository,
     private val catalog: CatalogRepository,
     private val preferences: AppPreferences,
     private val notifier: TrackingNotifier,
@@ -36,17 +36,17 @@ class TrackingController(
     /** Starts [key]; a running entry for another combination ends at the same instant. */
     suspend fun start(key: ComboKey): Boolean = change {
         preferences.setPaused(null)
-        tracking.start(key, now(), minDurationMillis()).previous?.discarded == true
+        entries.start(key, now(), minDurationMillis()).previous?.discarded == true
     }
 
     suspend fun stop(): Boolean = change {
         preferences.setPaused(null)
-        tracking.stop(now(), minDurationMillis())?.discarded == true
+        entries.stop(now(), minDurationMillis())?.discarded == true
     }
 
     /** Ends the running entry and remembers its combination for [resume]. */
     suspend fun pause(): Boolean = change {
-        val finished = tracking.stop(now(), minDurationMillis()) ?: return@change false
+        val finished = entries.stop(now(), minDurationMillis()) ?: return@change false
         preferences.setPaused(PausedState(finished.entry.comboKey, now()))
         finished.discarded
     }
@@ -54,7 +54,7 @@ class TrackingController(
     suspend fun resume() = change {
         val paused = preferences.getPaused() ?: return@change
         preferences.setPaused(null)
-        tracking.start(paused.key, now())
+        entries.start(paused.key, now())
     }
 
     /** Forgets the paused combination. */
@@ -63,7 +63,7 @@ class TrackingController(
     }
 
     suspend fun adjustRunningStart(deltaMillis: Long) = change {
-        tracking.adjustRunningStart(deltaMillis, now())
+        entries.adjustRunningStart(deltaMillis, now())
     }
 
     /**
@@ -71,7 +71,7 @@ class TrackingController(
      * a paused one stays away, and the pause is forgotten.
      */
     suspend fun onNotificationDismissed() = change {
-        if (tracking.getRunning() == null) preferences.setPaused(null)
+        if (entries.getRunning() == null) preferences.setPaused(null)
     }
 
     /** Makes the notification match the stored state, e.g. after a reboot or an app update. */
@@ -88,7 +88,7 @@ class TrackingController(
     }
 
     private suspend fun updateNotification() {
-        val running = tracking.getRunning()
+        val running = entries.getRunning()
         if (running != null) {
             notifier.showRunning(Combo(running.account, running.activity).label(generalName()), running.entry.startUtc)
             return

@@ -43,7 +43,8 @@ private data class PickerGroup(val account: Account, val activities: List<WorkAc
 
 /**
  * All bookable accounts with their activities. Tapping an account books it alone; tapping an
- * activity books the combination. The star pins a combination to the home screen.
+ * activity books the combination. The star pins a combination to the home screen; it and the
+ * "Manage accounts" link are left out when their callback is null.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,8 +52,8 @@ fun PickerSheet(
     snapshot: CatalogSnapshot,
     favorites: Set<ComboKey>,
     onSelect: (ComboKey) -> Unit,
-    onToggleFavorite: (ComboKey) -> Unit,
-    onManageAccounts: () -> Unit,
+    onToggleFavorite: ((ComboKey) -> Unit)?,
+    onManageAccounts: (() -> Unit)?,
     onDismiss: () -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
@@ -90,7 +91,9 @@ fun PickerSheet(
                         trailingContent = {
                             Row {
                                 // General is always on the home screen, so it can't be pinned.
-                                if (!account.isGeneral) FavoriteButton(isFavorite = key in favorites, onClick = { onToggleFavorite(key) })
+                                if (!account.isGeneral && onToggleFavorite != null) {
+                                    FavoriteButton(isFavorite = key in favorites, onClick = { onToggleFavorite(key) })
+                                }
                                 if (group.activities.isNotEmpty() && !searching) {
                                     IconButton(onClick = { expanded = if (isExpanded) expanded - account.id else expanded + account.id }) {
                                         Icon(
@@ -110,15 +113,19 @@ fun PickerSheet(
                         ListItem(
                             headlineContent = { Text(activity.name) },
                             leadingContent = { Spacer(Modifier.width(24.dp)) },
-                            trailingContent = { FavoriteButton(isFavorite = key in favorites, onClick = { onToggleFavorite(key) }) },
+                            trailingContent = onToggleFavorite?.let { toggle ->
+                                { FavoriteButton(isFavorite = key in favorites, onClick = { toggle(key) }) }
+                            },
                             modifier = Modifier.clickable { onSelect(key) },
                         )
                     }
                 }
             }
-            item(key = "manage") {
-                TextButton(onClick = onManageAccounts, modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
-                    Text(stringResource(R.string.picker_manage))
+            if (onManageAccounts != null) {
+                item(key = "manage") {
+                    TextButton(onClick = onManageAccounts, modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
+                        Text(stringResource(R.string.picker_manage))
+                    }
                 }
             }
         }

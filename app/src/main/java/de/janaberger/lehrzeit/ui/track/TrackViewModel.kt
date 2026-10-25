@@ -10,32 +10,29 @@ import de.janaberger.lehrzeit.data.CatalogRepository
 import de.janaberger.lehrzeit.data.CatalogSnapshot
 import de.janaberger.lehrzeit.data.Combo
 import de.janaberger.lehrzeit.data.ComboKey
+import de.janaberger.lehrzeit.data.DeletedEntry
+import de.janaberger.lehrzeit.data.EntryRepository
 import de.janaberger.lehrzeit.data.ShortEntrySettings
-import de.janaberger.lehrzeit.data.TrackingRepository
 import de.janaberger.lehrzeit.data.db.Entry
 import de.janaberger.lehrzeit.time.DayBounds
-import de.janaberger.lehrzeit.time.dayBounds
+import de.janaberger.lehrzeit.time.currentDayFlow
 import de.janaberger.lehrzeit.tracking.TrackingController
 import de.janaberger.lehrzeit.tracking.buildTiles
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.ZoneId
 import kotlin.time.Duration.Companion.days
 
-data class RunningUi(val combo: Combo, val startUtc: Long)
+data class RunningUi(val entryId: Long, val combo: Combo, val startUtc: Long)
 
 data class PausedUi(val combo: Combo, val pausedAt: Long)
 
@@ -55,7 +52,7 @@ data class TrackUiState(
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class TrackViewModel(
-    private val tracking: TrackingRepository,
+    private val entries: EntryRepository,
     catalog: CatalogRepository,
     preferences: AppPreferences,
     private val controller: TrackingController,
@@ -69,32 +66,22 @@ class TrackViewModel(
     /** Emits the minimum length in seconds each time an entry was discarded for being shorter. */
     val discardedNotices: Flow<Int> = discardedChannel.receiveAsFlow()
 
-    /** Emits the current day and again right after each midnight. */
-    private val today: Flow<DayBounds> = flow {
-        while (true) {
-            val zone = ZoneId.systemDefault()
-            val bounds = dayBounds(LocalDate.now(zone), zone)
-            emit(bounds)
-            delay((bounds.endUtc - System.currentTimeMillis()).coerceAtLeast(0) + 1_000)
-        }
+    private val todayEntries = currentDayFlow().flatMapLatest { bounds ->
+        entries.observeEntriesOverlapping(bounds.startUtc, bounds.endUtc).map { bounds to it }
     }
 
-    private val todayEntries = today.flatMapLatest { bounds ->
-        tracking.observeEntriesOverlapping(bounds.startUtc, bounds.endUtc).map { bounds to it }
-    }
-
-    private val mostUsed = tracking.observeMostUsed(sinceUtc = System.currentTimeMillis() - 30.days.inWholeMilliseconds)
+    private val mostUsed = entries.observeMostUsed(sinceUtc = System.currentTimeMillis() - 30.days.inWholeMilliseconds)
 
     val uiState: StateFlow<TrackUiState> = combine(
         catalog.observeSnapshot(),
-        tracking.observeFavorites(),
+        entries.observeFavorites(),
         mostUsed,
-        combine(tracking.observeRunning(), preferences.paused, ::Pair),
+        combine(entries.observeRunning(), preferences.paused, ::Pair),
         combine(todayEntries, pendingSwitch, ::Pair),
     ) { snapshot, favorites, used, (running, paused), (todayData, pending) ->
         TrackUiState(
             isLoading = false,
-            running = running?.let { RunningUi(Combo(it.account, it.activity), it.entry.startUtc) },
+            running = running?.let { RunningUi(it.entry.id, Combo(it.account, it.activity), it.entry.startUtc) },
             paused = paused?.takeIf { running == null }?.let { p -> snapshot.combo(p.key)?.let { PausedUi(it, p.pausedAt) } },
             tiles = buildTiles(snapshot, favorites, used),
             snapshot = snapshot,
@@ -104,6 +91,17 @@ class TrackViewModel(
             pendingSwitch = pending?.let(snapshot::combo),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TrackUiState())
+
+    val recentlyDeleted: StateFlow<DeletedEntry?> = entries.recentlyDeleted
+
+    fun undoDelete(deleted: DeletedEntry) {
+        viewModelScope.launch {
+            entries.restore(deleted)
+            controller.refreshNotification()
+        }
+    }
+
+    fun forgetDeleted(deleted: DeletedEntry) = entries.forgetDeleted(deleted)
 
     /** A tile or picker row was tapped. Switching away from a running combination asks first. */
     fun onSelect(key: ComboKey) {
@@ -146,7 +144,7 @@ class TrackViewModel(
     }
 
     fun toggleFavorite(key: ComboKey) {
-        viewModelScope.launch { tracking.toggleFavorite(key) }
+        viewModelScope.launch { entries.toggleFavorite(key) }
     }
 
     private fun notifyIfDiscarded(discarded: Boolean) {

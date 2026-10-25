@@ -16,9 +16,11 @@ import de.janaberger.lehrzeit.ui.catalog.AccountEditViewModel
 import de.janaberger.lehrzeit.ui.catalog.AccountListViewModel
 import de.janaberger.lehrzeit.ui.catalog.ActivityEditViewModel
 import de.janaberger.lehrzeit.ui.catalog.ActivityListViewModel
+import de.janaberger.lehrzeit.ui.entry.EntryEditViewModel
 import de.janaberger.lehrzeit.ui.settings.SettingsViewModel
 import de.janaberger.lehrzeit.ui.track.TrackViewModel
 import de.janaberger.lehrzeit.ui.welcome.WelcomeViewModel
+import de.janaberger.lehrzeit.ui.worklog.WorklogViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -34,9 +36,17 @@ object AppViewModelProvider {
         initializer { ActivityEditViewModel(createSavedStateHandle(), app().container.catalog) }
         initializer {
             val container = app().container
-            TrackViewModel(container.tracking, container.catalog, container.preferences, container.trackingController)
+            TrackViewModel(container.entries, container.catalog, container.preferences, container.trackingController)
         }
         initializer { SettingsViewModel(app().container.preferences) }
+        initializer {
+            val container = app().container
+            WorklogViewModel(container.entries, container.catalog, container.trackingController)
+        }
+        initializer {
+            val container = app().container
+            EntryEditViewModel(createSavedStateHandle(), container.entries, container.catalog, container.trackingController)
+        }
     }
 }
 

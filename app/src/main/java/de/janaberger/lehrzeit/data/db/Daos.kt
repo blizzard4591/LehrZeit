@@ -135,6 +135,16 @@ interface EntryDao {
     @Query("SELECT COUNT(*) FROM entry WHERE activityId = :activityId")
     suspend fun countForActivity(activityId: Long): Int
 
+    @Query("SELECT * FROM entry WHERE id = :id")
+    suspend fun get(id: Long): Entry?
+
+    @Query("SELECT MIN(startUtc) FROM entry")
+    fun observeEarliestStart(): Flow<Long?>
+
+    /** Entries overlapping [fromUtc, toUtc), including a running one. */
+    @Query("SELECT * FROM entry WHERE startUtc < :toUtc AND (endUtc IS NULL OR endUtc > :fromUtc) ORDER BY startUtc")
+    suspend fun getOverlapping(fromUtc: Long, toUtc: Long): List<Entry>
+
     @Query("SELECT * FROM entry WHERE endUtc IS NULL LIMIT 1")
     suspend fun getRunning(): Entry?
 
