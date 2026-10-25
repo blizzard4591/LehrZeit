@@ -114,6 +114,24 @@
     <string name="channel_tracking_name">Running timer</string>
     <string name="channel_tracking_description">Shows the running timer with Pause and Stop.</string>
 
+    <string name="discarded_short">Entry discarded: shorter than %s</string>
+    <plurals name="duration_seconds">
+        <item quantity="one">%d second</item>
+        <item quantity="other">%d seconds</item>
+    </plurals>
+    <plurals name="duration_minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="more_settings_summary">Short entries and other options</string>
+    <string name="settings_section_tracking">Tracking</string>
+    <string name="settings_discard_short">Discard short entries</string>
+    <string name="settings_discard_short_summary">If a timer is stopped, paused or switched before the minimum length, its entry is deleted, e.g. after tapping the wrong tile. Entries you add or edit yourself are always kept.</string>
+    <string name="settings_min_length">Minimum length</string>
+
     <!-- Seeded once at first launch; afterwards they are ordinary, editable data. -->
     <string-array name="starter_activities">
         <item>Teaching</item>

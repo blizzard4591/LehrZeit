@@ -42,24 +42,25 @@ class TrackingRepository(private val db: LehrZeitDatabase) {
     }
 
     /**
-     * Starts [key] at [now]. A running entry for another combination ends at the same instant.
-     * Returns false if [key] is already running.
+     * Starts [key] at [now]. A running entry for another combination ends at the same instant
+     * (and is discarded if shorter than [minDurationMillis]). Nothing happens if [key] is already running.
      */
-    suspend fun start(key: ComboKey, now: Long): Boolean = db.withTransaction {
+    suspend fun start(key: ComboKey, now: Long, minDurationMillis: Long = 0): StartResult = db.withTransaction {
         val running = entries.getRunning()
-        if (running != null) {
-            if (running.comboKey == key) return@withTransaction false
-            finish(running, now)
-        }
+        if (running != null && running.comboKey == key) return@withTransaction StartResult(started = false, previous = null)
+        val previous = running?.let { finish(it, now, minDurationMillis) }
         entries.insert(
             Entry(accountId = key.accountId, activityId = key.activityId, startUtc = now, endUtc = null, createdAt = now, updatedAt = now),
         )
-        true
+        StartResult(started = true, previous = previous)
     }
 
-    /** Ends the running entry at [now]. Returns the finished entry, or null if nothing was running. */
-    suspend fun stop(now: Long): Entry? = db.withTransaction {
-        entries.getRunning()?.let { finish(it, now) }
+    /**
+     * Ends the running entry at [now], discarding it if shorter than [minDurationMillis].
+     * Returns null if nothing was running.
+     */
+    suspend fun stop(now: Long, minDurationMillis: Long = 0): Finished? = db.withTransaction {
+        entries.getRunning()?.let { finish(it, now, minDurationMillis) }
     }
 
     /**
@@ -75,14 +76,18 @@ class TrackingRepository(private val db: LehrZeitDatabase) {
         true
     }
 
-    /** An entry stopped within the same millisecond it started would be empty, so it is removed. */
-    private suspend fun finish(entry: Entry, now: Long): Entry {
-        if (now <= entry.startUtc) {
+    /** Too-short entries are deleted; an empty one (stopped in the same millisecond) always is. */
+    private suspend fun finish(entry: Entry, now: Long, minDurationMillis: Long): Finished {
+        val finished = entry.copy(endUtc = maxOf(now, entry.startUtc), updatedAt = now)
+        if (finished.endUtc!! - entry.startUtc < maxOf(minDurationMillis, 1)) {
             entries.delete(entry)
-            return entry.copy(endUtc = entry.startUtc)
+            return Finished(finished, discarded = true)
         }
-        val finished = entry.copy(endUtc = now, updatedAt = now)
         entries.update(finished)
-        return finished
+        return Finished(finished, discarded = false)
     }
 }
+
+data class Finished(val entry: Entry, val discarded: Boolean)
+
+data class StartResult(val started: Boolean, val previous: Finished?)

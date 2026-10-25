@@ -19,6 +19,7 @@ import kotlinx.serialization.Serializable
 @Serializable data class AccountEditRoute(val id: Long? = null)
 @Serializable data object ActivitiesRoute
 @Serializable data class ActivityEditRoute(val id: Long? = null)
+@Serializable data object SettingsRoute
 
 /** The four tabs of the bottom navigation bar, in display order. */
 enum class TopLevelDestination(

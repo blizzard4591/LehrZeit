@@ -11,6 +11,7 @@ import de.janaberger.lehrzeit.data.PausedState
 import de.janaberger.lehrzeit.data.TrackingRepository
 import de.janaberger.lehrzeit.data.comboKey
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -19,6 +20,8 @@ import kotlinx.coroutines.withContext
  * The one place that changes the tracking state, used by the UI and by the notification buttons.
  * Every change updates the notification. Changes run to completion even if the caller is cancelled,
  * so the database and the notification can't drift apart.
+ *
+ * Methods that end an entry return true if it was discarded for being too short.
  */
 class TrackingController(
     private val tracking: TrackingRepository,
@@ -31,19 +34,21 @@ class TrackingController(
     private val mutex = Mutex()
 
     /** Starts [key]; a running entry for another combination ends at the same instant. */
-    suspend fun start(key: ComboKey) = change {
+    suspend fun start(key: ComboKey): Boolean = change {
         preferences.setPaused(null)
-        tracking.start(key, now())
+        tracking.start(key, now(), minDurationMillis()).previous?.discarded == true
     }
 
-    suspend fun stop() = change {
+    suspend fun stop(): Boolean = change {
         preferences.setPaused(null)
-        tracking.stop(now())
+        tracking.stop(now(), minDurationMillis())?.discarded == true
     }
 
-    suspend fun pause() = change {
-        val finished = tracking.stop(now()) ?: return@change
-        preferences.setPaused(PausedState(finished.comboKey, now()))
+    /** Ends the running entry and remembers its combination for [resume]. */
+    suspend fun pause(): Boolean = change {
+        val finished = tracking.stop(now(), minDurationMillis()) ?: return@change false
+        preferences.setPaused(PausedState(finished.entry.comboKey, now()))
+        finished.discarded
     }
 
     suspend fun resume() = change {
@@ -72,10 +77,13 @@ class TrackingController(
     /** Makes the notification match the stored state, e.g. after a reboot or an app update. */
     suspend fun refreshNotification() = change {}
 
-    private suspend fun change(block: suspend () -> Unit) = withContext(NonCancellable) {
+    private suspend fun minDurationMillis(): Long = preferences.shortEntries.first().minMillis
+
+    private suspend fun <T> change(block: suspend () -> T): T = withContext(NonCancellable) {
         mutex.withLock {
-            block()
+            val result = block()
             updateNotification()
+            result
         }
     }
 

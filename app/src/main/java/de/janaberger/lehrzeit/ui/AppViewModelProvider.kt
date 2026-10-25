@@ -16,6 +16,7 @@ import de.janaberger.lehrzeit.ui.catalog.AccountEditViewModel
 import de.janaberger.lehrzeit.ui.catalog.AccountListViewModel
 import de.janaberger.lehrzeit.ui.catalog.ActivityEditViewModel
 import de.janaberger.lehrzeit.ui.catalog.ActivityListViewModel
+import de.janaberger.lehrzeit.ui.settings.SettingsViewModel
 import de.janaberger.lehrzeit.ui.track.TrackViewModel
 import de.janaberger.lehrzeit.ui.welcome.WelcomeViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -35,6 +36,7 @@ object AppViewModelProvider {
             val container = app().container
             TrackViewModel(container.tracking, container.catalog, container.preferences, container.trackingController)
         }
+        initializer { SettingsViewModel(app().container.preferences) }
     }
 }
 

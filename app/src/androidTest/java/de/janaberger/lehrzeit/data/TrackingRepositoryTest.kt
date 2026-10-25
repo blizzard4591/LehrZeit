@@ -50,8 +50,8 @@ class TrackingRepositoryTest {
 
     @Test
     fun start_thenStartingTheSameAgain_doesNothing() = runTest {
-        assertTrue(tracking.start(a, now = 1_000))
-        assertFalse(tracking.start(a, now = 2_000))
+        assertTrue(tracking.start(a, now = 1_000).started)
+        assertFalse(tracking.start(a, now = 2_000).started)
 
         val running = tracking.getRunning()!!
         assertEquals(a, running.entry.comboKey)
@@ -75,7 +75,7 @@ class TrackingRepositoryTest {
     fun stop_finishesTheRunningEntry_andDoesNothingWhenIdle() = runTest {
         tracking.start(a, now = 1_000)
 
-        assertEquals(9_000L, tracking.stop(now = 9_000)!!.endUtc)
+        assertEquals(9_000L, tracking.stop(now = 9_000)!!.entry.endUtc)
         assertNull(tracking.getRunning())
         assertNull(tracking.stop(now = 10_000))
     }
@@ -86,6 +86,18 @@ class TrackingRepositoryTest {
         tracking.stop(now = 1_000)
 
         assertTrue(allEntries().isEmpty())
+    }
+
+    @Test
+    fun entriesShorterThanTheMinimum_areDiscardedOnStopAndSwitch() = runTest {
+        tracking.start(a, now = 0)
+        val switched = tracking.start(b, now = 30_000, minDurationMillis = 60_000)
+        assertTrue(switched.started)
+        assertTrue(switched.previous!!.discarded)
+
+        val stopped = tracking.stop(now = 30_000 + 60_000, minDurationMillis = 60_000)!!
+        assertFalse(stopped.discarded) // exactly the minimum is kept
+        assertEquals(listOf(b), allEntries().map { it.comboKey })
     }
 
     @Test

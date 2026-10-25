@@ -10,6 +10,7 @@ import de.janaberger.lehrzeit.data.CatalogRepository
 import de.janaberger.lehrzeit.data.CatalogSnapshot
 import de.janaberger.lehrzeit.data.Combo
 import de.janaberger.lehrzeit.data.ComboKey
+import de.janaberger.lehrzeit.data.ShortEntrySettings
 import de.janaberger.lehrzeit.data.TrackingRepository
 import de.janaberger.lehrzeit.data.db.Entry
 import de.janaberger.lehrzeit.time.DayBounds
@@ -17,6 +18,7 @@ import de.janaberger.lehrzeit.time.dayBounds
 import de.janaberger.lehrzeit.tracking.TrackingController
 import de.janaberger.lehrzeit.tracking.buildTiles
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,6 +28,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -58,6 +61,13 @@ class TrackViewModel(
     private val controller: TrackingController,
 ) : ViewModel() {
     private val pendingSwitch = MutableStateFlow<ComboKey?>(null)
+
+    private val shortEntries = preferences.shortEntries.stateIn(viewModelScope, SharingStarted.Eagerly, ShortEntrySettings())
+
+    private val discardedChannel = Channel<Int>(Channel.BUFFERED)
+
+    /** Emits the minimum length in seconds each time an entry was discarded for being shorter. */
+    val discardedNotices: Flow<Int> = discardedChannel.receiveAsFlow()
 
     /** Emits the current day and again right after each midnight. */
     private val today: Flow<DayBounds> = flow {
@@ -99,7 +109,7 @@ class TrackViewModel(
     fun onSelect(key: ComboKey) {
         val running = uiState.value.running
         when {
-            running == null -> viewModelScope.launch { controller.start(key) }
+            running == null -> viewModelScope.launch { notifyIfDiscarded(controller.start(key)) }
             running.combo.key == key -> Unit
             else -> pendingSwitch.value = key
         }
@@ -108,7 +118,7 @@ class TrackViewModel(
     fun confirmSwitch() {
         val key = pendingSwitch.value ?: return
         pendingSwitch.value = null
-        viewModelScope.launch { controller.start(key) }
+        viewModelScope.launch { notifyIfDiscarded(controller.start(key)) }
     }
 
     fun cancelSwitch() {
@@ -116,11 +126,11 @@ class TrackViewModel(
     }
 
     fun stop() {
-        viewModelScope.launch { controller.stop() }
+        viewModelScope.launch { notifyIfDiscarded(controller.stop()) }
     }
 
     fun pause() {
-        viewModelScope.launch { controller.pause() }
+        viewModelScope.launch { notifyIfDiscarded(controller.pause()) }
     }
 
     fun resume() {
@@ -137,6 +147,10 @@ class TrackViewModel(
 
     fun toggleFavorite(key: ComboKey) {
         viewModelScope.launch { tracking.toggleFavorite(key) }
+    }
+
+    private fun notifyIfDiscarded(discarded: Boolean) {
+        if (discarded) discardedChannel.trySend(shortEntries.value.minSeconds)
     }
 
     /** Called once notifications were allowed, so a timer started before that gets its notification. */

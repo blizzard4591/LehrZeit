@@ -57,11 +57,12 @@ Status: product decisions agreed on 2026-10-25. Items under [Defaults](#defaults
 - Tapping a combination when nothing is running starts it immediately.
 - Tapping a different combination while one runs shows a confirmation: "Stop A and start B?" Confirming ends A and starts B at the same instant.
 - **Pause** ends the current entry and remembers the combination, so **Resume** starts a new entry for it.
+- **Short entries:** an entry shorter than the minimum length (default 1 minute) is discarded when its timer is stopped, paused or switched, and the app says so. Under More › Settings this can be turned off or set from 30 seconds to 10 minutes. Entries added or edited by hand are never discarded.
 - **Forgotten timer:** after a configurable time, a reminder notification asks "Still on 7b › Correcting?" with *Stop* / *Keep going*. Nothing is changed automatically.
 
 **Notification**
 - Ongoing notification showing the combination and a live timer. Android draws the timer from the start timestamp, so the app doesn't need to keep running.
-- Actions: **Stop <combination>**, **Pause**. When paused, the notification shows **Resume**.
+- Actions: **Pause** and **Stop**, with the combination as the notification's title right above them (confirmed 2026-10-25; Android cuts off long button labels). When paused, the notification shows **Resume**.
 - If the user swipes the running notification away (always possible on Android 13+), tracking continues and the notification is posted again immediately.
 
 **Home tiles**
@@ -171,7 +172,7 @@ Bottom navigation: **Track · Worklog · Stats · More** (DE: Erfassen · Protok
    - General is pinned at the top and cannot be archived.
 9. **Manage activities**: the shared catalog. Add, rename, reorder, archive.
 10. **Backup & restore**: create a backup file, or restore one after a confirmation.
-11. **Settings**: reminder on/off and after how many hours, and a shortcut to the system's per-app language setting.
+11. **Settings**: discard short entries (on/off and minimum length), reminder on/off and after how many hours, and a shortcut to the system's per-app language setting.
 12. **About**: version, license (GPL-3.0), source code link, and licenses of the libraries used.
 
 ## Data model (Room)
@@ -247,7 +248,6 @@ Unit tests cover the time arithmetic: midnight split, the summer/winter time cha
 - The German UI addresses the user with "du".
 - While there is little history, free home tiles are filled with the accounts on their own (e.g. "7b"), so the home screen is useful from day one.
 - Tapping the tile that is already running does nothing.
-- The notification buttons read "Pause" and "Stop"; the combination is the notification's title right above them. Android cuts off long button labels, so "Stop 9a Mathe › Correcting" wouldn't fit.
 - Swiping away the paused notification also clears the paused card in the app.
 - The "notifications are off" banner only appears while a timer runs or is paused, so it never shows before the first permission prompt.
 - The −5/+5 min buttons on the running card can't move the start before the previous entry's end or after now. Setting an exact start time comes with the worklog edit sheet (milestone 4).

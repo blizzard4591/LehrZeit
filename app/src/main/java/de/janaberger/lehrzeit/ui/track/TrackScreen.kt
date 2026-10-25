@@ -41,7 +41,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -74,6 +77,7 @@ import de.janaberger.lehrzeit.ui.AppViewModelProvider
 import de.janaberger.lehrzeit.ui.components.ColorDot
 import de.janaberger.lehrzeit.ui.components.displayName
 import de.janaberger.lehrzeit.ui.components.label
+import de.janaberger.lehrzeit.ui.components.minLengthText
 import de.janaberger.lehrzeit.ui.components.rememberNow
 import de.janaberger.lehrzeit.ui.components.timeOfDay
 
@@ -98,8 +102,18 @@ fun TrackScreen(
     }
     var showPicker by rememberSaveable { mutableStateOf(false) }
     val now by rememberNow(ticking = state.running != null)
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(viewModel) {
+        viewModel.discardedNotices.collect { seconds ->
+            val resources = context.resources
+            snackbarHostState.showSnackbar(resources.getString(R.string.discarded_short, minLengthText(resources, seconds)))
+        }
+    }
 
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.nav_track)) }) }) { padding ->
+    Scaffold(
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.nav_track)) }) },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { padding ->
         if (state.isLoading) return@Scaffold
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 150.dp),

@@ -112,6 +112,24 @@
     <string name="channel_tracking_name">Laufender Timer</string>
     <string name="channel_tracking_description">Zeigt den laufenden Timer mit Pause und Stopp.</string>
 
+    <string name="discarded_short">Eintrag verworfen: kürzer als %s</string>
+    <plurals name="duration_seconds">
+        <item quantity="one">%d Sekunde</item>
+        <item quantity="other">%d Sekunden</item>
+    </plurals>
+    <plurals name="duration_minutes">
+        <item quantity="one">%d Minute</item>
+        <item quantity="other">%d Minuten</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="settings_title">Einstellungen</string>
+    <string name="more_settings_summary">Kurze Einträge und weitere Optionen</string>
+    <string name="settings_section_tracking">Zeiterfassung</string>
+    <string name="settings_discard_short">Kurze Einträge verwerfen</string>
+    <string name="settings_discard_short_summary">Wird ein Timer vor Ablauf der Mindestdauer beendet, pausiert oder gewechselt, wird sein Eintrag gelöscht, z. B. nach einem versehentlichen Tippen. Selbst angelegte oder bearbeitete Einträge bleiben immer erhalten.</string>
+    <string name="settings_min_length">Mindestdauer</string>
+
     <string-array name="starter_activities">
         <item>Unterricht</item>
         <item>Unterrichtsvorbereitung</item>

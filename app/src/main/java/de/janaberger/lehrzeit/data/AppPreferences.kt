@@ -6,6 +6,7 @@ package de.janaberger.lehrzeit.data
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -17,11 +18,22 @@ private val Context.dataStore by preferencesDataStore(name = "settings")
 /** "Paused" means nothing runs, but [key] is remembered so Resume can start it again. */
 data class PausedState(val key: ComboKey, val pausedAt: Long)
 
+/** Entries shorter than [minSeconds] are discarded when a timer stops, e.g. after tapping the wrong tile. */
+data class ShortEntrySettings(val enabled: Boolean = true, val minSeconds: Int = 60) {
+    val minMillis: Long get() = if (enabled) minSeconds * 1_000L else 0L
+
+    companion object {
+        val CHOICES_SECONDS = listOf(30, 60, 120, 180, 300, 600)
+    }
+}
+
 class AppPreferences(private val context: Context) {
     private val onboardingDoneKey = booleanPreferencesKey("onboarding_done")
     private val pausedAccountKey = longPreferencesKey("paused_account")
     private val pausedActivityKey = longPreferencesKey("paused_activity")
     private val pausedAtKey = longPreferencesKey("paused_at")
+    private val discardShortKey = booleanPreferencesKey("discard_short_entries")
+    private val minEntrySecondsKey = intPreferencesKey("min_entry_seconds")
 
     val onboardingCompleted: Flow<Boolean> = context.dataStore.data.map { it[onboardingDoneKey] ?: false }
 
@@ -35,6 +47,21 @@ class AppPreferences(private val context: Context) {
     }
 
     suspend fun getPaused(): PausedState? = paused.first()
+
+    val shortEntries: Flow<ShortEntrySettings> = context.dataStore.data.map { prefs ->
+        val defaults = ShortEntrySettings()
+        ShortEntrySettings(
+            enabled = prefs[discardShortKey] ?: defaults.enabled,
+            minSeconds = prefs[minEntrySecondsKey] ?: defaults.minSeconds,
+        )
+    }
+
+    suspend fun setShortEntries(settings: ShortEntrySettings) {
+        context.dataStore.edit {
+            it[discardShortKey] = settings.enabled
+            it[minEntrySecondsKey] = settings.minSeconds
+        }
+    }
 
     suspend fun setPaused(state: PausedState?) {
         context.dataStore.edit { prefs ->
