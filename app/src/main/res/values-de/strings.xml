@@ -1,0 +1,8 @@
+<resources>
+    <string name="nav_track">Erfassen</string>
+    <string name="nav_worklog">Protokoll</string>
+    <string name="nav_stats">Statistik</string>
+    <string name="nav_more">Mehr</string>
+
+    <string name="placeholder_coming_soon">Kommt bald</string>
+</resources>

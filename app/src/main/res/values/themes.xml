@@ -1,0 +1,7 @@
+<resources>
+    <!-- Only visible while the app starts; Compose draws everything else. -->
+    <style name="Theme.LehrZeit" parent="android:Theme.DeviceDefault.DayNight">
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+</resources>
