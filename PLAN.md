@@ -18,7 +18,7 @@ Status: product decisions agreed on 2026-10-25. Items under [Defaults](#defaults
 | Term (code / EN UI) | DE UI | Meaning |
 |---|---|---|
 | Account | Konto | Top level of what time is booked on, e.g. "7b", "Fachschaft Mathe", "General" |
-| Activity | Tätigkeit | Second level, from one shared catalog, e.g. "Correcting", "Lesson prep" |
+| Activity (code: `WorkActivity`) | Tätigkeit | Second level, from one shared catalog, e.g. "Correcting", "Lesson prep" |
 | Combination | – | Account + optional activity, e.g. "7b › Correcting" or just "7b" |
 | Entry | Eintrag | One booked time span: combination, start, end, note |
 | Worklog | Protokoll | List of all entries |
@@ -210,7 +210,7 @@ Entry            id, accountId, activityId?, startUtc, endUtc?, note, createdAt,
 ## Milestones
 
 1. **(done 2026-10-25)** Skeleton: Gradle setup, Compose, navigation, string resources in both languages, LICENSE, README.
-2. Data layer: entities, DAOs, General seeding, account and activity management screens.
+2. **(done 2026-10-25)** Data layer: entities, DAOs, General seeding, welcome setup, account and activity management screens.
 3. Tracking: Track screen, picker, switch confirmation, notification (Stop, Pause, Resume, re-post after swipe, reboot).
 4. Worklog and edit sheet, with nudge buttons and overlap handling.
 5. Stats.
@@ -242,5 +242,8 @@ Unit tests cover the time arithmetic: midnight split, the summer/winter time cha
 - Android's own backup (`allowBackup`) stays enabled as a bonus. It only does anything if the user has turned on backup on the phone.
 - Accounts and activities can be deleted only while they have no entries. After that they can only be archived.
 - A new activity starts out enabled for no account, consistent with new accounts. The exception is an activity created from the picker inside an account, which is enabled for that account.
+- Names are at most 40 characters. They must be unique among non-archived items, ignoring case, and an account can't be called "General"/"Allgemein". Archived items don't block a name, so next school year's "7b" can exist next to last year's archived one. Restoring a duplicate from the archive asks for a rename first.
+- In the editors, *Archive* and *Restore from archive* also save the other changes on the screen. Leaving with unsaved changes asks first. An item restored from the archive goes to the end of its list.
+- The German UI addresses the user with "du".
 
 Confirmed on 2026-10-25: the overlap edge cases, leaving running entries out of exports, and restore replacing all data.

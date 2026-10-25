@@ -7,4 +7,94 @@
     <string name="nav_more">More</string>
 
     <string name="placeholder_coming_soon">Coming soon</string>
+
+    <!-- Common actions -->
+    <string name="action_back">Back</string>
+    <string name="action_save">Save</string>
+    <string name="action_add">Add</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_archive">Archive</string>
+    <string name="action_unarchive">Restore from archive</string>
+    <string name="action_discard">Discard</string>
+    <string name="action_keep_editing">Keep editing</string>
+    <string name="action_select_all">All</string>
+    <string name="action_select_none">None</string>
+    <string name="action_reorder">Reorder</string>
+
+    <!-- Shared by account and activity editors -->
+    <string name="field_name">Name</string>
+    <string name="error_name_empty">Enter a name</string>
+    <string name="error_name_taken">This name is already in use</string>
+    <string name="archived_header">Archived (%d)</string>
+    <string name="discard_title">Discard changes?</string>
+    <string name="delete_confirm_title">Delete “%s”?</string>
+    <string name="delete_confirm_text">This can’t be undone.</string>
+    <plurals name="delete_blocked">
+        <item quantity="one">Has %d entry, so it can only be archived.</item>
+        <item quantity="other">Has %d entries, so it can only be archived.</item>
+    </plurals>
+
+    <!-- More tab -->
+    <string name="more_accounts_summary">Your classes and areas</string>
+    <string name="more_activities_summary">What you work on, e.g. correcting</string>
+
+    <!-- Accounts -->
+    <string name="account_general">General</string>
+    <string name="accounts_title">Accounts</string>
+    <string name="accounts_add">Add account</string>
+    <string name="accounts_general_summary">Always available, without activities</string>
+    <string name="accounts_empty">No accounts yet. Add your classes or areas with +.</string>
+    <string name="account_new_title">New account</string>
+    <string name="account_edit_title">Edit account</string>
+    <string name="account_color">Color</string>
+    <string name="account_general_locked">General can’t be renamed, archived or deleted.</string>
+    <string name="account_activities_hint">Which activities can be booked on this account?</string>
+    <string name="account_activities_empty">No activities yet. Add them under More › Activities.</string>
+    <string name="account_archived_note">This account is archived. It isn’t offered for tracking, but its entries are kept.</string>
+    <string name="account_no_activities">No activities</string>
+    <plurals name="account_activity_count">
+        <item quantity="one">%d activity</item>
+        <item quantity="other">%d activities</item>
+    </plurals>
+
+    <!-- Activities -->
+    <string name="activities_title">Activities</string>
+    <string name="activities_add">Add activity</string>
+    <string name="activities_empty">No activities yet. Add one with +.</string>
+    <string name="activity_new_title">New activity</string>
+    <string name="activity_edit_title">Edit activity</string>
+    <string name="activity_accounts_hint">On which accounts can this activity be booked?</string>
+    <string name="activity_accounts_empty">No accounts yet. Add them under More › Accounts.</string>
+    <string name="activity_archived_note">This activity is archived. It isn’t offered for tracking, but its entries are kept.</string>
+    <string name="activity_no_accounts">Not offered by any account</string>
+    <plurals name="activity_account_count">
+        <item quantity="one">Offered by %d account</item>
+        <item quantity="other">Offered by %d accounts</item>
+    </plurals>
+
+    <!-- Welcome setup -->
+    <string name="welcome_title">Welcome to LehrZeit</string>
+    <string name="welcome_intro">LehrZeit records your working time on accounts: your classes or areas, such as “7b” or “Maths department”. For each account you can also note what you did, such as correcting or lesson prep.</string>
+    <string name="welcome_question">Which classes or areas do you work for?</string>
+    <string name="welcome_field">Class or area</string>
+    <string name="welcome_note">Each one gets all starter activities. “General” is always there for everything else. You can change all of this later under More › Accounts.</string>
+    <string name="welcome_error_duplicate">Already added</string>
+    <string name="welcome_remove">Remove %s</string>
+    <string name="welcome_skip">Skip</string>
+    <string name="welcome_done">Done</string>
+
+    <!-- Seeded once at first launch; afterwards they are ordinary, editable data. -->
+    <string-array name="starter_activities">
+        <item>Teaching</item>
+        <item>Lesson prep</item>
+        <item>Correcting</item>
+        <item>Exams</item>
+        <item>Meetings &amp; conferences</item>
+        <item>Parent communication</item>
+        <item>Supervision</item>
+        <item>Trips &amp; events</item>
+        <item>Further training</item>
+        <item>Administration</item>
+    </string-array>
 </resources>

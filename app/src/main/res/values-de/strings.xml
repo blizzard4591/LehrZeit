@@ -5,4 +5,93 @@
     <string name="nav_more">Mehr</string>
 
     <string name="placeholder_coming_soon">Kommt bald</string>
+
+    <!-- Common actions -->
+    <string name="action_back">Zurück</string>
+    <string name="action_save">Speichern</string>
+    <string name="action_add">Hinzufügen</string>
+    <string name="action_cancel">Abbrechen</string>
+    <string name="action_delete">Löschen</string>
+    <string name="action_archive">Archivieren</string>
+    <string name="action_unarchive">Aus dem Archiv holen</string>
+    <string name="action_discard">Verwerfen</string>
+    <string name="action_keep_editing">Weiter bearbeiten</string>
+    <string name="action_select_all">Alle</string>
+    <string name="action_select_none">Keine</string>
+    <string name="action_reorder">Verschieben</string>
+
+    <!-- Shared by account and activity editors -->
+    <string name="field_name">Name</string>
+    <string name="error_name_empty">Bitte einen Namen eingeben</string>
+    <string name="error_name_taken">Dieser Name ist schon vergeben</string>
+    <string name="archived_header">Archiviert (%d)</string>
+    <string name="discard_title">Änderungen verwerfen?</string>
+    <string name="delete_confirm_title">„%s“ löschen?</string>
+    <string name="delete_confirm_text">Das kann nicht rückgängig gemacht werden.</string>
+    <plurals name="delete_blocked">
+        <item quantity="one">Hat %d Eintrag und kann deshalb nur archiviert werden.</item>
+        <item quantity="other">Hat %d Einträge und kann deshalb nur archiviert werden.</item>
+    </plurals>
+
+    <!-- More tab -->
+    <string name="more_accounts_summary">Deine Klassen und Bereiche</string>
+    <string name="more_activities_summary">Woran du arbeitest, z. B. Korrekturen</string>
+
+    <!-- Accounts -->
+    <string name="account_general">Allgemein</string>
+    <string name="accounts_title">Konten</string>
+    <string name="accounts_add">Konto hinzufügen</string>
+    <string name="accounts_general_summary">Immer verfügbar, ohne Tätigkeiten</string>
+    <string name="accounts_empty">Noch keine Konten. Füge deine Klassen oder Bereiche mit + hinzu.</string>
+    <string name="account_new_title">Neues Konto</string>
+    <string name="account_edit_title">Konto bearbeiten</string>
+    <string name="account_color">Farbe</string>
+    <string name="account_general_locked">„Allgemein“ kann nicht umbenannt, archiviert oder gelöscht werden.</string>
+    <string name="account_activities_hint">Welche Tätigkeiten können auf dieses Konto gebucht werden?</string>
+    <string name="account_activities_empty">Noch keine Tätigkeiten. Lege sie unter Mehr › Tätigkeiten an.</string>
+    <string name="account_archived_note">Dieses Konto ist archiviert. Es wird beim Erfassen nicht angeboten, seine Einträge bleiben aber erhalten.</string>
+    <string name="account_no_activities">Keine Tätigkeiten</string>
+    <plurals name="account_activity_count">
+        <item quantity="one">%d Tätigkeit</item>
+        <item quantity="other">%d Tätigkeiten</item>
+    </plurals>
+
+    <!-- Activities -->
+    <string name="activities_title">Tätigkeiten</string>
+    <string name="activities_add">Tätigkeit hinzufügen</string>
+    <string name="activities_empty">Noch keine Tätigkeiten. Lege eine mit + an.</string>
+    <string name="activity_new_title">Neue Tätigkeit</string>
+    <string name="activity_edit_title">Tätigkeit bearbeiten</string>
+    <string name="activity_accounts_hint">Auf welchen Konten kann diese Tätigkeit gebucht werden?</string>
+    <string name="activity_accounts_empty">Noch keine Konten. Lege sie unter Mehr › Konten an.</string>
+    <string name="activity_archived_note">Diese Tätigkeit ist archiviert. Sie wird beim Erfassen nicht angeboten, ihre Einträge bleiben aber erhalten.</string>
+    <string name="activity_no_accounts">Keinem Konto zugeordnet</string>
+    <plurals name="activity_account_count">
+        <item quantity="one">In %d Konto</item>
+        <item quantity="other">In %d Konten</item>
+    </plurals>
+
+    <!-- Welcome setup -->
+    <string name="welcome_title">Willkommen bei LehrZeit</string>
+    <string name="welcome_intro">LehrZeit erfasst deine Arbeitszeit auf Konten: deinen Klassen oder Bereichen, etwa „7b“ oder „Fachschaft Mathe“. Zu jedem Konto kannst du außerdem festhalten, was du gemacht hast, z. B. Korrekturen oder Unterrichtsvorbereitung.</string>
+    <string name="welcome_question">Für welche Klassen oder Bereiche arbeitest du?</string>
+    <string name="welcome_field">Klasse oder Bereich</string>
+    <string name="welcome_note">Jedes Konto bekommt alle Start-Tätigkeiten. „Allgemein“ gibt es immer für alles andere. Du kannst das alles später unter Mehr › Konten ändern.</string>
+    <string name="welcome_error_duplicate">Schon hinzugefügt</string>
+    <string name="welcome_remove">%s entfernen</string>
+    <string name="welcome_skip">Überspringen</string>
+    <string name="welcome_done">Fertig</string>
+
+    <string-array name="starter_activities">
+        <item>Unterricht</item>
+        <item>Unterrichtsvorbereitung</item>
+        <item>Korrekturen</item>
+        <item>Prüfungen</item>
+        <item>Konferenzen &amp; Besprechungen</item>
+        <item>Elternarbeit</item>
+        <item>Aufsichten</item>
+        <item>Fahrten &amp; Veranstaltungen</item>
+        <item>Fortbildung</item>
+        <item>Verwaltung</item>
+    </string-array>
 </resources>

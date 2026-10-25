@@ -1,0 +1,42 @@
+// SPDX-FileCopyrightText: 2026 Jana Berger
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+package de.janaberger.lehrzeit.ui
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import de.janaberger.lehrzeit.LehrZeitApplication
+import de.janaberger.lehrzeit.data.AppPreferences
+import de.janaberger.lehrzeit.ui.catalog.AccountEditViewModel
+import de.janaberger.lehrzeit.ui.catalog.AccountListViewModel
+import de.janaberger.lehrzeit.ui.catalog.ActivityEditViewModel
+import de.janaberger.lehrzeit.ui.catalog.ActivityListViewModel
+import de.janaberger.lehrzeit.ui.welcome.WelcomeViewModel
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+
+/** Creates every ViewModel with its dependencies from the [de.janaberger.lehrzeit.AppContainer]. */
+object AppViewModelProvider {
+    val Factory = viewModelFactory {
+        initializer { AppViewModel(app().container.preferences) }
+        initializer { WelcomeViewModel(app().container.catalog, app().container.preferences) }
+        initializer { AccountListViewModel(app().container.catalog) }
+        initializer { AccountEditViewModel(createSavedStateHandle(), app().container.catalog) }
+        initializer { ActivityListViewModel(app().container.catalog) }
+        initializer { ActivityEditViewModel(createSavedStateHandle(), app().container.catalog) }
+    }
+}
+
+private fun CreationExtras.app(): LehrZeitApplication = this[APPLICATION_KEY] as LehrZeitApplication
+
+class AppViewModel(preferences: AppPreferences) : ViewModel() {
+    /** Null until the stored value is known, so the welcome screen doesn't flash for returning users. */
+    val onboardingCompleted: StateFlow<Boolean?> =
+        preferences.onboardingCompleted.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+}

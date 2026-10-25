@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -21,22 +22,46 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import de.janaberger.lehrzeit.R
+import de.janaberger.lehrzeit.ui.catalog.AccountEditScreen
+import de.janaberger.lehrzeit.ui.catalog.AccountListScreen
+import de.janaberger.lehrzeit.ui.catalog.ActivityEditScreen
+import de.janaberger.lehrzeit.ui.catalog.ActivityListScreen
+import de.janaberger.lehrzeit.ui.more.MoreScreen
+import de.janaberger.lehrzeit.ui.navigation.AccountEditRoute
+import de.janaberger.lehrzeit.ui.navigation.AccountsRoute
+import de.janaberger.lehrzeit.ui.navigation.ActivitiesRoute
+import de.janaberger.lehrzeit.ui.navigation.ActivityEditRoute
+import de.janaberger.lehrzeit.ui.navigation.MoreGraph
 import de.janaberger.lehrzeit.ui.navigation.MoreRoute
 import de.janaberger.lehrzeit.ui.navigation.StatsRoute
 import de.janaberger.lehrzeit.ui.navigation.TopLevelDestination
 import de.janaberger.lehrzeit.ui.navigation.TrackRoute
 import de.janaberger.lehrzeit.ui.navigation.WorklogRoute
+import de.janaberger.lehrzeit.ui.welcome.WelcomeScreen
 
 @Composable
-fun LehrZeitApp() {
+fun LehrZeitApp(appViewModel: AppViewModel = viewModel(factory = AppViewModelProvider.Factory)) {
+    val onboardingCompleted by appViewModel.onboardingCompleted.collectAsStateWithLifecycle()
+    when (onboardingCompleted) {
+        null -> Surface(Modifier.fillMaxSize()) {}
+        false -> WelcomeScreen()
+        true -> MainScreen()
+    }
+}
+
+@Composable
+private fun MainScreen() {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
@@ -50,12 +75,16 @@ fun LehrZeitApp() {
                     NavigationBarItem(
                         selected = selected,
                         onClick = {
-                            navController.navigate(destination.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+                            if (selected) {
+                                navController.popBackStack(destination.rootRoute, inclusive = false)
+                            } else {
+                                navController.navigate(destination.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
                             }
                         },
                         icon = { Icon(painterResource(destination.icon), contentDescription = null) },
@@ -75,7 +104,28 @@ fun LehrZeitApp() {
             composable<TrackRoute> { PlaceholderScreen(stringResource(R.string.nav_track)) }
             composable<WorklogRoute> { PlaceholderScreen(stringResource(R.string.nav_worklog)) }
             composable<StatsRoute> { PlaceholderScreen(stringResource(R.string.nav_stats)) }
-            composable<MoreRoute> { PlaceholderScreen(stringResource(R.string.nav_more)) }
+            navigation<MoreGraph>(startDestination = MoreRoute) {
+                composable<MoreRoute> {
+                    MoreScreen(
+                        onOpenAccounts = { navController.navigate(AccountsRoute) },
+                        onOpenActivities = { navController.navigate(ActivitiesRoute) },
+                    )
+                }
+                composable<AccountsRoute> {
+                    AccountListScreen(
+                        onBack = navController::navigateUp,
+                        onOpenAccount = { id -> navController.navigate(AccountEditRoute(id)) },
+                    )
+                }
+                composable<AccountEditRoute> { AccountEditScreen(onDone = navController::navigateUp) }
+                composable<ActivitiesRoute> {
+                    ActivityListScreen(
+                        onBack = navController::navigateUp,
+                        onOpenActivity = { id -> navController.navigate(ActivityEditRoute(id)) },
+                    )
+                }
+                composable<ActivityEditRoute> { ActivityEditScreen(onDone = navController::navigateUp) }
+            }
         }
     }
 }
