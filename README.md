@@ -16,6 +16,16 @@ Requirements: JDK 17 or newer (Android Studio's bundled JDK works) and the Andro
 
 The APK is written to `app/build/outputs/apk/debug/`. Alternatively, open the folder in Android Studio and run the `app` configuration.
 
+## Development
+
+Debug builds can fill the three weeks before today with sample entries, which helps when trying out the worklog and stats:
+
+```sh
+adb shell am broadcast -n de.janaberger.lehrzeit/.debug.DemoDataReceiver
+```
+
+The receiver exists only in debug builds and can only be triggered through adb.
+
 ## Languages
 
 German and English. The app follows the phone's language, which can also be set per app in Android's settings.

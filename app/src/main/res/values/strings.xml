@@ -6,7 +6,6 @@
     <string name="nav_stats">Stats</string>
     <string name="nav_more">More</string>
 
-    <string name="placeholder_coming_soon">Coming soon</string>
 
     <!-- Common actions -->
     <string name="action_back">Back</string>
@@ -159,6 +158,23 @@
     <string name="overlap_deleted">%1$s, %2$s → deleted</string>
     <string name="overlap_blocked_title">Doesn’t fit</string>
     <string name="overlap_blocked_text">This entry lies completely within %1$s, %2$s. Change the times, or shorten that entry first.</string>
+
+    <!-- Stats -->
+    <string name="stats_day">Day</string>
+    <string name="stats_week">Week</string>
+    <string name="stats_month">Month</string>
+    <string name="stats_previous">Previous period</string>
+    <string name="stats_next">Next period</string>
+    <string name="stats_week_number">Week %d</string>
+    <string name="stats_total">Total</string>
+    <string name="stats_by_account">By account</string>
+    <string name="stats_by_activity">By activity</string>
+    <string name="stats_without_activity">Without activity</string>
+    <string name="stats_empty">No time recorded in this period.</string>
+    <string name="stats_tap_bar">Tap a bar to see that day.</string>
+    <string name="stats_open_day">Show day</string>
+    <string name="stats_day_value">%1$s: %2$s h</string>
+    <string name="stats_percent">%d%%</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>

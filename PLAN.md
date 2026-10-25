@@ -159,10 +159,10 @@ Bottom navigation: **Track · Worklog · Stats · More** (DE: Erfassen · Protok
    - Delete, with an Undo snackbar instead of a confirmation.
    - Save runs validation and then the overlap check.
 5. **Stats**
-   - Switch between Day, Week and Month, with ‹ › to move between periods.
-   - Total for the period.
-   - Bar chart: days of the week in the week view, days of the month in the month view.
-   - Breakdown list, toggled between "by account" (expandable) and "by activity".
+   - Switch between Day, Week and Month, with ‹ › to move between periods. Opens on the current week.
+   - Total for the period as one large number.
+   - Bar chart (one color, hairline grid at clean hour steps): days of the week in the week view, days of the month in the month view. Tapping a bar highlights it, shows its total and offers "Show day". Every bar has a screen-reader description.
+   - Breakdown list, toggled between "by account" (expandable to its activities) and "by activity", largest first, each with hours, share and a thin share bar. Account colors appear only as dots next to the name.
 6. **Export**
    - Period: this week, this month, last month, or a custom range.
    - Format: CSV, ODS or PDF.
@@ -216,7 +216,7 @@ Entry            id, accountId, activityId?, startUtc, endUtc?, note, createdAt,
 2. **(done 2026-10-25)** Data layer: entities, DAOs, General seeding, welcome setup, account and activity management screens.
 3. **(done 2026-10-25)** Tracking: Track screen, picker, switch confirmation, notification (Stop, Pause, Resume, re-post after swipe, reboot).
 4. **(done 2026-10-25)** Worklog and entry editor, with nudge buttons and overlap handling.
-5. Stats.
+5. **(done 2026-10-25)** Stats.
 6. Export: CSV, ODS, PDF.
 7. Backup and restore.
 8. Reminder.
