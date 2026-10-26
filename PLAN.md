@@ -174,7 +174,11 @@ Bottom navigation: **Track · Worklog · Stats · More** (DE: Erfassen · Protok
    - Edit an account: name, color, checklist of enabled activities, archive/unarchive.
    - General is pinned at the top and cannot be archived.
 9. **Manage activities**: the shared catalog. Add, rename, reorder, archive.
-10. **Backup & restore**: create a backup file, or restore one after a confirmation.
+10. **Backup & restore** (More › Backup & restore)
+   - "Create backup…" saves `LehrZeit-Backup_2026-10-26.zip` through the system file dialog; the screen shows when the last backup was made.
+   - "Restore backup…" picks a file, checks it, and asks for confirmation with a summary ("Backup from … with 2 accounts, 10 activities and 71 entries") before replacing everything.
+   - Files that aren't backups, damaged backups and backups from newer app versions are refused with an explanation; the current data stays untouched.
+   - The welcome setup offers "Restore a backup" too, so a new phone can start from a backup.
 11. **Settings**: discard short entries (on/off and minimum length), reminder on/off and after how many hours, and a shortcut to the system's per-app language setting.
 12. **About**: version, license (GPL-3.0), source code link, and licenses of the libraries used.
 
@@ -202,7 +206,7 @@ Entry            id, accountId, activityId?, startUtc, endUtc?, note, createdAt,
 - **PDF:** an A4 report built with Android's `PdfDocument`. It contains the period, the total, the per-account (with activities) and per-activity tables with hours, share and a share bar, the daily totals (bars compared with the busiest day), and the entry list with notes. Footer: creation date and "Page x of y".
 - **What's included:** finished entries that start in the period. Each entry counts on its start day and is never split, so the rows always add up to the totals. (The Stats screen splits at midnight instead, so an entry crossing a period boundary can make the two differ slightly.)
 - **File names:** `LehrZeit_2026-10-01_2026-10-31.csv`.
-- **Backup:** versioned JSON (kotlinx.serialization) inside a zip, so a backup can be read by newer app versions after database migrations.
+- **Backup:** a zip with one `backup.json` (kotlinx.serialization): format id, version, creation time, app version, all accounts, activities, links, favorites and entries (with their IDs), and the settings. The JSON is independent of the database schema; a version number lets later app versions read older backups, and unknown fields are ignored. Reading checks consistency (exactly one General, unique IDs, no dangling links, at most one running entry) and caps the size at 50 MB. Restoring runs in one database transaction.
 
 ## Tech stack
 
@@ -221,7 +225,7 @@ Entry            id, accountId, activityId?, startUtc, endUtc?, note, createdAt,
 4. **(done 2026-10-25)** Worklog and entry editor, with nudge buttons and overlap handling.
 5. **(done 2026-10-25)** Stats.
 6. **(done 2026-10-25)** Export: CSV, ODS, PDF.
-7. Backup and restore.
+7. **(done 2026-10-26)** Backup and restore.
 8. Reminder.
 9. Widget, plus `SwitchConfirmActivity`.
 10. F-Droid metadata and a check that the build is reproducible.
@@ -242,6 +246,8 @@ Unit tests cover the time arithmetic: midnight split, the summer/winter time cha
   - If the edited entry fully covers another, the dialog offers to *delete* the other entry.
   - If the edited entry lies entirely inside another, saving is blocked, because fixing it would need splitting, which is not in v1.
 - Restoring a backup **replaces** all data (after confirmation). It does not merge.
+- A restore also brings back the settings, completes the welcome setup, and keeps a timer that was running when the backup was made running.
+- Debug builds install as `de.janaberger.lehrzeit.debug` ("LehrZeit (Debug)"), so a test install and the released app can live side by side.
 - General cannot be renamed. Its name follows the app language.
 - License wording is "GPL-3.0-or-later", the FSF's standard form, rather than "GPL-3.0-only".
 - App colors follow the wallpaper on Android 12+ (Material You). Android 10/11 use a fixed green palette that matches the icon.

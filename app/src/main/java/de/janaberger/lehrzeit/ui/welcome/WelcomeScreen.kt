@@ -43,10 +43,19 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import de.janaberger.lehrzeit.R
 import de.janaberger.lehrzeit.ui.AppViewModelProvider
+import de.janaberger.lehrzeit.ui.backup.BackupDialogs
+import de.janaberger.lehrzeit.ui.backup.BackupViewModel
+import de.janaberger.lehrzeit.ui.backup.rememberRestoreLauncher
 
 @Composable
-fun WelcomeScreen(viewModel: WelcomeViewModel = viewModel(factory = AppViewModelProvider.Factory)) {
+fun WelcomeScreen(
+    viewModel: WelcomeViewModel = viewModel(factory = AppViewModelProvider.Factory),
+    backupViewModel: BackupViewModel = viewModel(factory = AppViewModelProvider.Factory),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val backupState by backupViewModel.uiState.collectAsStateWithLifecycle()
+    // A restored backup completes the welcome setup, so the app moves on by itself.
+    val startRestore = rememberRestoreLauncher(backupViewModel)
     Surface(Modifier.fillMaxSize()) {
         Column(
             Modifier
@@ -129,6 +138,9 @@ fun WelcomeScreen(viewModel: WelcomeViewModel = viewModel(factory = AppViewModel
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                TextButton(onClick = startRestore, enabled = !backupState.isWorking) {
+                    Text(stringResource(R.string.welcome_restore))
+                }
             }
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -146,4 +158,5 @@ fun WelcomeScreen(viewModel: WelcomeViewModel = viewModel(factory = AppViewModel
             }
         }
     }
+    BackupDialogs(backupState, backupViewModel)
 }

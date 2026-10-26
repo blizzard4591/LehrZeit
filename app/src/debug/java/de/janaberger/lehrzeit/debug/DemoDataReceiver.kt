@@ -21,7 +21,7 @@ import java.time.ZoneId
  * Debug builds only. Fills the three weeks before today with a plausible teacher's week, for
  * trying out the worklog and stats and for screenshots:
  *
- *     adb shell am broadcast -n de.janaberger.lehrzeit/.debug.DemoDataReceiver
+ *     adb shell am broadcast -n de.janaberger.lehrzeit.debug/de.janaberger.lehrzeit.debug.DemoDataReceiver
  *
  * Uses the first two active accounts and the first three activities of the catalog.
  */

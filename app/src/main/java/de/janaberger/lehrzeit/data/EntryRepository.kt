@@ -148,6 +148,11 @@ class EntryRepository(private val db: LehrZeitDatabase) {
         _recentlyDeleted.compareAndSet(deleted, null)
     }
 
+    /** After a restore, an earlier deletion must not be undone into the restored data. */
+    fun forgetAllDeleted() {
+        _recentlyDeleted.value = null
+    }
+
     /** Too-short entries are deleted; an empty one (stopped in the same millisecond) always is. */
     private suspend fun finish(entry: Entry, now: Long, minDurationMillis: Long): Finished {
         val finished = entry.copy(endUtc = maxOf(now, entry.startUtc), updatedAt = now)

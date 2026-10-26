@@ -28,6 +28,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import de.janaberger.lehrzeit.R
+import de.janaberger.lehrzeit.ui.backup.BackupScreen
 import de.janaberger.lehrzeit.ui.catalog.AccountEditScreen
 import de.janaberger.lehrzeit.ui.catalog.AccountListScreen
 import de.janaberger.lehrzeit.ui.catalog.ActivityEditScreen
@@ -37,6 +38,7 @@ import de.janaberger.lehrzeit.ui.export.ExportScreen
 import de.janaberger.lehrzeit.ui.more.MoreScreen
 import de.janaberger.lehrzeit.ui.navigation.AccountEditRoute
 import de.janaberger.lehrzeit.ui.navigation.AccountsRoute
+import de.janaberger.lehrzeit.ui.navigation.BackupRoute
 import de.janaberger.lehrzeit.ui.navigation.EntryEditRoute
 import de.janaberger.lehrzeit.ui.navigation.ExportRoute
 import de.janaberger.lehrzeit.ui.navigation.ActivitiesRoute
@@ -122,6 +124,7 @@ private fun MainScreen() {
                         onOpenAccounts = { navController.navigate(AccountsRoute) },
                         onOpenActivities = { navController.navigate(ActivitiesRoute) },
                         onOpenExport = { navController.navigate(ExportRoute) },
+                        onOpenBackup = { navController.navigate(BackupRoute) },
                         onOpenSettings = { navController.navigate(SettingsRoute) },
                     )
                 }
@@ -141,6 +144,7 @@ private fun MainScreen() {
                 composable<ActivityEditRoute> { ActivityEditScreen(onDone = navController::navigateUp) }
                 composable<SettingsRoute> { SettingsScreen(onBack = navController::navigateUp) }
                 composable<ExportRoute> { ExportScreen(onBack = navController::navigateUp) }
+                composable<BackupRoute> { BackupScreen(onBack = navController::navigateUp) }
             }
         }
     }

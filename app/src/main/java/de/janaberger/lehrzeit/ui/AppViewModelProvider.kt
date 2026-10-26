@@ -12,6 +12,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import de.janaberger.lehrzeit.LehrZeitApplication
 import de.janaberger.lehrzeit.data.AppPreferences
+import de.janaberger.lehrzeit.ui.backup.BackupViewModel
 import de.janaberger.lehrzeit.ui.catalog.AccountEditViewModel
 import de.janaberger.lehrzeit.ui.catalog.AccountListViewModel
 import de.janaberger.lehrzeit.ui.catalog.ActivityEditViewModel
@@ -43,6 +44,10 @@ object AppViewModelProvider {
         initializer { SettingsViewModel(app().container.preferences) }
         initializer { StatsViewModel(app().container.entries, app().container.catalog) }
         initializer { ExportViewModel(app().container.entries, app().container.exportWriter) }
+        initializer {
+            val container = app().container
+            BackupViewModel(container.backups, container.preferences, container.trackingController)
+        }
         initializer {
             val container = app().container
             WorklogViewModel(container.entries, container.catalog, container.trackingController)

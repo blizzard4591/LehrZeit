@@ -213,6 +213,42 @@
     <string name="export_page_of">Seite %1$d von %2$d</string>
     <string name="export_created_on">erstellt am %s</string>
 
+    <!-- Backup -->
+    <string name="backup_title">Sichern &amp; wiederherstellen</string>
+    <string name="more_backup_summary">Daten auf ein neues Handy mitnehmen</string>
+    <string name="backup_section_create">Sicherung</string>
+    <string name="backup_create_summary">Speichert alle Konten, Tätigkeiten, Einträge und Einstellungen in einer Datei. Bewahre sie an einem sicheren Ort auf, z. B. auf deinem Computer oder in deiner Cloud.</string>
+    <string name="backup_create">Sicherung erstellen…</string>
+    <string name="backup_last">Letzte Sicherung: %s</string>
+    <string name="backup_never">Noch keine Sicherung erstellt.</string>
+    <string name="backup_section_restore">Wiederherstellen</string>
+    <string name="backup_restore_summary">Ersetzt alle Daten auf diesem Handy durch den Inhalt einer Sicherungsdatei.</string>
+    <string name="backup_restore">Sicherung wiederherstellen…</string>
+    <string name="backup_confirm_title">Sicherung wiederherstellen?</string>
+    <string name="backup_confirm_summary">Sicherung vom %1$s mit %2$s, %3$s und %4$s.</string>
+    <string name="backup_confirm_warning">Alle Daten, die jetzt auf diesem Handy sind, werden ersetzt. Das kann nicht rückgängig gemacht werden.</string>
+    <plurals name="backup_accounts">
+        <item quantity="one">%d Konto</item>
+        <item quantity="other">%d Konten</item>
+    </plurals>
+    <plurals name="backup_activities">
+        <item quantity="one">%d Tätigkeit</item>
+        <item quantity="other">%d Tätigkeiten</item>
+    </plurals>
+    <plurals name="backup_entries">
+        <item quantity="one">%d Eintrag</item>
+        <item quantity="other">%d Einträgen</item>
+    </plurals>
+    <string name="action_restore">Wiederherstellen</string>
+    <string name="backup_saved">Sicherung gespeichert als %s</string>
+    <string name="backup_restored">Sicherung wiederhergestellt</string>
+    <string name="backup_error_write">Die Sicherung konnte nicht gespeichert werden.</string>
+    <string name="backup_error_not_backup">Diese Datei ist keine LehrZeit-Sicherung.</string>
+    <string name="backup_error_damaged">Diese Sicherung ist beschädigt und kann nicht wiederhergestellt werden.</string>
+    <string name="backup_error_too_new">Diese Sicherung stammt von einer neueren LehrZeit-Version. Bitte aktualisiere zuerst die App.</string>
+    <string name="backup_error_restore">Die Wiederherstellung ist fehlgeschlagen. Deine Daten sind unverändert.</string>
+    <string name="welcome_restore">Sicherung wiederherstellen</string>
+
     <!-- Settings -->
     <string name="settings_title">Einstellungen</string>
     <string name="more_settings_summary">Kurze Einträge und weitere Optionen</string>

@@ -34,6 +34,14 @@ class AppPreferences(private val context: Context) {
     private val pausedAtKey = longPreferencesKey("paused_at")
     private val discardShortKey = booleanPreferencesKey("discard_short_entries")
     private val minEntrySecondsKey = intPreferencesKey("min_entry_seconds")
+    private val lastBackupAtKey = longPreferencesKey("last_backup_at")
+
+    /** When the last backup file was written, UTC millis. */
+    val lastBackupAt: Flow<Long?> = context.dataStore.data.map { it[lastBackupAtKey] }
+
+    suspend fun setLastBackupAt(utc: Long) {
+        context.dataStore.edit { it[lastBackupAtKey] = utc }
+    }
 
     val onboardingCompleted: Flow<Boolean> = context.dataStore.data.map { it[onboardingDoneKey] ?: false }
 

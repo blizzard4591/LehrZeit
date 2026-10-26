@@ -215,6 +215,42 @@
     <string name="export_page_of">Page %1$d of %2$d</string>
     <string name="export_created_on">created on %s</string>
 
+    <!-- Backup -->
+    <string name="backup_title">Backup &amp; restore</string>
+    <string name="more_backup_summary">Take your data to a new phone</string>
+    <string name="backup_section_create">Backup</string>
+    <string name="backup_create_summary">Saves all accounts, activities, entries and settings in one file. Keep it somewhere safe, e.g. on your computer or in your cloud.</string>
+    <string name="backup_create">Create backup…</string>
+    <string name="backup_last">Last backup: %s</string>
+    <string name="backup_never">No backup made yet.</string>
+    <string name="backup_section_restore">Restore</string>
+    <string name="backup_restore_summary">Replaces all data on this phone with the content of a backup file.</string>
+    <string name="backup_restore">Restore backup…</string>
+    <string name="backup_confirm_title">Restore backup?</string>
+    <string name="backup_confirm_summary">Backup from %1$s with %2$s, %3$s and %4$s.</string>
+    <string name="backup_confirm_warning">All data currently on this phone will be replaced. This can’t be undone.</string>
+    <plurals name="backup_accounts">
+        <item quantity="one">%d account</item>
+        <item quantity="other">%d accounts</item>
+    </plurals>
+    <plurals name="backup_activities">
+        <item quantity="one">%d activity</item>
+        <item quantity="other">%d activities</item>
+    </plurals>
+    <plurals name="backup_entries">
+        <item quantity="one">%d entry</item>
+        <item quantity="other">%d entries</item>
+    </plurals>
+    <string name="action_restore">Restore</string>
+    <string name="backup_saved">Backup saved as %s</string>
+    <string name="backup_restored">Backup restored</string>
+    <string name="backup_error_write">The backup couldn’t be saved.</string>
+    <string name="backup_error_not_backup">This file isn’t a LehrZeit backup.</string>
+    <string name="backup_error_damaged">This backup is damaged and can’t be restored.</string>
+    <string name="backup_error_too_new">This backup was made by a newer version of LehrZeit. Please update the app first.</string>
+    <string name="backup_error_restore">Restoring failed. Your data was left unchanged.</string>
+    <string name="welcome_restore">Restore a backup</string>
+
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="more_settings_summary">Short entries and other options</string>

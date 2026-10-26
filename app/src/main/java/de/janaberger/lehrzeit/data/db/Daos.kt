@@ -180,6 +180,55 @@ interface EntryDao {
     fun observeMostUsed(sinceUtc: Long): Flow<List<ComboKey>>
 }
 
+/** Whole-table access for backup and restore. */
+@Dao
+interface BackupDao {
+    @Query("SELECT * FROM account")
+    suspend fun accounts(): List<Account>
+
+    @Query("SELECT * FROM activity")
+    suspend fun activities(): List<WorkActivity>
+
+    @Query("SELECT * FROM account_activity")
+    suspend fun links(): List<AccountActivity>
+
+    @Query("SELECT * FROM favorite")
+    suspend fun favorites(): List<Favorite>
+
+    @Query("SELECT * FROM entry")
+    suspend fun entries(): List<Entry>
+
+    @Query("DELETE FROM entry")
+    suspend fun deleteEntries()
+
+    @Query("DELETE FROM favorite")
+    suspend fun deleteFavorites()
+
+    @Query("DELETE FROM account_activity")
+    suspend fun deleteLinks()
+
+    @Query("DELETE FROM activity")
+    suspend fun deleteActivities()
+
+    @Query("DELETE FROM account")
+    suspend fun deleteAccounts()
+
+    @Insert
+    suspend fun insertAccounts(accounts: List<Account>)
+
+    @Insert
+    suspend fun insertActivities(activities: List<WorkActivity>)
+
+    @Insert
+    suspend fun insertLinks(links: List<AccountActivity>)
+
+    @Insert
+    suspend fun insertFavorites(favorites: List<Favorite>)
+
+    @Insert
+    suspend fun insertEntries(entries: List<Entry>)
+}
+
 @Dao
 interface FavoriteDao {
     @Query("SELECT * FROM favorite ORDER BY sortOrder, id")

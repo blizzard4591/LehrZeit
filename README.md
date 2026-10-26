@@ -21,10 +21,10 @@ The APK is written to `app/build/outputs/apk/debug/`. Alternatively, open the fo
 Debug builds can fill the three weeks before today with sample entries, which helps when trying out the worklog and stats:
 
 ```sh
-adb shell am broadcast -n de.janaberger.lehrzeit/.debug.DemoDataReceiver
+adb shell am broadcast -n de.janaberger.lehrzeit.debug/de.janaberger.lehrzeit.debug.DemoDataReceiver
 ```
 
-The receiver exists only in debug builds and can only be triggered through adb.
+The receiver exists only in debug builds and can only be triggered through adb. Debug builds install as `de.janaberger.lehrzeit.debug` ("LehrZeit (Debug)"), next to a released version.
 
 ## Languages
 

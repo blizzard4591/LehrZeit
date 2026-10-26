@@ -7,6 +7,8 @@ import android.content.Context
 import de.janaberger.lehrzeit.data.AppPreferences
 import de.janaberger.lehrzeit.data.CatalogRepository
 import de.janaberger.lehrzeit.data.EntryRepository
+import de.janaberger.lehrzeit.data.backup.BackupRepository
+import de.janaberger.lehrzeit.data.backup.BackupService
 import de.janaberger.lehrzeit.data.db.LehrZeitDatabase
 import de.janaberger.lehrzeit.export.ExportWriter
 import de.janaberger.lehrzeit.tracking.TrackingController
@@ -32,6 +34,8 @@ class AppContainer(context: Context) {
     val entries = EntryRepository(database)
 
     val exportWriter = ExportWriter(context, entries, catalog)
+
+    val backups = BackupService(context, BackupRepository(database, preferences, entries), preferences)
 
     val trackingNotifier = TrackingNotifier(context)
 

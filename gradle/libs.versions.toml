@@ -11,6 +11,7 @@ room = "2.8.5"
 datastore = "1.2.1"
 reorderable = "3.1.0"
 coroutines = "1.11.0"
+kotlinxSerialization = "1.11.0"
 junit = "4.13.2"
 androidxTestRunner = "1.7.0"
 androidxTestExtJunit = "1.3.0"
@@ -31,6 +32,7 @@ androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 junit = { module = "junit:junit", version.ref = "junit" }
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }

@@ -20,6 +20,11 @@ android {
     }
 
     buildTypes {
+        // A separate package, so a test install and the released app can live side by side.
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -73,6 +78,7 @@ dependencies {
     implementation(libs.reorderable)
     // Declared explicitly so kotlinx-coroutines-test runs against the same version.
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.runner)
