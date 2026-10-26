@@ -215,7 +215,7 @@ Entry            id, accountId, activityId?, startUtc, endUtc?, note, createdAt,
 - Manual dependency injection (one `AppContainer`), which is enough for an app this size.
 - Charts drawn with Compose `Canvas`, with no chart library.
 - Strings in `values/` (English, the fallback) and `values-de/`.
-- F-Droid metadata in `fastlane/metadata/android/{en-US,de-DE}/`.
+- F-Droid metadata in `fastlane/metadata/android/{en-US,de-DE}/`: title, short and full description, changelog per `versionCode`, icon, feature graphic and six phone screenshots per language. [RELEASING.md](RELEASING.md) describes the release steps and has a draft of the F-Droid recipe.
 
 ## Milestones
 
@@ -228,7 +228,9 @@ Entry            id, accountId, activityId?, startUtc, endUtc?, note, createdAt,
 7. **(done 2026-10-26)** Backup and restore.
 8. **(done 2026-10-26)** Reminder.
 9. **(done 2026-10-26)** Widget, plus `SwitchConfirmActivity`.
-10. F-Droid metadata and a check that the build is reproducible.
+10. **(done 2026-10-26)** F-Droid metadata and a check that the build is reproducible.
+    - The unsigned release APK is byte-identical across Windows with JDK 25 (two different folders, CRLF and LF checkouts) and Linux with JDK 17. Line endings don't matter because the Kotlin compiler normalizes them. The APK's only build-specific content is the git commit in `version-control-info.textproto`.
+    - Still open before a first release: the About screen (screen 12: version, license, source link, library licenses) and the Settings shortcut to the per-app language were never assigned to a milestone. Both the About screen and the F-Droid recipe need the GitHub URL.
 
 Unit tests cover the time arithmetic: midnight split, the summer/winter time change, overlap resolution and most-used ranking. They also cover the exporters: CSV escaping and ODS structure.
 

@@ -1,0 +1,1 @@
+Erste Version: Zeiterfassung per Tipp mit Benachrichtigung und Widget, Protokoll, Statistik, Export als CSV, ODS und PDF, Datensicherung.

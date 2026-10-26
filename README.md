@@ -16,9 +16,11 @@ Requirements: JDK 17 or newer (Android Studio's bundled JDK works) and the Andro
 
 The APK is written to `app/build/outputs/apk/debug/`. Alternatively, open the folder in Android Studio and run the `app` configuration.
 
+The release build is reproducible. [RELEASING.md](RELEASING.md) describes how to publish a version, on GitHub and on F-Droid.
+
 ## Development
 
-Debug builds can fill the three weeks before today with sample entries, which helps when trying out the worklog and stats:
+Debug builds can fill the three weeks before today, and today up to now, with sample entries, which helps when trying out the worklog and stats:
 
 ```sh
 adb shell am broadcast -n de.janaberger.lehrzeit.debug/de.janaberger.lehrzeit.debug.DemoDataReceiver

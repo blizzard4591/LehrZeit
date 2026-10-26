@@ -1,0 +1,19 @@
+LehrZeit erfasst deine Arbeitszeit als Lehrkraft, schnell und ohne Konto.
+
+Starte einen Timer mit einem Tipp auf eine Kachel, zum Beispiel „7b › Korrekturen“ oder einfach „Allgemein“. Pausieren und stoppen kannst du ihn in der Benachrichtigung oder im Widget auf dem Startbildschirm. Läuft ein vergessener Timer weiter, fragt LehrZeit nach einigen Stunden, ob du noch arbeitest.
+
+<b>Funktionen</b>
+<ul>
+<li>Konten für deine Klassen und Bereiche, jeweils mit den passenden Tätigkeiten wie Unterrichtsvorbereitung, Korrekturen oder Konferenzen</li>
+<li>Eine Startseite mit „Allgemein“, deinen Favoriten und den Kombinationen, die du am häufigsten nutzt</li>
+<li>Eine dauerhafte Benachrichtigung mit laufendem Timer, Pause und Stopp</li>
+<li>Ein Widget für den Startbildschirm</li>
+<li>Protokoll: Start- und Endzeiten per Tipp korrigieren, vergessene Einträge und Notizen ergänzen</li>
+<li>Statistik pro Tag, Woche und Monat, nach Konto oder nach Tätigkeit</li>
+<li>Export als CSV, ODS (Tabelle) und PDF (Bericht)</li>
+<li>Datensicherung und Wiederherstellung als Datei</li>
+<li>Deutsch und Englisch</li>
+</ul>
+
+<b>Datenschutz</b>
+Deine Daten bleiben auf deinem Gerät. LehrZeit hat keine Internetberechtigung, keine Werbung und kein Tracking und braucht kein Konto.

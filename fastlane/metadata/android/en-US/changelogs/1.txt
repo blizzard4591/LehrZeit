@@ -1,0 +1,1 @@
+First release: one-tap tracking with notification and widget, worklog, stats, export to CSV, ODS and PDF, backup and restore.

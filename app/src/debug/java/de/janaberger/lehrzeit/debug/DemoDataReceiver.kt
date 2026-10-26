@@ -16,10 +16,11 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
+import java.util.Locale
 
 /**
- * Debug builds only. Fills the three weeks before today with a plausible teacher's week, for
- * trying out the worklog and stats and for screenshots:
+ * Debug builds only. Fills the three weeks before today, and today up to now, with a plausible
+ * teacher's week, for trying out the worklog and stats and for screenshots:
  *
  *     adb shell am broadcast -n de.janaberger.lehrzeit.debug/de.janaberger.lehrzeit.debug.DemoDataReceiver
  *
@@ -54,6 +55,7 @@ class DemoDataReceiver : BroadcastReceiver() {
         var count = 0
         suspend fun add(accountId: Long, activityId: Long?, day: LocalDate, start: String, end: String, note: String = "") {
             fun utc(time: String) = day.atTime(LocalTime.parse(time)).atZone(zone).toInstant().toEpochMilli()
+            if (utc(end) > now) return
             container.entries.save(
                 Entry(accountId = accountId, activityId = activityId, startUtc = utc(start), endUtc = utc(end), note = note, createdAt = now, updatedAt = now),
                 now,
@@ -62,11 +64,13 @@ class DemoDataReceiver : BroadcastReceiver() {
         }
 
         val today = LocalDate.now(zone)
-        for (offset in 1L..21L) {
+        // Screenshots are taken in both languages.
+        val examNote = if (Locale.getDefault().language == "de") "Klassenarbeit" else "Class test"
+        for (offset in 0L..21L) {
             val day = today.minusDays(offset)
             val (morning, late) = if (offset % 2 == 1L) first to second else second to first
             when (day.dayOfWeek) {
-                DayOfWeek.SUNDAY -> if (offset % 2 == 1L) add(first.id, activity(2), day, "19:00", "21:15", "Klausur")
+                DayOfWeek.SUNDAY -> if (offset % 2 == 1L) add(first.id, activity(2), day, "19:00", "21:15", examNote)
                 DayOfWeek.SATURDAY -> add(second.id, activity(1), day, "10:00", "12:30")
                 else -> {
                     add(morning.id, activity(0), day, "08:00", "11:15")
