@@ -102,12 +102,12 @@ The app uses a single `Activity`: every screen is a Compose destination inside `
 
 | Component | Type | Purpose |
 |---|---|---|
-| `MainActivity` | `Activity` | Hosts all screens (Compose + Navigation). Handles deep links from the notification and widget, e.g. "open picker" |
+| `MainActivity` | `Activity` | Hosts all screens (Compose + Navigation). Tapping the notification or the widget's status bar opens it |
 | `SwitchConfirmActivity` | `Activity`, dialog theme, translucent | Shows the "Stop A and start B?" confirmation when a **widget** tile is tapped while another timer runs. A widget can't show a dialog itself, and opening the whole app for this would be slow |
 | `TrackingActionReceiver` | BroadcastReceiver | Handles Stop, Pause, Resume and Keep going without opening the app, the notifications being swiped away (the timer one is posted again), and the reminder alarm |
 | `AlarmReminderScheduler` | AlarmManager (`setWindow`, 10-minute window, no special permission) | Wakes `TrackingActionReceiver` when the "still working?" reminder is due. A plain inexact alarm could be up to 75 % of the waiting time late; in deep sleep (Doze) the alarm still waits until the phone is used |
 | `SystemEventsReceiver` | BroadcastReceiver | Runs on `BOOT_COMPLETED` and `MY_PACKAGE_REPLACED`. Posts the notification again, reschedules the reminder and refreshes the widget. Tracking state lives in the database, so it survives reboots and the process being killed |
-| `TrackingWidget` / `TrackingWidgetReceiver` | Glance app widget | Shows the running timer with Stop/Pause, plus General and the favorite tiles |
+| `TrackingWidget` / `TrackingWidgetReceiver` | Glance app widget | Shows the running timer with Pause/Stop (or Resume), plus as many of the Track screen's tiles as fit. The timer is a system chronometer, so the widget needs no updates while it counts. `TrackingController` updates it on every change; edits in the app (names, favorites, most-used tiles) reach it through an observer that runs while the app process lives |
 | `FileProvider` | ContentProvider | Shares export and backup files with other apps |
 
 **No foreground service.**
@@ -227,7 +227,7 @@ Entry            id, accountId, activityId?, startUtc, endUtc?, note, createdAt,
 6. **(done 2026-10-25)** Export: CSV, ODS, PDF.
 7. **(done 2026-10-26)** Backup and restore.
 8. **(done 2026-10-26)** Reminder.
-9. Widget, plus `SwitchConfirmActivity`.
+9. **(done 2026-10-26)** Widget, plus `SwitchConfirmActivity`.
 10. F-Droid metadata and a check that the build is reproducible.
 
 Unit tests cover the time arithmetic: midnight split, the summer/winter time change, overlap resolution and most-used ranking. They also cover the exporters: CSV escaping and ODS structure.
@@ -260,6 +260,11 @@ Unit tests cover the time arithmetic: midnight split, the summer/winter time cha
 - The German UI addresses the user with "du".
 - While there is little history, free home tiles are filled with the accounts on their own (e.g. "7b"), so the home screen is useful from day one.
 - Tapping the tile that is already running does nothing.
+- The widget shows the same tiles as the Track screen (General, favorites, most used, accounts), as many as fit its size. It starts at 4 × 2 cells and can be made as small as one row, which shows only the timer.
+- In the widget, a tile starts at once while nothing runs. While another timer runs, the "Stop A and start B?" question appears over the home screen.
+- When a timer stopped or paused from the notification or the widget was too short to keep, a short toast says so (in the app it's the snackbar).
+- On Android 10/11 the widget has square corners, and the widget picker shows the app icon instead of a preview.
+- Starting a timer from the widget doesn't ask for the notification permission (a widget can't); the widget shows the timer, and the app asks on the first start there.
 - Swiping away the paused notification also clears the paused card in the app.
 - The "notifications are off" banner only appears while a timer runs or is paused, so it never shows before the first permission prompt.
 - The −5/+5 min buttons on the running card can't move the start before the previous entry's end or after now. For anything else, tapping "Since …" opens the full editor.

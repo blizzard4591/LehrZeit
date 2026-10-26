@@ -29,7 +29,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -79,6 +78,7 @@ import de.janaberger.lehrzeit.tracking.TrackingNotifier
 import de.janaberger.lehrzeit.ui.AppViewModelProvider
 import de.janaberger.lehrzeit.ui.components.ColorDot
 import de.janaberger.lehrzeit.ui.components.DeletedEntryUndoEffect
+import de.janaberger.lehrzeit.ui.components.SwitchDialog
 import de.janaberger.lehrzeit.ui.components.displayName
 import de.janaberger.lehrzeit.ui.components.label
 import de.janaberger.lehrzeit.ui.components.minLengthText
@@ -349,17 +349,6 @@ private fun NotificationsOffBanner(onTurnOn: () -> Unit) {
             TextButton(onClick = onTurnOn) { Text(stringResource(R.string.action_turn_on)) }
         }
     }
-}
-
-@Composable
-private fun SwitchDialog(from: Combo, to: Combo, onConfirm: () -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.switch_title)) },
-        text = { Text(stringResource(R.string.switch_text, from.label(), to.label())) },
-        confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(R.string.action_switch)) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
-    )
 }
 
 private fun needsNotificationPermission(context: Context): Boolean =

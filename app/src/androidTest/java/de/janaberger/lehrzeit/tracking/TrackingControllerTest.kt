@@ -17,7 +17,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -48,6 +50,7 @@ class TrackingControllerTest {
     private val notifications = FakeNotifications()
     private val scheduler = FakeScheduler()
     private var now = 0L
+    private var widgetUpdates = 0
     private lateinit var controller: TrackingController
     private lateinit var general: ComboKey
     private lateinit var other: ComboKey
@@ -65,7 +68,16 @@ class TrackingControllerTest {
         preferences.setReminder(ReminderSettings(enabled = true, hours = 3))
         preferences.setReminderState(null)
         preferences.setPaused(null)
-        controller = TrackingController(entries, catalog, preferences, notifications, scheduler, generalName = { "General" }, now = { now })
+        controller = TrackingController(
+            entries,
+            catalog,
+            preferences,
+            notifications,
+            scheduler,
+            widgets = { widgetUpdates++ },
+            generalName = { "General" },
+            now = { now },
+        )
     }
 
     @After
@@ -130,5 +142,32 @@ class TrackingControllerTest {
         controller.refreshNotification()
 
         assertNull(scheduler.scheduledAt)
+    }
+
+    @Test
+    fun startIfIdle_neverSwitchesAwayFromARunningTimer() = runTest {
+        now = 10 * hour
+        assertTrue(controller.startIfIdle(general))
+        assertEquals("running General", notifications.shown)
+        assertTrue("the same timer already runs", controller.startIfIdle(general))
+        assertFalse("another timer runs: ask first", controller.startIfIdle(other))
+        assertEquals("running General", notifications.shown)
+
+        now = 11 * hour
+        controller.pause()
+        assertTrue(controller.startIfIdle(other))
+        assertEquals("running 7b", notifications.shown)
+        assertNull("starting forgets the pause", preferences.getPaused())
+    }
+
+    @Test
+    fun everyChange_updatesTheWidgets() = runTest {
+        controller.start(general)
+        controller.pause()
+        controller.resume()
+        controller.stop()
+        controller.refreshNotification()
+
+        assertEquals(5, widgetUpdates)
     }
 }

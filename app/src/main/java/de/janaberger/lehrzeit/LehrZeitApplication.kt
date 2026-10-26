@@ -4,6 +4,8 @@
 package de.janaberger.lehrzeit
 
 import android.app.Application
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 
 class LehrZeitApplication : Application() {
@@ -19,6 +21,11 @@ class LehrZeitApplication : Application() {
             container.catalog.seedIfNeeded()
             // The notification may be gone if the app was force-stopped while tracking.
             container.trackingController.refreshNotification()
+        }
+        // Timer changes update the widget through the controller. This catches everything else
+        // shown in it while the app runs: renamed accounts, new favorites, changed most-used tiles.
+        container.applicationScope.launch {
+            container.trackingOverview().distinctUntilChanged().drop(1).collect { container.widgetUpdater.update() }
         }
     }
 }

@@ -1,3 +1,18 @@
 <resources>
     <color name="ic_launcher_background">#2B6A57</color>
+
+    <!--
+        The widget's theme colors for its parts written in XML (the running time and the preview),
+        which can't use Glance's theme. Here: the app's fixed palette for Android 10/11; values-v31
+        has the wallpaper-based colors Glance uses on Android 12+.
+    -->
+    <color name="widget_background">#CEE9DC</color>
+    <color name="widget_surface">#F5FBF6</color>
+    <color name="widget_on_surface">#171D1A</color>
+    <color name="widget_on_surface_variant">#404944</color>
+    <color name="widget_on_primary_container">#002118</color>
+
+    <!-- Account edges in the widget preview: General's blue grey and the palette's red. -->
+    <color name="widget_preview_general">#546E7A</color>
+    <color name="widget_preview_account">#D32F2F</color>
 </resources>

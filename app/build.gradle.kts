@@ -76,6 +76,10 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.reorderable)
+    implementation(libs.glance.appwidget)
+    implementation(libs.glance.material3)
+    // Glance brings an old WorkManager (2.7) that predates current Android versions.
+    implementation(libs.androidx.work.runtime)
     // Declared explicitly so kotlinx-coroutines-test runs against the same version.
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)

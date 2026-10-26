@@ -266,6 +266,11 @@
         <item quantity="other">%d hours</item>
     </plurals>
 
+    <!-- Widget -->
+    <string name="widget_description">The running timer and your tiles, to start and stop tracking from the home screen.</string>
+    <string name="widget_preview_account" translatable="false">7b</string>
+    <string name="widget_preview_activity">Correcting</string>
+
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="more_settings_summary">Short entries and other options</string>

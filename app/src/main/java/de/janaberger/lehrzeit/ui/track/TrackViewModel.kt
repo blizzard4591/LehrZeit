@@ -16,8 +16,10 @@ import de.janaberger.lehrzeit.data.ShortEntrySettings
 import de.janaberger.lehrzeit.data.db.Entry
 import de.janaberger.lehrzeit.time.DayBounds
 import de.janaberger.lehrzeit.time.currentDayFlow
+import de.janaberger.lehrzeit.tracking.PausedTimer
+import de.janaberger.lehrzeit.tracking.RunningTimer
 import de.janaberger.lehrzeit.tracking.TrackingController
-import de.janaberger.lehrzeit.tracking.buildTiles
+import de.janaberger.lehrzeit.tracking.observeTrackingOverview
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -30,16 +32,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.days
-
-data class RunningUi(val entryId: Long, val combo: Combo, val startUtc: Long)
-
-data class PausedUi(val combo: Combo, val pausedAt: Long)
 
 data class TrackUiState(
     val isLoading: Boolean = true,
-    val running: RunningUi? = null,
-    val paused: PausedUi? = null,
+    val running: RunningTimer? = null,
+    val paused: PausedTimer? = null,
     val tiles: List<Combo> = emptyList(),
     val snapshot: CatalogSnapshot? = null,
     val favorites: Set<ComboKey> = emptySet(),
@@ -70,25 +67,21 @@ class TrackViewModel(
         entries.observeEntriesOverlapping(bounds.startUtc, bounds.endUtc).map { bounds to it }
     }
 
-    private val mostUsed = entries.observeMostUsed(sinceUtc = System.currentTimeMillis() - 30.days.inWholeMilliseconds)
-
     val uiState: StateFlow<TrackUiState> = combine(
-        catalog.observeSnapshot(),
-        entries.observeFavorites(),
-        mostUsed,
-        combine(entries.observeRunning(), preferences.paused, ::Pair),
-        combine(todayEntries, pendingSwitch, ::Pair),
-    ) { snapshot, favorites, used, (running, paused), (todayData, pending) ->
+        observeTrackingOverview(catalog, entries, preferences),
+        todayEntries,
+        pendingSwitch,
+    ) { overview, (today, todayEntries), pending ->
         TrackUiState(
             isLoading = false,
-            running = running?.let { RunningUi(it.entry.id, Combo(it.account, it.activity), it.entry.startUtc) },
-            paused = paused?.takeIf { running == null }?.let { p -> snapshot.combo(p.key)?.let { PausedUi(it, p.pausedAt) } },
-            tiles = buildTiles(snapshot, favorites, used),
-            snapshot = snapshot,
-            favorites = favorites.toSet(),
-            today = todayData.first,
-            todayEntries = todayData.second,
-            pendingSwitch = pending?.let(snapshot::combo),
+            running = overview.running,
+            paused = overview.paused,
+            tiles = overview.tiles,
+            snapshot = overview.snapshot,
+            favorites = overview.favorites.toSet(),
+            today = today,
+            todayEntries = todayEntries,
+            pendingSwitch = pending?.let(overview.snapshot::combo),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TrackUiState())
 

@@ -151,6 +151,7 @@ class TrackingNotifier(private val context: Context) : TrackingNotifications {
         private const val GROUP_TRACKING = "de.janaberger.lehrzeit.TRACKING"
         private const val GROUP_REMINDER = "de.janaberger.lehrzeit.REMINDER"
 
+        const val ACTION_START = "de.janaberger.lehrzeit.action.START"
         const val ACTION_STOP = "de.janaberger.lehrzeit.action.STOP"
         const val ACTION_PAUSE = "de.janaberger.lehrzeit.action.PAUSE"
         const val ACTION_RESUME = "de.janaberger.lehrzeit.action.RESUME"

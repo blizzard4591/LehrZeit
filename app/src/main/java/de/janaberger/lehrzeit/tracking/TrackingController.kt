@@ -18,10 +18,10 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 /**
- * The one place that changes the tracking state, used by the UI and by the notification buttons.
- * Every change updates the notification and the "still working?" reminder. Changes run to
- * completion even if the caller is cancelled, so the database, the notification and the reminder
- * alarm can't drift apart.
+ * The one place that changes the tracking state, used by the UI, the notification buttons and the
+ * widget. Every change updates the notification, the "still working?" reminder and the widgets.
+ * Changes run to completion even if the caller is cancelled, so the database, the notification and
+ * the reminder alarm can't drift apart.
  *
  * Methods that end an entry return true if it was discarded for being too short.
  */
@@ -31,6 +31,7 @@ class TrackingController(
     private val preferences: AppPreferences,
     private val notifier: TrackingNotifications,
     private val reminders: ReminderScheduler,
+    private val widgets: WidgetUpdater,
     private val generalName: () -> String,
     private val now: () -> Long = System::currentTimeMillis,
 ) {
@@ -40,6 +41,19 @@ class TrackingController(
     suspend fun start(key: ComboKey): Boolean = change {
         preferences.setPaused(null)
         entries.start(key, now(), minDurationMillis()).previous?.discarded == true
+    }
+
+    /**
+     * Starts [key] only if no other timer runs. Returns false if one does, so the caller can ask
+     * before switching; true if [key] was started or was already running.
+     */
+    suspend fun startIfIdle(key: ComboKey): Boolean = change {
+        val running = entries.getRunning() ?: run {
+            preferences.setPaused(null)
+            entries.start(key, now())
+            return@change true
+        }
+        running.entry.comboKey == key
     }
 
     suspend fun stop(): Boolean = change {
@@ -98,8 +112,8 @@ class TrackingController(
     }
 
     /**
-     * Makes the notification and the reminder match the stored state, e.g. after a reboot, an app
-     * update, an edited entry or changed settings.
+     * Makes the notification, the reminder and the widgets match the stored state, e.g. after a
+     * reboot, an app update, an edited entry or changed settings.
      */
     suspend fun refreshNotification() = change {}
 
@@ -110,6 +124,7 @@ class TrackingController(
             val result = block()
             updateNotification()
             syncReminder()
+            widgets.update()
             result
         }
     }
@@ -155,4 +170,9 @@ class TrackingController(
             notifier.cancel()
         }
     }
+}
+
+/** The home-screen widgets, which show the same state as the notification. */
+fun interface WidgetUpdater {
+    suspend fun update()
 }

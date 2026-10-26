@@ -22,6 +22,15 @@
             </intent-filter>
         </activity>
 
+        <!-- The widget's "Stop A and start B?" dialog, shown over the home screen in its own task. -->
+        <activity
+            android:name=".widget.SwitchConfirmActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.LehrZeit.Transparent" />
+
         <!-- Shares export files from the cache with the app the user picks. -->
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -45,6 +54,17 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".widget.TrackingWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/tracking_widget_info" />
         </receiver>
     </application>
 

@@ -14,9 +14,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-// Fallback for Android 10/11, which have no wallpaper-based dynamic colors.
+// Fallback for Android 10/11, which have no wallpaper-based dynamic colors (also used by the widget).
 // Tonal palette around the launcher icon's green (#2B6A57).
-private val LightColors = lightColorScheme(
+internal val LightColors = lightColorScheme(
     primary = Color(0xFF2B6A57),
     onPrimary = Color(0xFFFFFFFF),
     primaryContainer = Color(0xFFB1F0D8),
@@ -44,7 +44,7 @@ private val LightColors = lightColorScheme(
     surfaceContainerHighest = Color(0xFFDEE4DF),
 )
 
-private val DarkColors = darkColorScheme(
+internal val DarkColors = darkColorScheme(
     primary = Color(0xFF95D4BC),
     onPrimary = Color(0xFF00382B),
     primaryContainer = Color(0xFF0F513F),

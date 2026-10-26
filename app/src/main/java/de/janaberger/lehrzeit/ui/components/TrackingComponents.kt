@@ -4,6 +4,9 @@
 package de.janaberger.lehrzeit.ui.components
 
 import android.content.res.Resources
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.produceState
@@ -40,4 +43,16 @@ fun rememberNow(ticking: Boolean): State<Long> = produceState(System.currentTime
         delay(1_000 - System.currentTimeMillis() % 1_000)
         value = System.currentTimeMillis()
     }
+}
+
+/** "Switch? This stops 7b and starts 8a." Used by the Track screen and for widget taps. */
+@Composable
+fun SwitchDialog(from: Combo, to: Combo, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.switch_title)) },
+        text = { Text(stringResource(R.string.switch_text, from.label(), to.label())) },
+        confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(R.string.action_switch)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+    )
 }
