@@ -176,6 +176,45 @@
     <string name="stats_day_value">%1$s: %2$s h</string>
     <string name="stats_percent">%d%%</string>
 
+    <!-- Export -->
+    <string name="export_title">Export</string>
+    <string name="more_export_summary">CSV, spreadsheet or PDF report</string>
+    <string name="export_period">Period</string>
+    <string name="export_this_week">This week</string>
+    <string name="export_last_week">Last week</string>
+    <string name="export_this_month">This month</string>
+    <string name="export_last_month">Last month</string>
+    <string name="export_custom">Custom range</string>
+    <string name="export_format">Format</string>
+    <string name="export_csv_summary">One row per entry, for Excel and other spreadsheet programs</string>
+    <string name="export_ods_summary">OpenDocument spreadsheet with all entries and a summary sheet</string>
+    <string name="export_pdf_summary">Printable report with totals and all entries</string>
+    <plurals name="export_preview">
+        <item quantity="one">%1$d entry · %2$s h</item>
+        <item quantity="other">%1$d entries · %2$s h</item>
+    </plurals>
+    <string name="export_nothing">No finished entries in this period.</string>
+    <string name="export_running_note">Entries count on the day they start. A timer that is still running isn’t included.</string>
+    <string name="export_share">Share…</string>
+    <string name="export_save">Save…</string>
+    <string name="export_saved">Saved as %s</string>
+    <string name="export_failed">Export failed</string>
+    <string name="export_col_date">Date</string>
+    <string name="export_col_start">Start</string>
+    <string name="export_col_end">End</string>
+    <string name="export_col_time">Time</string>
+    <string name="export_col_duration">Duration</string>
+    <string name="export_col_hours">Hours</string>
+    <string name="export_col_account">Account</string>
+    <string name="export_col_activity">Activity</string>
+    <string name="export_col_note">Note</string>
+    <string name="export_entries">Entries</string>
+    <string name="export_summary">Summary</string>
+    <string name="export_per_day">Per day</string>
+    <string name="export_report_title">Working time</string>
+    <string name="export_page_of">Page %1$d of %2$d</string>
+    <string name="export_created_on">created on %s</string>
+
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="more_settings_summary">Short entries and other options</string>

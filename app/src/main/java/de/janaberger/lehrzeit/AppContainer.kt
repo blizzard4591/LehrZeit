@@ -8,6 +8,7 @@ import de.janaberger.lehrzeit.data.AppPreferences
 import de.janaberger.lehrzeit.data.CatalogRepository
 import de.janaberger.lehrzeit.data.EntryRepository
 import de.janaberger.lehrzeit.data.db.LehrZeitDatabase
+import de.janaberger.lehrzeit.export.ExportWriter
 import de.janaberger.lehrzeit.tracking.TrackingController
 import de.janaberger.lehrzeit.tracking.TrackingNotifier
 import kotlinx.coroutines.CoroutineScope
@@ -29,6 +30,8 @@ class AppContainer(context: Context) {
     )
 
     val entries = EntryRepository(database)
+
+    val exportWriter = ExportWriter(context, entries, catalog)
 
     val trackingNotifier = TrackingNotifier(context)
 

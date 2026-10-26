@@ -85,6 +85,10 @@ class EntryRepository(private val db: LehrZeitDatabase) {
 
     fun observeEarliestStart(): Flow<Long?> = entries.observeEarliestStart()
 
+    /** Finished entries that start in [fromUtc, toUtc), oldest first; what an export contains. */
+    fun observeFinishedStartingIn(fromUtc: Long, toUtc: Long): Flow<List<Entry>> =
+        entries.observeFinishedStartingIn(fromUtc, toUtc)
+
     suspend fun get(id: Long): Entry? = entries.get(id)
 
     /** What saving [edited] would do to the entries it overlaps. */

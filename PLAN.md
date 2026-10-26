@@ -163,10 +163,11 @@ Bottom navigation: **Track · Worklog · Stats · More** (DE: Erfassen · Protok
    - Total for the period as one large number.
    - Bar chart (one color, hairline grid at clean hour steps): days of the week in the week view, days of the month in the month view. Tapping a bar highlights it, shows its total and offers "Show day". Every bar has a screen-reader description.
    - Breakdown list, toggled between "by account" (expandable to its activities) and "by activity", largest first, each with hours, share and a thin share bar. Account colors appear only as dots next to the name.
-6. **Export**
-   - Period: this week, this month, last month, or a custom range.
-   - Format: CSV, ODS or PDF.
-   - **Save…** (system file dialog) or **Share…**.
+6. **Export** (More › Export)
+   - Period: this week, last week, this month (default), last month, or a custom range (date range picker).
+   - Format: CSV (default), ODS or PDF, each with a one-line description.
+   - A preview of what will be exported ("71 entries · 133:30 h").
+   - **Save…** (system file dialog, file name suggested) or **Share…** (share sheet, also offers printing).
 7. **More**: a menu that links to the screens below, plus Export.
 8. **Manage accounts**
    - List with drag to reorder, and an archive section.
@@ -196,9 +197,11 @@ Entry            id, accountId, activityId?, startUtc, endUtc?, note, createdAt,
 ## Export formats
 
 - **CSV and ODS columns:** Date, Start, End, Duration (h:mm), Hours (decimal), Account, Activity, Note.
-- **CSV encoding:** UTF-8 with a BOM, so Excel shows umlauts correctly. With German UI the separator is `;` and the decimal mark is `,`. With English UI they are `,` and `.`.
+- **CSV encoding:** UTF-8 with a BOM, so Excel shows umlauts correctly, and CRLF line ends. Where the app language uses a decimal comma (German), the separator is `;` and the decimal mark `,`; otherwise `,` and `.`. Dates are ISO (2026-10-25) and times 24 h, which every spreadsheet program recognizes.
 - **ODS:** a sheet "Entries" plus a sheet "Summary" with totals per account and per activity. Written directly as a zip file (the `mimetype` entry first and uncompressed, then `content.xml`, `styles.xml` and `META-INF/manifest.xml`), with no library.
-- **PDF:** an A4 report built with Android's `PdfDocument`. It contains the period, the total, the per-account and per-activity tables, the daily totals and the entry list.
+- **PDF:** an A4 report built with Android's `PdfDocument`. It contains the period, the total, the per-account (with activities) and per-activity tables with hours, share and a share bar, the daily totals (bars compared with the busiest day), and the entry list with notes. Footer: creation date and "Page x of y".
+- **What's included:** finished entries that start in the period. Each entry counts on its start day and is never split, so the rows always add up to the totals. (The Stats screen splits at midnight instead, so an entry crossing a period boundary can make the two differ slightly.)
+- **File names:** `LehrZeit_2026-10-01_2026-10-31.csv`.
 - **Backup:** versioned JSON (kotlinx.serialization) inside a zip, so a backup can be read by newer app versions after database migrations.
 
 ## Tech stack
@@ -217,7 +220,7 @@ Entry            id, accountId, activityId?, startUtc, endUtc?, note, createdAt,
 3. **(done 2026-10-25)** Tracking: Track screen, picker, switch confirmation, notification (Stop, Pause, Resume, re-post after swipe, reboot).
 4. **(done 2026-10-25)** Worklog and entry editor, with nudge buttons and overlap handling.
 5. **(done 2026-10-25)** Stats.
-6. Export: CSV, ODS, PDF.
+6. **(done 2026-10-25)** Export: CSV, ODS, PDF.
 7. Backup and restore.
 8. Reminder.
 9. Widget, plus `SwitchConfirmActivity`.

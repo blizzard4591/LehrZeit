@@ -17,6 +17,7 @@ import de.janaberger.lehrzeit.ui.catalog.AccountListViewModel
 import de.janaberger.lehrzeit.ui.catalog.ActivityEditViewModel
 import de.janaberger.lehrzeit.ui.catalog.ActivityListViewModel
 import de.janaberger.lehrzeit.ui.entry.EntryEditViewModel
+import de.janaberger.lehrzeit.ui.export.ExportViewModel
 import de.janaberger.lehrzeit.ui.settings.SettingsViewModel
 import de.janaberger.lehrzeit.ui.stats.StatsViewModel
 import de.janaberger.lehrzeit.ui.track.TrackViewModel
@@ -41,6 +42,7 @@ object AppViewModelProvider {
         }
         initializer { SettingsViewModel(app().container.preferences) }
         initializer { StatsViewModel(app().container.entries, app().container.catalog) }
+        initializer { ExportViewModel(app().container.entries, app().container.exportWriter) }
         initializer {
             val container = app().container
             WorklogViewModel(container.entries, container.catalog, container.trackingController)

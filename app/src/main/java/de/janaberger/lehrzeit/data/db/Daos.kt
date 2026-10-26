@@ -145,6 +145,10 @@ interface EntryDao {
     @Query("SELECT * FROM entry WHERE startUtc < :toUtc AND (endUtc IS NULL OR endUtc > :fromUtc) ORDER BY startUtc")
     suspend fun getOverlapping(fromUtc: Long, toUtc: Long): List<Entry>
 
+    /** Finished entries that start in [fromUtc, toUtc), oldest first. */
+    @Query("SELECT * FROM entry WHERE endUtc IS NOT NULL AND startUtc >= :fromUtc AND startUtc < :toUtc ORDER BY startUtc")
+    fun observeFinishedStartingIn(fromUtc: Long, toUtc: Long): Flow<List<Entry>>
+
     @Query("SELECT * FROM entry WHERE endUtc IS NULL LIMIT 1")
     suspend fun getRunning(): Entry?
 

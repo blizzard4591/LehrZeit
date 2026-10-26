@@ -33,10 +33,12 @@ import de.janaberger.lehrzeit.ui.catalog.AccountListScreen
 import de.janaberger.lehrzeit.ui.catalog.ActivityEditScreen
 import de.janaberger.lehrzeit.ui.catalog.ActivityListScreen
 import de.janaberger.lehrzeit.ui.entry.EntryEditScreen
+import de.janaberger.lehrzeit.ui.export.ExportScreen
 import de.janaberger.lehrzeit.ui.more.MoreScreen
 import de.janaberger.lehrzeit.ui.navigation.AccountEditRoute
 import de.janaberger.lehrzeit.ui.navigation.AccountsRoute
 import de.janaberger.lehrzeit.ui.navigation.EntryEditRoute
+import de.janaberger.lehrzeit.ui.navigation.ExportRoute
 import de.janaberger.lehrzeit.ui.navigation.ActivitiesRoute
 import de.janaberger.lehrzeit.ui.navigation.ActivityEditRoute
 import de.janaberger.lehrzeit.ui.navigation.MoreGraph
@@ -119,6 +121,7 @@ private fun MainScreen() {
                     MoreScreen(
                         onOpenAccounts = { navController.navigate(AccountsRoute) },
                         onOpenActivities = { navController.navigate(ActivitiesRoute) },
+                        onOpenExport = { navController.navigate(ExportRoute) },
                         onOpenSettings = { navController.navigate(SettingsRoute) },
                     )
                 }
@@ -137,6 +140,7 @@ private fun MainScreen() {
                 }
                 composable<ActivityEditRoute> { ActivityEditScreen(onDone = navController::navigateUp) }
                 composable<SettingsRoute> { SettingsScreen(onBack = navController::navigateUp) }
+                composable<ExportRoute> { ExportScreen(onBack = navController::navigateUp) }
             }
         }
     }
