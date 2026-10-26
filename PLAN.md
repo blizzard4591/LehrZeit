@@ -104,8 +104,8 @@ The app uses a single `Activity`: every screen is a Compose destination inside `
 |---|---|---|
 | `MainActivity` | `Activity` | Hosts all screens (Compose + Navigation). Handles deep links from the notification and widget, e.g. "open picker" |
 | `SwitchConfirmActivity` | `Activity`, dialog theme, translucent | Shows the "Stop A and start B?" confirmation when a **widget** tile is tapped while another timer runs. A widget can't show a dialog itself, and opening the whole app for this would be slow |
-| `TrackingActionReceiver` | BroadcastReceiver | Handles Stop, Pause, Resume and Keep going without opening the app. Also handles the notification being swiped away, by posting it again |
-| `ReminderReceiver` | BroadcastReceiver + AlarmManager (inexact, no special permission) | Fires the "still working?" reminder |
+| `TrackingActionReceiver` | BroadcastReceiver | Handles Stop, Pause, Resume and Keep going without opening the app, the notifications being swiped away (the timer one is posted again), and the reminder alarm |
+| `AlarmReminderScheduler` | AlarmManager (`setWindow`, 10-minute window, no special permission) | Wakes `TrackingActionReceiver` when the "still working?" reminder is due. A plain inexact alarm could be up to 75 % of the waiting time late; in deep sleep (Doze) the alarm still waits until the phone is used |
 | `SystemEventsReceiver` | BroadcastReceiver | Runs on `BOOT_COMPLETED` and `MY_PACKAGE_REPLACED`. Posts the notification again, reschedules the reminder and refreshes the widget. Tracking state lives in the database, so it survives reboots and the process being killed |
 | `TrackingWidget` / `TrackingWidgetReceiver` | Glance app widget | Shows the running timer with Stop/Pause, plus General and the favorite tiles |
 | `FileProvider` | ContentProvider | Shares export and backup files with other apps |
@@ -226,7 +226,7 @@ Entry            id, accountId, activityId?, startUtc, endUtc?, note, createdAt,
 5. **(done 2026-10-25)** Stats.
 6. **(done 2026-10-25)** Export: CSV, ODS, PDF.
 7. **(done 2026-10-26)** Backup and restore.
-8. Reminder.
+8. **(done 2026-10-26)** Reminder.
 9. Widget, plus `SwitchConfirmActivity`.
 10. F-Droid metadata and a check that the build is reproducible.
 
@@ -239,7 +239,8 @@ Unit tests cover the time arithmetic: midnight split, the summer/winter time cha
 - The running entry counts towards the stats up to "now". It is **not** included in exports.
 - The home screen shows 8 tiles including General. "Most used" means the number of entries per combination in the last 30 days.
 - A paused notification can be swiped away and stays away, because nothing is running.
-- The reminder fires after 3 h by default. After *Keep going* it fires again 3 h later.
+- The reminder fires after 3 h by default (choices: 1–12 h). After *Keep going* it fires again that long later; swiping the reminder away counts as *Keep going*. Without either, there is no second reminder for the same entry. Switching to another combination starts counting afresh.
+- The reminder notification has its own group, so Android doesn't bundle it with the timer notification and hide its buttons.
 - The start of the running entry can be adjusted, e.g. "I actually started 10 min ago".
 - Entries cannot end in the future, and the end must be after the start.
 - Overlap edge cases:

@@ -251,6 +251,21 @@
     <string name="backup_error_restore">Restoring failed. Your data was left unchanged.</string>
     <string name="welcome_restore">Restore a backup</string>
 
+    <!-- Reminder -->
+    <string name="channel_reminders_name">Reminders</string>
+    <string name="channel_reminders_description">Asks whether a timer that has been running for a long time is still right.</string>
+    <string name="reminder_title">Still on %s?</string>
+    <string name="reminder_text">Running since %1$s · %2$s h</string>
+    <string name="action_keep_going">Keep going</string>
+    <string name="settings_section_reminder">Reminder</string>
+    <string name="settings_reminder">Remind me of a running timer</string>
+    <string name="settings_reminder_summary">Asks whether you’re still working once a timer has been running for the chosen time. Nothing is changed automatically.</string>
+    <string name="settings_reminder_after">Remind after</string>
+    <plurals name="duration_hours">
+        <item quantity="one">%d hour</item>
+        <item quantity="other">%d hours</item>
+    </plurals>
+
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="more_settings_summary">Short entries and other options</string>

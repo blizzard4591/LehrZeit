@@ -9,7 +9,7 @@ import android.content.Intent
 import de.janaberger.lehrzeit.LehrZeitApplication
 import kotlinx.coroutines.launch
 
-/** Handles the notification's buttons and its dismissal, without opening the app. */
+/** Handles the notifications' buttons and dismissal, and the reminder alarm, without opening the app. */
 class TrackingActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val container = (context.applicationContext as LehrZeitApplication).container
@@ -22,6 +22,8 @@ class TrackingActionReceiver : BroadcastReceiver() {
                     TrackingNotifier.ACTION_PAUSE -> controller.pause()
                     TrackingNotifier.ACTION_RESUME -> controller.resume()
                     TrackingNotifier.ACTION_DISMISSED -> controller.onNotificationDismissed()
+                    TrackingNotifier.ACTION_REMINDER_DUE -> controller.onReminderDue()
+                    TrackingNotifier.ACTION_KEEP_GOING, TrackingNotifier.ACTION_REMINDER_DISMISSED -> controller.keepGoing()
                 }
             } finally {
                 pendingResult.finish()

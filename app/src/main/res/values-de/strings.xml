@@ -249,6 +249,21 @@
     <string name="backup_error_restore">Die Wiederherstellung ist fehlgeschlagen. Deine Daten sind unverändert.</string>
     <string name="welcome_restore">Sicherung wiederherstellen</string>
 
+    <!-- Reminder -->
+    <string name="channel_reminders_name">Erinnerungen</string>
+    <string name="channel_reminders_description">Fragt nach, ob ein Timer, der schon lange läuft, noch stimmt.</string>
+    <string name="reminder_title">Noch bei %s?</string>
+    <string name="reminder_text">Läuft seit %1$s · %2$s h</string>
+    <string name="action_keep_going">Weitermachen</string>
+    <string name="settings_section_reminder">Erinnerung</string>
+    <string name="settings_reminder">An laufenden Timer erinnern</string>
+    <string name="settings_reminder_summary">Fragt nach, ob du noch arbeitest, wenn ein Timer die gewählte Zeit läuft. Es wird nichts automatisch geändert.</string>
+    <string name="settings_reminder_after">Erinnern nach</string>
+    <plurals name="duration_hours">
+        <item quantity="one">%d Stunde</item>
+        <item quantity="other">%d Stunden</item>
+    </plurals>
+
     <!-- Settings -->
     <string name="settings_title">Einstellungen</string>
     <string name="more_settings_summary">Kurze Einträge und weitere Optionen</string>

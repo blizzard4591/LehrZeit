@@ -70,8 +70,14 @@ data class BackupEntry(
     val updatedAt: Long,
 )
 
+/** New settings get a default, so older backups without them stay readable. */
 @Serializable
-data class BackupSettings(val discardShortEntries: Boolean = true, val minEntrySeconds: Int = 60)
+data class BackupSettings(
+    val discardShortEntries: Boolean = true,
+    val minEntrySeconds: Int = 60,
+    val reminderEnabled: Boolean = true,
+    val reminderHours: Int = 3,
+)
 
 sealed interface BackupReadResult {
     data class Ok(val backup: Backup) : BackupReadResult

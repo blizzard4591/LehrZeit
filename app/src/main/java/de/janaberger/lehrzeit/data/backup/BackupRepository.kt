@@ -6,6 +6,7 @@ package de.janaberger.lehrzeit.data.backup
 import androidx.room.withTransaction
 import de.janaberger.lehrzeit.data.AppPreferences
 import de.janaberger.lehrzeit.data.EntryRepository
+import de.janaberger.lehrzeit.data.ReminderSettings
 import de.janaberger.lehrzeit.data.ShortEntrySettings
 import de.janaberger.lehrzeit.data.db.Account
 import de.janaberger.lehrzeit.data.db.AccountActivity
@@ -24,7 +25,8 @@ class BackupRepository(
 
     /** A consistent snapshot of all data and settings. */
     suspend fun create(now: Long, appVersion: String): Backup {
-        val settings = preferences.shortEntries.first()
+        val shortEntries = preferences.shortEntries.first()
+        val reminder = preferences.reminder.first()
         return db.withTransaction {
             Backup(
                 createdAtUtc = now,
@@ -36,7 +38,7 @@ class BackupRepository(
                 entries = dao.entries().map {
                     BackupEntry(it.id, it.accountId, it.activityId, it.startUtc, it.endUtc, it.note, it.createdAt, it.updatedAt)
                 },
-                settings = BackupSettings(settings.enabled, settings.minSeconds),
+                settings = BackupSettings(shortEntries.enabled, shortEntries.minSeconds, reminder.enabled, reminder.hours),
             )
         }
     }
@@ -63,7 +65,10 @@ class BackupRepository(
             )
         }
         preferences.setShortEntries(ShortEntrySettings(backup.settings.discardShortEntries, backup.settings.minEntrySeconds.coerceAtLeast(1)))
+        preferences.setReminder(ReminderSettings(backup.settings.reminderEnabled, backup.settings.reminderHours.coerceAtLeast(1)))
         preferences.setPaused(null)
+        // Restored entries may reuse the ID of the timer that ran before, so start the reminder afresh.
+        preferences.setReminderState(null)
         preferences.setOnboardingCompleted()
         entries.forgetAllDeleted()
     }

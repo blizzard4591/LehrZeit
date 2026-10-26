@@ -41,7 +41,7 @@ object AppViewModelProvider {
             val container = app().container
             TrackViewModel(container.entries, container.catalog, container.preferences, container.trackingController)
         }
-        initializer { SettingsViewModel(app().container.preferences) }
+        initializer { SettingsViewModel(app().container.preferences, app().container.trackingController) }
         initializer { StatsViewModel(app().container.entries, app().container.catalog) }
         initializer { ExportViewModel(app().container.entries, app().container.exportWriter) }
         initializer {

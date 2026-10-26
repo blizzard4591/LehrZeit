@@ -11,6 +11,7 @@ import de.janaberger.lehrzeit.data.backup.BackupRepository
 import de.janaberger.lehrzeit.data.backup.BackupService
 import de.janaberger.lehrzeit.data.db.LehrZeitDatabase
 import de.janaberger.lehrzeit.export.ExportWriter
+import de.janaberger.lehrzeit.tracking.AlarmReminderScheduler
 import de.janaberger.lehrzeit.tracking.TrackingController
 import de.janaberger.lehrzeit.tracking.TrackingNotifier
 import kotlinx.coroutines.CoroutineScope
@@ -44,6 +45,7 @@ class AppContainer(context: Context) {
         catalog = catalog,
         preferences = preferences,
         notifier = trackingNotifier,
+        reminders = AlarmReminderScheduler(context),
         generalName = { context.getString(R.string.account_general) },
     )
 }
