@@ -10,6 +10,7 @@ import android.util.Log
 import de.janaberger.lehrzeit.AppContainer
 import de.janaberger.lehrzeit.LehrZeitApplication
 import de.janaberger.lehrzeit.data.db.Entry
+import de.janaberger.lehrzeit.data.db.WorkActivity
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
@@ -24,7 +25,8 @@ import java.util.Locale
  *
  *     adb shell am broadcast -n de.janaberger.lehrzeit.debug/de.janaberger.lehrzeit.debug.DemoDataReceiver
  *
- * Uses the first two active accounts and the first three activities of the catalog.
+ * Uses the first three activities of the catalog (with the starter catalog: teaching, lesson prep
+ * and correcting), General and the first two classes.
  */
 class DemoDataReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -43,21 +45,22 @@ class DemoDataReceiver : BroadcastReceiver() {
     private suspend fun addDemoWeeks(container: AppContainer): Int {
         val snapshot = container.catalog.observeSnapshot().first()
         val general = snapshot.general ?: return 0
-        val accounts = snapshot.activeAccounts.filter { !it.isGeneral }.ifEmpty { listOf(general) }
-        val first = accounts.first()
-        val second = accounts.getOrElse(1) { first }
-        val activities = snapshot.activities.filter { !it.archived }
-        // General offers no activities, so without other accounts everything goes there plain.
-        fun activity(index: Int): Long? = if (first.isGeneral) null else activities.getOrNull(index)?.id
+        val activities = snapshot.activeActivities.filter { !it.isGeneral }
+        val teaching = activities.getOrElse(0) { general }
+        val prep = activities.getOrElse(1) { general }
+        val correcting = activities.getOrElse(2) { general }
+        val classes = snapshot.activeClasses
+        fun classFor(activity: WorkActivity, index: Int): Long? = if (activity.perClass) classes.getOrNull(index)?.id else null
 
         val zone = ZoneId.systemDefault()
         val now = System.currentTimeMillis()
         var count = 0
-        suspend fun add(accountId: Long, activityId: Long?, day: LocalDate, start: String, end: String, note: String = "") {
+        suspend fun add(activity: WorkActivity, classIndex: Int?, day: LocalDate, start: String, end: String, note: String = "") {
             fun utc(time: String) = day.atTime(LocalTime.parse(time)).atZone(zone).toInstant().toEpochMilli()
             if (utc(end) > now) return
+            val classId = classIndex?.let { classFor(activity, it) }
             container.entries.save(
-                Entry(accountId = accountId, activityId = activityId, startUtc = utc(start), endUtc = utc(end), note = note, createdAt = now, updatedAt = now),
+                Entry(activityId = activity.id, classId = classId, startUtc = utc(start), endUtc = utc(end), note = note, createdAt = now, updatedAt = now),
                 now,
             )
             count++
@@ -68,17 +71,18 @@ class DemoDataReceiver : BroadcastReceiver() {
         val examNote = if (Locale.getDefault().language == "de") "Klassenarbeit" else "Class test"
         for (offset in 0L..21L) {
             val day = today.minusDays(offset)
-            val (morning, late) = if (offset % 2 == 1L) first to second else second to first
+            val (morning, late) = if (offset % 2 == 1L) 0 to 1 else 1 to 0
             when (day.dayOfWeek) {
-                DayOfWeek.SUNDAY -> if (offset % 2 == 1L) add(first.id, activity(2), day, "19:00", "21:15", examNote)
-                DayOfWeek.SATURDAY -> add(second.id, activity(1), day, "10:00", "12:30")
+                DayOfWeek.SUNDAY -> if (offset % 2 == 1L) add(correcting, 0, day, "19:00", "21:15", examNote)
+                DayOfWeek.SATURDAY -> add(prep, 1, day, "10:00", "12:30")
                 else -> {
-                    add(morning.id, activity(0), day, "08:00", "11:15")
-                    add(late.id, activity(0), day, "11:30", "13:00")
-                    add(general.id, null, day, "13:00", "13:45")
-                    add(second.id, activity(1), day, "15:00", if (offset % 3 == 0L) "17:30" else "16:45")
+                    add(teaching, morning, day, "08:00", "11:15")
+                    add(teaching, late, day, "11:30", "13:00")
+                    add(general, null, day, "13:00", "13:45")
+                    // Lesson prep without a class, the way the first tester books it.
+                    add(prep, null, day, "15:00", if (offset % 3 == 0L) "17:30" else "16:45")
                     if (day.dayOfWeek == DayOfWeek.TUESDAY || day.dayOfWeek == DayOfWeek.THURSDAY) {
-                        add(first.id, activity(2), day, "19:30", "21:00")
+                        add(correcting, 1, day, "19:30", "21:00")
                     }
                 }
             }

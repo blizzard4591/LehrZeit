@@ -3,8 +3,8 @@
 
 package de.janaberger.lehrzeit.data
 
-/** Colors an account can have (ARGB). Chosen to stay recognizable in light and dark mode. */
-object AccountColors {
+/** Colors an activity can have (ARGB). Chosen to stay recognizable in light and dark mode. */
+object ActivityColors {
     val palette: List<Int> = listOf(
         0xFF546E7A, // blue grey, General's default
         0xFFD32F2F,
@@ -21,6 +21,6 @@ object AccountColors {
 
     val GENERAL: Int = palette[0]
 
-    /** Default color for the [index]-th regular account; cycles through the palette, skipping General's. */
+    /** Default color for the [index]-th regular activity; cycles through the palette, skipping General's. */
     fun forIndex(index: Int): Int = palette[1 + index.mod(palette.size - 1)]
 }

@@ -15,16 +15,15 @@ class BackupFormatTest {
     private val backup = Backup(
         createdAtUtc = 1_000,
         appVersion = "0.1.0",
-        accounts = listOf(
-            BackupAccount(1, "General", color = -1, isGeneral = true, archived = false, sortOrder = 0),
-            BackupAccount(2, "7b", color = -2, isGeneral = false, archived = false, sortOrder = 1),
+        activities = listOf(
+            BackupActivity(1, "General", color = -1, isGeneral = true, archived = false, sortOrder = 0),
+            BackupActivity(2, "Korrekturen", color = -2, isGeneral = false, perClass = true, archived = false, sortOrder = 1),
         ),
-        activities = listOf(BackupActivity(10, "Korrekturen", archived = false, sortOrder = 0)),
-        accountActivities = listOf(BackupLink(2, 10)),
-        favorites = listOf(BackupFavorite(5, accountId = 2, activityId = 10, sortOrder = 0)),
+        classes = listOf(BackupClass(10, "7b", archived = false, sortOrder = 0)),
+        favorites = listOf(BackupFavorite(5, activityId = 2, classId = 10, sortOrder = 0)),
         entries = listOf(
-            BackupEntry(100, accountId = 2, activityId = 10, startUtc = 0, endUtc = 60_000, note = "Klausur „2“", createdAt = 0, updatedAt = 0),
-            BackupEntry(101, accountId = 1, startUtc = 120_000, createdAt = 0, updatedAt = 0),
+            BackupEntry(100, activityId = 2, classId = 10, startUtc = 0, endUtc = 60_000, note = "Klausur „2“", createdAt = 0, updatedAt = 0),
+            BackupEntry(101, activityId = 1, startUtc = 120_000, createdAt = 0, updatedAt = 0),
         ),
         settings = BackupSettings(discardShortEntries = false, minEntrySeconds = 120),
     )
@@ -65,20 +64,27 @@ class BackupFormatTest {
         // A field added by a later version of the same format is skipped.
         val written = ByteArrayOutputStream().also { writeBackup(backup, it) }.toByteArray()
         val jsonText = ZipInputStream(ByteArrayInputStream(written)).use { it.nextEntry; it.readBytes().decodeToString() }
-        val withExtraField = jsonText.replaceFirst("\"version\": 1,", "\"version\": 1, \"futureField\": {\"a\": 1},")
+        val version = "\"version\": $BACKUP_VERSION,"
+        val withExtraField = jsonText.replaceFirst(version, "$version \"futureField\": {\"a\": 1},")
         assertEquals(BackupReadResult.Ok(backup), readBackup(zipWith("backup.json", withExtraField)))
+    }
+
+    @Test
+    fun backupsFromTheTestBuilds_areTooOld() {
+        // Version 1 stored account › activity, before 0.1.0.
+        assertEquals(BackupReadResult.TooOld, readBackup(zipWith("backup.json", """{"format":"$BACKUP_FORMAT","version":1,"accounts":[]}""")))
     }
 
     @Test
     fun inconsistentContent_isDamaged() {
         val damaged = listOf(
-            backup.copy(accounts = backup.accounts.map { it.copy(isGeneral = false) }), // no General
-            backup.copy(accountActivities = listOf(BackupLink(2, 99))), // unknown activity
-            backup.copy(entries = backup.entries + BackupEntry(102, accountId = 99, startUtc = 0, endUtc = 1, createdAt = 0, updatedAt = 0)),
-            backup.copy(entries = backup.entries + BackupEntry(102, accountId = 2, startUtc = 200_000, createdAt = 0, updatedAt = 0)), // two running
-            backup.copy(entries = listOf(BackupEntry(103, accountId = 2, startUtc = 10, endUtc = 10, createdAt = 0, updatedAt = 0))),
+            backup.copy(activities = backup.activities.map { it.copy(isGeneral = false) }), // no General
+            backup.copy(favorites = listOf(BackupFavorite(5, activityId = 2, classId = 99, sortOrder = 0))), // unknown class
+            backup.copy(entries = backup.entries + BackupEntry(102, activityId = 99, startUtc = 0, endUtc = 1, createdAt = 0, updatedAt = 0)),
+            backup.copy(entries = backup.entries + BackupEntry(102, activityId = 2, startUtc = 200_000, createdAt = 0, updatedAt = 0)), // two running
+            backup.copy(entries = listOf(BackupEntry(103, activityId = 2, startUtc = 10, endUtc = 10, createdAt = 0, updatedAt = 0))),
         )
         damaged.forEach { assertEquals(BackupReadResult.Damaged, roundTrip(it)) }
-        assertEquals(BackupReadResult.Damaged, readBackup(zipWith("backup.json", """{"format":"$BACKUP_FORMAT","version":1,"accounts":"x"}""")))
+        assertEquals(BackupReadResult.Damaged, readBackup(zipWith("backup.json", """{"format":"$BACKUP_FORMAT","version":$BACKUP_VERSION,"activities":"x"}""")))
     }
 }

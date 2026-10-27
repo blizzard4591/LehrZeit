@@ -119,7 +119,7 @@ fun rememberRestoreLauncher(viewModel: BackupViewModel): () -> Unit {
 @Composable
 fun BackupDialogs(state: BackupUiState, viewModel: BackupViewModel) {
     state.pendingRestore?.let { backup ->
-        val accounts = backup.accounts.count { !it.isGeneral }
+        val activities = backup.activities.count { !it.isGeneral }
         AlertDialog(
             onDismissRequest = viewModel::cancelRestore,
             title = { Text(stringResource(R.string.backup_confirm_title)) },
@@ -129,8 +129,8 @@ fun BackupDialogs(state: BackupUiState, viewModel: BackupViewModel) {
                         stringResource(
                             R.string.backup_confirm_summary,
                             dateTime(backup.createdAtUtc),
-                            pluralStringResource(R.plurals.backup_accounts, accounts, accounts),
-                            pluralStringResource(R.plurals.backup_activities, backup.activities.size, backup.activities.size),
+                            pluralStringResource(R.plurals.backup_activities, activities, activities),
+                            pluralStringResource(R.plurals.backup_classes, backup.classes.size, backup.classes.size),
                             pluralStringResource(R.plurals.backup_entries, backup.entries.size, backup.entries.size),
                         ),
                     )
@@ -158,6 +158,7 @@ fun BackupDialogs(state: BackupUiState, viewModel: BackupViewModel) {
                             BackupError.NOT_A_BACKUP -> R.string.backup_error_not_backup
                             BackupError.DAMAGED -> R.string.backup_error_damaged
                             BackupError.TOO_NEW -> R.string.backup_error_too_new
+                            BackupError.TOO_OLD -> R.string.backup_error_too_old
                             BackupError.RESTORE_FAILED -> R.string.backup_error_restore
                         },
                     ),

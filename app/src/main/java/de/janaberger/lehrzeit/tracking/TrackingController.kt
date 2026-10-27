@@ -107,7 +107,7 @@ class TrackingController(
         val due = nextReminderAt(running.entry.startUtc, state, preferences.reminder.first()) ?: return@change
         if (now() < due) return@change
         preferences.setReminderState(state.copy(fired = true))
-        notifier.showReminder(Combo(running.account, running.activity).label(generalName()), running.entry.startUtc, now())
+        notifier.showReminder(Combo(running.activity, running.schoolClass).label(generalName()), running.entry.startUtc, now())
     }
 
     /** "Keep going" (or swiping the reminder away): ask again after the reminder time from now. */
@@ -165,7 +165,7 @@ class TrackingController(
     private suspend fun updateNotification() {
         val running = entries.getRunning()
         if (running != null) {
-            notifier.showRunning(Combo(running.account, running.activity).label(generalName()), running.entry.startUtc)
+            notifier.showRunning(Combo(running.activity, running.schoolClass).label(generalName()), running.entry.startUtc)
             return
         }
         val paused = preferences.getPaused()

@@ -18,10 +18,10 @@ import kotlinx.serialization.Serializable
 /** The More tab is a nested graph so that its sub-screens keep the tab selected. */
 @Serializable data object MoreGraph
 @Serializable data object MoreRoute
-@Serializable data object AccountsRoute
-@Serializable data class AccountEditRoute(val id: Long? = null)
 @Serializable data object ActivitiesRoute
 @Serializable data class ActivityEditRoute(val id: Long? = null)
+@Serializable data object ClassesRoute
+@Serializable data class ClassEditRoute(val id: Long? = null)
 @Serializable data object SettingsRoute
 @Serializable data object ExportRoute
 @Serializable data object BackupRoute

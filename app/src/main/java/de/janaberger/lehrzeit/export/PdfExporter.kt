@@ -35,7 +35,7 @@ private val BAR = Color.rgb(0x2B, 0x6A, 0x57)
 private val TRACK = Color.rgb(0xD5, 0xEC, 0xE2)
 
 /**
- * A printable A4 report: period and total, totals by account (with activities), by activity and
+ * A printable A4 report: period and total, totals by activity (with classes), by class and
  * per day, then every entry with its note. Laid out twice: once to count the pages for
  * "page x of y", once to draw.
  */
@@ -87,8 +87,8 @@ private class PdfReport(
         drawText(labels.total, MARGIN, muted)
         drawText(hours(data.totalMillis), MARGIN, big)
 
-        totalsTable(labels.byAccount, data.byAccount)
         totalsTable(labels.byActivity, data.byActivity)
+        totalsTable(labels.byClass, data.byClass)
         // Days are compared with the busiest day; a share of the whole period says little for one day.
         totalsTable(
             labels.perDay,
@@ -168,7 +168,7 @@ private class PdfReport(
             val baseline = y + 11f
             val days = ChronoUnit.DAYS.between(entry.date, entry.endDate)
             val time = "${entry.start.toHhMm()}–${entry.end.toHhMm()}" + if (days > 0) " (+$days)" else ""
-            val booked = listOfNotNull(entry.account, entry.activity).joinToString(" › ")
+            val booked = listOfNotNull(entry.activity, entry.schoolClass).joinToString(" › ")
             text(shortDate.format(entry.date), dateX, baseline, body)
             text(time, timeX, baseline, body)
             textRight(formatHoursMinutes(entry.durationMillis), durationRight, baseline, body)

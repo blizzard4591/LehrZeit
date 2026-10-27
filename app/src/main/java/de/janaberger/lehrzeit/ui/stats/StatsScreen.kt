@@ -77,7 +77,7 @@ import java.time.temporal.IsoFields
 fun StatsScreen(viewModel: StatsViewModel = viewModel(factory = AppViewModelProvider.Factory)) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val now by rememberNow(ticking = state.entries.any { it.endUtc == null })
-    var expandedAccounts by rememberSaveable { mutableStateOf(emptyList<Long>()) }
+    var expandedActivities by rememberSaveable { mutableStateOf(emptyList<Long>()) }
 
     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.nav_stats)) }) }) { padding ->
         val period = state.period
@@ -126,8 +126,8 @@ fun StatsScreen(viewModel: StatsViewModel = viewModel(factory = AppViewModelProv
             item(key = "breakdown-mode") {
                 OptionRow(
                     options = listOf(
-                        BreakdownMode.ACCOUNT to stringResource(R.string.stats_by_account),
                         BreakdownMode.ACTIVITY to stringResource(R.string.stats_by_activity),
+                        BreakdownMode.CLASS to stringResource(R.string.stats_by_class),
                     ),
                     selected = state.breakdown,
                     onSelect = viewModel::setBreakdown,
@@ -137,8 +137,8 @@ fun StatsScreen(viewModel: StatsViewModel = viewModel(factory = AppViewModelProv
             if (stats.totalMillis == 0L) {
                 item(key = "empty") { NoteText(stringResource(R.string.stats_empty), Modifier.padding(top = 8.dp)) }
             } else {
-                breakdownItems(stats, snapshot, state.breakdown, expandedAccounts) { accountId ->
-                    expandedAccounts = if (accountId in expandedAccounts) expandedAccounts - accountId else expandedAccounts + accountId
+                breakdownItems(stats, snapshot, state.breakdown, expandedActivities) { activityId ->
+                    expandedActivities = if (activityId in expandedActivities) expandedActivities - activityId else expandedActivities + activityId
                 }
             }
         }
@@ -264,21 +264,21 @@ private fun LazyListScope.breakdownItems(
     stats: Stats,
     snapshot: CatalogSnapshot,
     mode: BreakdownMode,
-    expandedAccounts: List<Long>,
-    onToggleAccount: (Long) -> Unit,
+    expandedActivities: List<Long>,
+    onToggleActivity: (Long) -> Unit,
 ) {
     when (mode) {
-        BreakdownMode.ACCOUNT -> stats.byAccount.forEach { account ->
-            val combo = snapshot.combo(ComboKey(account.accountId, null))
-            val isExpanded = account.accountId in expandedAccounts
-            val expandable = account.activities.any { it.activityId != null }
-            item(key = "account-${account.accountId}") {
+        BreakdownMode.ACTIVITY -> stats.byActivity.forEach { activity ->
+            val combo = snapshot.combo(ComboKey(activity.activityId, null))
+            val isExpanded = activity.activityId in expandedActivities
+            val expandable = activity.classes.any { it.classId != null }
+            item(key = "activity-${activity.activityId}") {
                 BreakdownRow(
-                    label = combo?.account?.displayName().orEmpty(),
-                    millis = account.millis,
+                    label = combo?.activity?.displayName().orEmpty(),
+                    millis = activity.millis,
                     totalMillis = stats.totalMillis,
-                    color = combo?.account?.color,
-                    onClick = if (expandable) ({ onToggleAccount(account.accountId) }) else null,
+                    color = combo?.activity?.color,
+                    onClick = if (expandable) ({ onToggleActivity(activity.activityId) }) else null,
                     trailing = if (expandable) {
                         {
                             Icon(
@@ -292,10 +292,10 @@ private fun LazyListScope.breakdownItems(
                 )
             }
             if (isExpanded) {
-                items(account.activities, key = { "account-${account.accountId}-${it.activityId}" }) { activity ->
+                items(activity.classes, key = { "activity-${activity.activityId}-${it.classId}" }) { schoolClass ->
                     BreakdownRow(
-                        label = activityName(snapshot, activity.activityId),
-                        millis = activity.millis,
+                        label = className(snapshot, schoolClass.classId),
+                        millis = schoolClass.millis,
                         totalMillis = stats.totalMillis,
                         color = null,
                         indent = 28.dp,
@@ -303,10 +303,10 @@ private fun LazyListScope.breakdownItems(
                 }
             }
         }
-        BreakdownMode.ACTIVITY -> items(stats.byActivity, key = { "activity-${it.activityId}" }) { activity ->
+        BreakdownMode.CLASS -> items(stats.byClass, key = { "class-${it.classId}" }) { schoolClass ->
             BreakdownRow(
-                label = activityName(snapshot, activity.activityId),
-                millis = activity.millis,
+                label = className(snapshot, schoolClass.classId),
+                millis = schoolClass.millis,
                 totalMillis = stats.totalMillis,
                 color = null,
             )
@@ -315,9 +315,9 @@ private fun LazyListScope.breakdownItems(
 }
 
 @Composable
-private fun activityName(snapshot: CatalogSnapshot, activityId: Long?): String =
-    activityId?.let { id -> snapshot.activities.firstOrNull { it.id == id }?.name }
-        ?: stringResource(R.string.stats_without_activity)
+private fun className(snapshot: CatalogSnapshot, classId: Long?): String =
+    classId?.let { id -> snapshot.classes.firstOrNull { it.id == id }?.name }
+        ?: stringResource(R.string.stats_without_class)
 
 /** Label, value and share, over a thin meter of the share in one color on a lighter track. */
 @Composable

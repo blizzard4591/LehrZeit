@@ -32,7 +32,7 @@ fun writeCsv(data: ExportData, labels: ExportLabels, locale: Locale, out: Writer
     }
 
     out.write("\uFEFF")
-    row(listOf(labels.date, labels.start, labels.end, labels.duration, labels.hours, labels.account, labels.activity, labels.note))
+    row(listOf(labels.date, labels.start, labels.end, labels.duration, labels.hours, labels.activity, labels.schoolClass, labels.note))
     for (entry in data.entries) {
         row(
             listOf(
@@ -41,8 +41,8 @@ fun writeCsv(data: ExportData, labels: ExportLabels, locale: Locale, out: Writer
                 entry.end.toHhMm(),
                 formatHoursMinutes(entry.durationMillis),
                 decimalHours(entry.durationMillis, decimal),
-                entry.account,
-                entry.activity.orEmpty(),
+                entry.activity,
+                entry.schoolClass.orEmpty(),
                 entry.note,
             ),
         )

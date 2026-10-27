@@ -33,12 +33,11 @@ class EntryRepositoryTest {
     fun setUp() = runTest {
         db = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext(), LehrZeitDatabase::class.java)
             .build()
-        val catalog = CatalogRepository(db, starterActivityNames = { listOf("Correcting") }, generalDisplayName = { "General" })
-        catalog.seedIfNeeded()
-        val correcting = catalog.activeActivities().single().id
-        val accountId = (catalog.saveAccount(null, "7b", color = 0, activityIds = setOf(correcting)) as SaveResult.Saved).id
-        a = ComboKey(accountId, null)
-        b = ComboKey(accountId, correcting)
+        val catalog = CatalogRepository(db, starterActivities = { listOf(StarterActivity("Correcting", perClass = true)) }, generalDisplayName = { "General" })
+        catalog.createInitialClasses(listOf("7b"))
+        val correcting = catalog.activeRegularActivities().single().id
+        a = ComboKey(correcting, null)
+        b = ComboKey(correcting, catalog.activeClasses().single().id)
         tracking = EntryRepository(db)
     }
 
@@ -144,7 +143,7 @@ class EntryRepositoryTest {
     }
 
     @Test
-    fun toggleFavorite_addsAndRemovesIncludingAccountOnlyCombos() = runTest {
+    fun toggleFavorite_addsAndRemovesIncludingActivityOnlyCombos() = runTest {
         tracking.toggleFavorite(b)
         tracking.toggleFavorite(a)
         assertEquals(listOf(b, a), tracking.observeFavorites().first())
@@ -165,7 +164,7 @@ class EntryRepositoryTest {
     }
 
     private fun finished(key: ComboKey, start: Long, end: Long) =
-        Entry(accountId = key.accountId, activityId = key.activityId, startUtc = start, endUtc = end, createdAt = 0, updatedAt = 0)
+        Entry(activityId = key.activityId, classId = key.classId, startUtc = start, endUtc = end, createdAt = 0, updatedAt = 0)
 
     @Test
     fun save_shortensAndDeletesOverlappedEntriesTogether() = runTest {

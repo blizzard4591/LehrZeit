@@ -38,7 +38,7 @@ class SwitchConfirmActivity : ComponentActivity() {
         lifecycleScope.launch {
             // If the timer stopped since the widget was drawn, there's nothing to ask.
             if (container.trackingController.startIfIdle(key)) return@launch finish()
-            val from = container.entries.getRunning()?.let { Combo(it.account, it.activity) }
+            val from = container.entries.getRunning()?.let { Combo(it.activity, it.schoolClass) }
             val to = container.catalog.getCombo(key)
             if (from == null || to == null) finish() else question = from to to
         }

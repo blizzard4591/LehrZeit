@@ -43,7 +43,7 @@ fun observeTrackingOverview(
     TrackingOverview(
         snapshot = snapshot,
         favorites = favorites,
-        running = running?.let { RunningTimer(it.entry.id, Combo(it.account, it.activity), it.entry.startUtc, it.entry.note) },
+        running = running?.let { RunningTimer(it.entry.id, Combo(it.activity, it.schoolClass), it.entry.startUtc, it.entry.note) },
         paused = paused?.takeIf { running == null }?.let { p -> snapshot.combo(p.key)?.let { PausedTimer(it, p.pausedAt) } },
         tiles = buildTiles(snapshot, favorites, mostUsed),
     )

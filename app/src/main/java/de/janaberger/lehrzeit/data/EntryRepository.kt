@@ -33,14 +33,14 @@ class EntryRepository(private val db: LehrZeitDatabase) {
     fun observeMostUsed(sinceUtc: Long): Flow<List<ComboKey>> = entries.observeMostUsed(sinceUtc)
 
     fun observeFavorites(): Flow<List<ComboKey>> =
-        favorites.observeAll().map { list -> list.map { ComboKey(it.accountId, it.activityId) } }
+        favorites.observeAll().map { list -> list.map { ComboKey(it.activityId, it.classId) } }
 
     suspend fun toggleFavorite(key: ComboKey) {
         db.withTransaction {
-            if (favorites.count(key.accountId, key.activityId) > 0) {
-                favorites.delete(key.accountId, key.activityId)
+            if (favorites.count(key.activityId, key.classId) > 0) {
+                favorites.delete(key.activityId, key.classId)
             } else {
-                favorites.insert(Favorite(accountId = key.accountId, activityId = key.activityId, sortOrder = favorites.maxSortOrder() + 1))
+                favorites.insert(Favorite(activityId = key.activityId, classId = key.classId, sortOrder = favorites.maxSortOrder() + 1))
             }
         }
     }
@@ -54,7 +54,7 @@ class EntryRepository(private val db: LehrZeitDatabase) {
         if (running != null && running.comboKey == key) return@withTransaction StartResult(started = false, previous = null)
         val previous = running?.let { finish(it, now, minDurationMillis) }
         entries.insert(
-            Entry(accountId = key.accountId, activityId = key.activityId, startUtc = now, endUtc = null, createdAt = now, updatedAt = now),
+            Entry(activityId = key.activityId, classId = key.classId, startUtc = now, endUtc = null, createdAt = now, updatedAt = now),
         )
         StartResult(started = true, previous = previous)
     }

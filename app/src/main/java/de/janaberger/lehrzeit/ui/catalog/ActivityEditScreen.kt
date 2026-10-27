@@ -6,7 +6,6 @@ package de.janaberger.lehrzeit.ui.catalog
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -24,14 +23,13 @@ import de.janaberger.lehrzeit.R
 import de.janaberger.lehrzeit.ui.AppViewModelProvider
 import de.janaberger.lehrzeit.ui.components.ArchiveDeleteSection
 import de.janaberger.lehrzeit.ui.components.BackTopAppBar
-import de.janaberger.lehrzeit.ui.components.CheckRow
-import de.janaberger.lehrzeit.ui.components.ColorDot
+import de.janaberger.lehrzeit.ui.components.ColorPicker
 import de.janaberger.lehrzeit.ui.components.DeleteConfirmDialog
 import de.janaberger.lehrzeit.ui.components.DiscardChangesDialog
 import de.janaberger.lehrzeit.ui.components.NameField
 import de.janaberger.lehrzeit.ui.components.NoteText
 import de.janaberger.lehrzeit.ui.components.SectionHeader
-import de.janaberger.lehrzeit.ui.components.SelectAllNoneActions
+import de.janaberger.lehrzeit.ui.components.SwitchRow
 
 @Composable
 fun ActivityEditScreen(
@@ -62,37 +60,34 @@ fun ActivityEditScreen(
         if (state.isLoading) return@Scaffold
         LazyColumn(contentPadding = padding, modifier = Modifier.imePadding()) {
             item(key = "name") {
-                NameField(value = state.name, onValueChange = viewModel::onNameChange, error = state.nameError)
+                if (state.isGeneral) {
+                    NameField(
+                        value = stringResource(R.string.activity_general),
+                        onValueChange = {},
+                        error = null,
+                        enabled = false,
+                        supportingText = stringResource(R.string.activity_general_locked),
+                    )
+                } else {
+                    NameField(value = state.name, onValueChange = viewModel::onNameChange, error = state.nameError)
+                }
             }
             if (state.isArchived) {
                 item(key = "archived-note") { NoteText(stringResource(R.string.activity_archived_note)) }
             }
-            item(key = "accounts-header") {
-                SectionHeader(
-                    title = stringResource(R.string.accounts_title),
-                    hint = stringResource(R.string.activity_accounts_hint),
-                    actions = {
-                        if (state.accounts.isNotEmpty()) {
-                            SelectAllNoneActions(
-                                onSelectAll = { viewModel.onSelectAll(true) },
-                                onSelectNone = { viewModel.onSelectAll(false) },
-                            )
-                        }
-                    },
+            item(key = "color") {
+                SectionHeader(stringResource(R.string.activity_color))
+                ColorPicker(selected = state.color, onSelect = viewModel::onColorChange)
+            }
+            item(key = "per-class") {
+                SwitchRow(
+                    title = stringResource(R.string.activity_per_class),
+                    summary = stringResource(R.string.activity_per_class_hint),
+                    checked = state.perClass,
+                    onCheckedChange = viewModel::onPerClassChange,
                 )
             }
-            if (state.accounts.isEmpty()) {
-                item(key = "accounts-empty") { NoteText(stringResource(R.string.activity_accounts_empty)) }
-            }
-            items(state.accounts, key = { it.id }) { account ->
-                CheckRow(
-                    label = account.name,
-                    checked = account.id in state.checked,
-                    onToggle = { viewModel.onToggleAccount(account.id) },
-                    trailing = { ColorDot(account.color) },
-                )
-            }
-            if (!state.isNew) {
+            if (!state.isGeneral && !state.isNew) {
                 item(key = "archive-delete") {
                     ArchiveDeleteSection(
                         isArchived = state.isArchived,

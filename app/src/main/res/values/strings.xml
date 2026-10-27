@@ -17,11 +17,9 @@
     <string name="action_unarchive">Restore from archive</string>
     <string name="action_discard">Discard</string>
     <string name="action_keep_editing">Keep editing</string>
-    <string name="action_select_all">All</string>
-    <string name="action_select_none">None</string>
     <string name="action_reorder">Reorder</string>
 
-    <!-- Shared by account and activity editors -->
+    <!-- Shared by the activity and class editors -->
     <string name="field_name">Name</string>
     <string name="error_name_empty">Enter a name</string>
     <string name="error_name_taken">This name is already in use</string>
@@ -35,49 +33,38 @@
     </plurals>
 
     <!-- More tab -->
-    <string name="more_accounts_summary">Your classes and areas</string>
     <string name="more_activities_summary">What you work on, e.g. correcting</string>
-
-    <!-- Accounts -->
-    <string name="account_general">General</string>
-    <string name="accounts_title">Accounts</string>
-    <string name="accounts_add">Add account</string>
-    <string name="accounts_general_summary">Always available, without activities</string>
-    <string name="accounts_empty">No accounts yet. Add your classes or areas with +.</string>
-    <string name="account_new_title">New account</string>
-    <string name="account_edit_title">Edit account</string>
-    <string name="account_color">Color</string>
-    <string name="account_general_locked">General can’t be renamed, archived or deleted.</string>
-    <string name="account_activities_hint">Which activities can be booked on this account?</string>
-    <string name="account_activities_empty">No activities yet. Add them under More › Activities.</string>
-    <string name="account_archived_note">This account is archived. It isn’t offered for tracking, but its entries are kept.</string>
-    <string name="account_no_activities">No activities</string>
-    <plurals name="account_activity_count">
-        <item quantity="one">%d activity</item>
-        <item quantity="other">%d activities</item>
-    </plurals>
+    <string name="more_classes_summary">Your classes and courses</string>
 
     <!-- Activities -->
+    <string name="activity_general">General</string>
     <string name="activities_title">Activities</string>
     <string name="activities_add">Add activity</string>
-    <string name="activities_empty">No activities yet. Add one with +.</string>
+    <string name="activities_general_summary">Always on the home screen</string>
+    <string name="activities_empty">No activities of your own yet. Add one with +.</string>
     <string name="activity_new_title">New activity</string>
     <string name="activity_edit_title">Edit activity</string>
-    <string name="activity_accounts_hint">On which accounts can this activity be booked?</string>
-    <string name="activity_accounts_empty">No accounts yet. Add them under More › Accounts.</string>
+    <string name="activity_color">Color</string>
+    <string name="activity_general_locked">General can’t be renamed, archived or deleted.</string>
+    <string name="activity_per_class">Per class</string>
+    <string name="activity_per_class_hint">A class can be chosen when booking, e.g. “Correcting › 7b”.</string>
+    <string name="activity_no_classes">Without classes</string>
     <string name="activity_archived_note">This activity is archived. It isn’t offered for tracking, but its entries are kept.</string>
-    <string name="activity_no_accounts">Not offered by any account</string>
-    <plurals name="activity_account_count">
-        <item quantity="one">Offered by %d account</item>
-        <item quantity="other">Offered by %d accounts</item>
-    </plurals>
+
+    <!-- Classes -->
+    <string name="classes_title">Classes</string>
+    <string name="classes_add">Add class</string>
+    <string name="classes_empty">No classes yet. Add one with +.</string>
+    <string name="class_new_title">New class</string>
+    <string name="class_edit_title">Edit class</string>
+    <string name="class_archived_note">This class is archived. It isn’t offered for tracking, but its entries are kept.</string>
 
     <!-- Welcome setup -->
     <string name="welcome_title">Welcome to LehrZeit</string>
-    <string name="welcome_intro">LehrZeit records your working time on accounts: your classes or areas, such as “7b” or “Maths department”. For each account you can also note what you did, such as correcting or lesson prep.</string>
-    <string name="welcome_question">Which classes or areas do you work for?</string>
-    <string name="welcome_field">Class or area</string>
-    <string name="welcome_note">Each one gets all starter activities. “General” is always there for everything else. You can change all of this later under More › Accounts.</string>
+    <string name="welcome_intro">LehrZeit records your working time by activity, such as lesson prep or correcting. If you like, you can also note the class it was for.</string>
+    <string name="welcome_question">Which classes and courses do you teach?</string>
+    <string name="welcome_field">Class or course</string>
+    <string name="welcome_note">When you book an activity such as correcting, you can then pick a class, e.g. “Correcting › 7b”. You can change all of this later under More.</string>
     <string name="welcome_error_duplicate">Already added</string>
     <string name="welcome_remove">Remove %s</string>
     <string name="welcome_skip">Skip</string>
@@ -96,7 +83,7 @@
     <string name="track_idle_hint">Tap a tile to start.</string>
     <string name="track_paused">Paused</string>
     <string name="track_today">Today: %s h</string>
-    <string name="track_all_accounts">All accounts…</string>
+    <string name="track_all_activities">All activities…</string>
     <string name="track_running">Running</string>
     <string name="track_start">Start</string>
     <string name="nudge_earlier" translatable="false">−5</string>
@@ -110,11 +97,11 @@
     <string name="notifications_off">Notifications are off, so the running timer won’t appear in the notification bar.</string>
     <string name="picker_search">Search</string>
     <string name="picker_no_results">Nothing found</string>
-    <string name="picker_manage">Manage accounts</string>
+    <string name="picker_manage">Manage activities</string>
     <string name="picker_pin">Pin to home screen</string>
     <string name="picker_unpin">Unpin from home screen</string>
-    <string name="picker_expand">Show activities</string>
-    <string name="picker_collapse">Hide activities</string>
+    <string name="picker_expand">Show classes</string>
+    <string name="picker_collapse">Hide classes</string>
     <string name="channel_tracking_name">Running timer</string>
     <string name="channel_tracking_description">Shows the running timer with Pause and Stop.</string>
 
@@ -172,9 +159,9 @@
     <string name="stats_next">Next period</string>
     <string name="stats_week_number">Week %d</string>
     <string name="stats_total">Total</string>
-    <string name="stats_by_account">By account</string>
     <string name="stats_by_activity">By activity</string>
-    <string name="stats_without_activity">Without activity</string>
+    <string name="stats_by_class">By class</string>
+    <string name="stats_without_class">Without class</string>
     <string name="stats_empty">No time recorded in this period.</string>
     <string name="stats_tap_bar">Tap a bar to see that day.</string>
     <string name="stats_open_day">Show day</string>
@@ -210,8 +197,8 @@
     <string name="export_col_time">Time</string>
     <string name="export_col_duration">Duration</string>
     <string name="export_col_hours">Hours</string>
-    <string name="export_col_account">Account</string>
     <string name="export_col_activity">Activity</string>
+    <string name="export_col_class">Class</string>
     <string name="export_col_note">Note</string>
     <string name="export_entries">Entries</string>
     <string name="export_summary">Summary</string>
@@ -224,7 +211,7 @@
     <string name="backup_title">Backup &amp; restore</string>
     <string name="more_backup_summary">Take your data to a new phone</string>
     <string name="backup_section_create">Backup</string>
-    <string name="backup_create_summary">Saves all accounts, activities, entries and settings in one file. Keep it somewhere safe, e.g. on your computer or in your cloud.</string>
+    <string name="backup_create_summary">Saves all activities, classes, entries and settings in one file. Keep it somewhere safe, e.g. on your computer or in your cloud.</string>
     <string name="backup_create">Create backup…</string>
     <string name="backup_last">Last backup: %s</string>
     <string name="backup_never">No backup made yet.</string>
@@ -234,13 +221,13 @@
     <string name="backup_confirm_title">Restore backup?</string>
     <string name="backup_confirm_summary">Backup from %1$s with %2$s, %3$s and %4$s.</string>
     <string name="backup_confirm_warning">All data currently on this phone will be replaced. This can’t be undone.</string>
-    <plurals name="backup_accounts">
-        <item quantity="one">%d account</item>
-        <item quantity="other">%d accounts</item>
-    </plurals>
     <plurals name="backup_activities">
         <item quantity="one">%d activity</item>
         <item quantity="other">%d activities</item>
+    </plurals>
+    <plurals name="backup_classes">
+        <item quantity="one">%d class</item>
+        <item quantity="other">%d classes</item>
     </plurals>
     <plurals name="backup_entries">
         <item quantity="one">%d entry</item>
@@ -253,6 +240,7 @@
     <string name="backup_error_not_backup">This file isn’t a LehrZeit backup.</string>
     <string name="backup_error_damaged">This backup is damaged and can’t be restored.</string>
     <string name="backup_error_too_new">This backup was made by a newer version of LehrZeit. Please update the app first.</string>
+    <string name="backup_error_too_old">This backup was made by a test version of LehrZeit from before 0.1.0, which stored the data differently. It can’t be restored.</string>
     <string name="backup_error_restore">Restoring failed. Your data was left unchanged.</string>
     <string name="welcome_restore">Restore a backup</string>
 
@@ -273,8 +261,8 @@
 
     <!-- Widget -->
     <string name="widget_description">The running timer and your tiles, to start and stop tracking from the home screen.</string>
-    <string name="widget_preview_account" translatable="false">7b</string>
     <string name="widget_preview_activity">Correcting</string>
+    <string name="widget_preview_class" translatable="false">7b</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>

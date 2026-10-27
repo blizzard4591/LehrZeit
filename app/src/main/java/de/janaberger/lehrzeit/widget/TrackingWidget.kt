@@ -173,7 +173,7 @@ private fun RunningStatus(running: RunningTimer, modifier: GlanceModifier) {
     ) {
         Column(GlanceModifier.defaultWeight()) {
             Text(
-                running.combo.label(context.getString(R.string.account_general)),
+                running.combo.label(context.getString(R.string.activity_general)),
                 style = TextStyle(color = textColor, fontSize = 13.sp, fontWeight = FontWeight.Medium),
                 maxLines = 1,
             )
@@ -202,7 +202,7 @@ private fun PausedStatus(paused: PausedTimer, modifier: GlanceModifier) {
                 maxLines = 1,
             )
             Text(
-                paused.combo.label(context.getString(R.string.account_general)),
+                paused.combo.label(context.getString(R.string.activity_general)),
                 style = TextStyle(color = GlanceTheme.colors.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Medium),
                 maxLines = 1,
             )
@@ -238,7 +238,7 @@ private fun ActionButton(@DrawableRes icon: Int, @StringRes label: Int, action: 
     )
 }
 
-/** Like the Track screen's tile: an account-colored edge, the account and the activity. */
+/** Like the Track screen's tile: an activity-colored edge, the activity and the class. */
 @Composable
 private fun Tile(combo: Combo, running: RunningTimer?, modifier: GlanceModifier) {
     val context = LocalContext.current
@@ -258,10 +258,10 @@ private fun Tile(combo: Combo, running: RunningTimer?, modifier: GlanceModifier)
             .then(if (action != null) GlanceModifier.clickable(action) else GlanceModifier),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Spacer(GlanceModifier.width(4.dp).fillMaxHeight().background(Color(combo.account.color)))
+        Spacer(GlanceModifier.width(4.dp).fillMaxHeight().background(Color(combo.activity.color)))
         Column(GlanceModifier.defaultWeight().padding(horizontal = 8.dp)) {
             Text(
-                if (combo.account.isGeneral) context.getString(R.string.account_general) else combo.account.name,
+                if (combo.activity.isGeneral) context.getString(R.string.activity_general) else combo.activity.name,
                 style = TextStyle(
                     color = if (isRunning) GlanceTheme.colors.onPrimaryContainer else GlanceTheme.colors.onSurface,
                     fontSize = 13.sp,
@@ -269,7 +269,7 @@ private fun Tile(combo: Combo, running: RunningTimer?, modifier: GlanceModifier)
                 ),
                 maxLines = 1,
             )
-            combo.activity?.let {
+            combo.schoolClass?.let {
                 Text(
                     it.name,
                     style = TextStyle(

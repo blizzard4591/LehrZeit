@@ -45,7 +45,7 @@ class WelcomeViewModel(
         _uiState.update { it.copy(names = it.names - name) }
     }
 
-    /** Creates the accounts, including a name still in the text field, and ends the welcome setup. */
+    /** Creates the classes, including a name still in the text field, and ends the welcome setup. */
     fun finish() {
         if (!_uiState.value.canFinish) return
         _uiState.update { it.copy(isSaving = true) }
@@ -54,7 +54,7 @@ class WelcomeViewModel(
                 _uiState.update { it.copy(isSaving = false) }
                 return@launch
             }
-            catalog.createInitialAccounts(_uiState.value.names)
+            catalog.createInitialClasses(_uiState.value.names)
             preferences.setOnboardingCompleted()
         }
     }
@@ -69,7 +69,7 @@ class WelcomeViewModel(
         if (name.isEmpty()) return true
         val error = when {
             _uiState.value.names.any { it.equals(name, ignoreCase = true) } -> WelcomeInputError.DUPLICATE
-            catalog.isAccountNameTaken(name, exceptId = null) -> WelcomeInputError.TAKEN
+            catalog.isClassNameTaken(name, exceptId = null) -> WelcomeInputError.TAKEN
             else -> null
         }
         _uiState.update {

@@ -17,7 +17,7 @@ class EditTimeTest {
     private fun utc(dateTime: String): Long = LocalDateTime.parse(dateTime).atZone(berlin).toInstant().toEpochMilli()
 
     private fun entry(id: Long, start: String, end: String?) = Entry(
-        id = id, accountId = 1, activityId = null, startUtc = utc(start), endUtc = end?.let(::utc), createdAt = 0, updatedAt = 0,
+        id = id, activityId = 1, classId = null, startUtc = utc(start), endUtc = end?.let(::utc), createdAt = 0, updatedAt = 0,
     )
 
     @Test

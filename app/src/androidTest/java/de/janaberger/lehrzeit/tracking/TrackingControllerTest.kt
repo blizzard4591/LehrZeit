@@ -12,6 +12,7 @@ import de.janaberger.lehrzeit.data.CatalogRepository
 import de.janaberger.lehrzeit.data.ComboKey
 import de.janaberger.lehrzeit.data.EntryRepository
 import de.janaberger.lehrzeit.data.ReminderSettings
+import de.janaberger.lehrzeit.data.StarterActivity
 import de.janaberger.lehrzeit.data.db.LehrZeitDatabase
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -59,10 +60,10 @@ class TrackingControllerTest {
     fun setUp() = runTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
         db = Room.inMemoryDatabaseBuilder(context, LehrZeitDatabase::class.java).build()
-        val catalog = CatalogRepository(db, starterActivityNames = { emptyList() }, generalDisplayName = { "General" })
-        catalog.createInitialAccounts(listOf("7b"))
+        val catalog = CatalogRepository(db, starterActivities = { listOf(StarterActivity("Correcting", perClass = true)) }, generalDisplayName = { "General" })
+        catalog.seedIfNeeded()
         general = ComboKey(catalog.observeSnapshot().first().general!!.id, null)
-        other = ComboKey(catalog.activeRegularAccounts().single().id, null)
+        other = ComboKey(catalog.activeRegularActivities().single().id, null)
         entries = EntryRepository(db)
         preferences = AppPreferences(context)
         preferences.setReminder(ReminderSettings(enabled = true, hours = 3))
@@ -156,7 +157,7 @@ class TrackingControllerTest {
         now = 11 * hour
         controller.pause()
         assertTrue(controller.startIfIdle(other))
-        assertEquals("running 7b", notifications.shown)
+        assertEquals("running Correcting", notifications.shown)
         assertNull("starting forgets the pause", preferences.getPaused())
     }
 

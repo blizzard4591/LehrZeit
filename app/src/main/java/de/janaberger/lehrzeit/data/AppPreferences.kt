@@ -42,8 +42,8 @@ data class ReminderState(val entryId: Long, val anchorUtc: Long? = null, val fir
 
 class AppPreferences(private val context: Context) {
     private val onboardingDoneKey = booleanPreferencesKey("onboarding_done")
-    private val pausedAccountKey = longPreferencesKey("paused_account")
     private val pausedActivityKey = longPreferencesKey("paused_activity")
+    private val pausedClassKey = longPreferencesKey("paused_class")
     private val pausedAtKey = longPreferencesKey("paused_at")
     private val discardShortKey = booleanPreferencesKey("discard_short_entries")
     private val minEntrySecondsKey = intPreferencesKey("min_entry_seconds")
@@ -101,8 +101,8 @@ class AppPreferences(private val context: Context) {
     }
 
     val paused: Flow<PausedState?> = context.dataStore.data.map { prefs ->
-        val accountId = prefs[pausedAccountKey] ?: return@map null
-        PausedState(ComboKey(accountId, prefs[pausedActivityKey]), prefs[pausedAtKey] ?: 0L)
+        val activityId = prefs[pausedActivityKey] ?: return@map null
+        PausedState(ComboKey(activityId, prefs[pausedClassKey]), prefs[pausedAtKey] ?: 0L)
     }
 
     suspend fun getPaused(): PausedState? = paused.first()
@@ -124,12 +124,12 @@ class AppPreferences(private val context: Context) {
 
     suspend fun setPaused(state: PausedState?) {
         context.dataStore.edit { prefs ->
-            prefs.remove(pausedAccountKey)
             prefs.remove(pausedActivityKey)
+            prefs.remove(pausedClassKey)
             prefs.remove(pausedAtKey)
             if (state != null) {
-                prefs[pausedAccountKey] = state.key.accountId
-                state.key.activityId?.let { prefs[pausedActivityKey] = it }
+                prefs[pausedActivityKey] = state.key.activityId
+                state.key.classId?.let { prefs[pausedClassKey] = it }
                 prefs[pausedAtKey] = state.pausedAt
             }
         }

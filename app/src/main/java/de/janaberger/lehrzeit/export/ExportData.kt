@@ -24,13 +24,13 @@ data class ExportEntry(
     val end: LocalTime,
     val endDate: LocalDate,
     val durationMillis: Long,
-    val account: String,
-    /** Null when booked on the account alone. */
-    val activity: String?,
+    val activity: String,
+    /** Null when booked on the activity alone. */
+    val schoolClass: String?,
     val note: String,
 )
 
-/** A labelled total; accounts carry their activities as [children]. */
+/** A labelled total; activities carry their classes as [children]. */
 data class ExportTotal(val name: String, val millis: Long, val children: List<ExportTotal> = emptyList())
 
 /**
@@ -43,9 +43,9 @@ data class ExportData(
     val entries: List<ExportEntry>,
     val totalMillis: Long,
     /** Largest first. */
-    val byAccount: List<ExportTotal>,
-    /** Largest first; entries without an activity are listed as "without activity". */
     val byActivity: List<ExportTotal>,
+    /** Largest first; entries without a class are listed as "without class". */
+    val byClass: List<ExportTotal>,
     /** Only days with time on them, in order. */
     val perDay: List<Pair<LocalDate, Long>>,
 )
@@ -57,17 +57,17 @@ data class ExportLabels(
     val end: String,
     val duration: String,
     val hours: String,
-    val account: String,
     val activity: String,
+    val schoolClass: String,
     val note: String,
     val entriesTitle: String,
     val summaryTitle: String,
     val period: String,
     val total: String,
-    val byAccount: String,
     val byActivity: String,
+    val byClass: String,
     val perDay: String,
-    val withoutActivity: String,
+    val withoutClass: String,
     /** PDF only. */
     val reportTitle: String,
     val time: String,
@@ -86,7 +86,7 @@ fun buildExportData(
     lastDay: LocalDate,
     zone: ZoneId,
     generalName: String,
-    withoutActivity: String,
+    withoutClass: String,
 ): ExportData {
     val rows = entries
         .filter { it.endUtc != null }
@@ -103,8 +103,8 @@ fun buildExportData(
                     end = end.toLocalTime(),
                     endDate = end.toLocalDate(),
                     durationMillis = entry.endUtc - entry.startUtc,
-                    account = combo?.account?.let { if (it.isGeneral) generalName else it.name }.orEmpty(),
-                    activity = combo?.activity?.name,
+                    activity = combo?.activity?.let { if (it.isGeneral) generalName else it.name }.orEmpty(),
+                    schoolClass = combo?.schoolClass?.name,
                     note = entry.note,
                 ),
                 combo,
@@ -113,19 +113,19 @@ fun buildExportData(
         .filter { (_, row, _) -> row.date in firstDay..lastDay }
     val exportRows = rows.map { it.second }
 
-    val byAccount = exportRows.groupBy { it.account }
-        .map { (account, accountRows) ->
+    val byActivity = exportRows.groupBy { it.activity }
+        .map { (activity, activityRows) ->
             ExportTotal(
-                name = account,
-                millis = accountRows.sumOf { it.durationMillis },
-                children = accountRows.groupBy { it.activity ?: withoutActivity }
-                    .map { (activity, activityRows) -> ExportTotal(activity, activityRows.sumOf { it.durationMillis }) }
+                name = activity,
+                millis = activityRows.sumOf { it.durationMillis },
+                children = activityRows.groupBy { it.schoolClass ?: withoutClass }
+                    .map { (schoolClass, classRows) -> ExportTotal(schoolClass, classRows.sumOf { it.durationMillis }) }
                     .sortedByDescending { it.millis },
             )
         }
         .sortedByDescending { it.millis }
-    val byActivity = exportRows.groupBy { it.activity ?: withoutActivity }
-        .map { (activity, activityRows) -> ExportTotal(activity, activityRows.sumOf { it.durationMillis }) }
+    val byClass = exportRows.groupBy { it.schoolClass ?: withoutClass }
+        .map { (schoolClass, classRows) -> ExportTotal(schoolClass, classRows.sumOf { it.durationMillis }) }
         .sortedByDescending { it.millis }
     val perDay = exportRows.groupBy { it.date }
         .map { (date, dayRows) -> date to dayRows.sumOf { it.durationMillis } }
@@ -136,8 +136,8 @@ fun buildExportData(
         lastDay = lastDay,
         entries = exportRows,
         totalMillis = exportRows.sumOf { it.durationMillis },
-        byAccount = byAccount,
         byActivity = byActivity,
+        byClass = byClass,
         perDay = perDay,
     )
 }

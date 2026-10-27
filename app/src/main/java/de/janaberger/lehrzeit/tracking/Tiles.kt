@@ -11,8 +11,8 @@ const val HOME_TILE_COUNT = 8
 
 /**
  * The home-screen tiles, in this order: General, pinned [favorites], [mostUsed] combinations,
- * and, while there is little history, the remaining accounts on their own.
- * Combinations that can't be booked (archived, or no longer offered) are skipped.
+ * and, while there is little history, the remaining activities on their own.
+ * Combinations that can't be booked (archived, or a class under an activity that isn't per class) are skipped.
  */
 fun buildTiles(
     snapshot: CatalogSnapshot,
@@ -22,11 +22,10 @@ fun buildTiles(
 ): List<Combo> {
     val keys = LinkedHashSet<ComboKey>()
     snapshot.general?.let { keys += ComboKey(it.id, null) }
-    val generalId = snapshot.general?.id
-    val accountsAlone = snapshot.activeAccounts.filter { !it.isGeneral }.map { ComboKey(it.id, null) }
-    for (key in favorites + mostUsed + accountsAlone) {
+    val activitiesAlone = snapshot.activeActivities.filter { !it.isGeneral }.map { ComboKey(it.id, null) }
+    for (key in favorites + mostUsed + activitiesAlone) {
         if (keys.size >= limit) break
-        if (key.accountId != generalId && snapshot.isBookable(key)) keys += key
+        if (snapshot.isBookable(key)) keys += key
     }
     return keys.mapNotNull(snapshot::combo)
 }

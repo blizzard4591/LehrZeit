@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -32,6 +31,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -50,14 +50,14 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.janaberger.lehrzeit.R
-import de.janaberger.lehrzeit.data.AccountColors
-import de.janaberger.lehrzeit.data.db.Account
+import de.janaberger.lehrzeit.data.ActivityColors
+import de.janaberger.lehrzeit.data.db.WorkActivity
 
 enum class NameError { EMPTY, TAKEN }
 
 /** General's name follows the app language; all other names are user data. */
 @Composable
-fun Account.displayName(): String = if (isGeneral) stringResource(R.string.account_general) else name
+fun WorkActivity.displayName(): String = if (isGeneral) stringResource(R.string.activity_general) else name
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,7 +94,7 @@ fun ColorPicker(selected: Int, onSelect: (Int) -> Unit, modifier: Modifier = Mod
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        AccountColors.palette.forEach { color ->
+        ActivityColors.palette.forEach { color ->
             val isSelected = color == selected
             Box(
                 contentAlignment = Alignment.Center,
@@ -166,25 +166,13 @@ fun SectionHeader(title: String, modifier: Modifier = Modifier, hint: String? = 
     }
 }
 
-/** "All" / "None" buttons for a checklist header. */
 @Composable
-fun SelectAllNoneActions(onSelectAll: () -> Unit, onSelectNone: () -> Unit) {
-    TextButton(onClick = onSelectAll) { Text(stringResource(R.string.action_select_all)) }
-    TextButton(onClick = onSelectNone) { Text(stringResource(R.string.action_select_none)) }
-}
-
-@Composable
-fun CheckRow(
-    label: String,
-    checked: Boolean,
-    onToggle: () -> Unit,
-    trailing: (@Composable () -> Unit)? = null,
-) {
+fun SwitchRow(title: String, summary: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
     ListItem(
-        headlineContent = { Text(label) },
-        leadingContent = { Checkbox(checked = checked, onCheckedChange = null) },
-        trailingContent = trailing,
-        modifier = Modifier.toggleable(value = checked, role = Role.Checkbox, onValueChange = { onToggle() }),
+        headlineContent = { Text(title) },
+        supportingContent = { Text(summary) },
+        trailingContent = { Switch(checked = checked, onCheckedChange = null) },
+        modifier = Modifier.toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange),
     )
 }
 

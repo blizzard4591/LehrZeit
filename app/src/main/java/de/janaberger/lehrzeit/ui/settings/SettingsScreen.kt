@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ListItem
@@ -18,7 +17,6 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -44,6 +42,7 @@ import de.janaberger.lehrzeit.tracking.TrackingController
 import de.janaberger.lehrzeit.ui.AppViewModelProvider
 import de.janaberger.lehrzeit.ui.components.BackTopAppBar
 import de.janaberger.lehrzeit.ui.components.SectionHeader
+import de.janaberger.lehrzeit.ui.components.SwitchRow
 import de.janaberger.lehrzeit.ui.components.minLengthText
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -141,16 +140,6 @@ fun SettingsScreen(
             null -> Unit
         }
     }
-}
-
-@Composable
-private fun SwitchRow(title: String, summary: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    ListItem(
-        headlineContent = { Text(title) },
-        supportingContent = { Text(summary) },
-        trailingContent = { Switch(checked = checked, onCheckedChange = null) },
-        modifier = Modifier.toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange),
-    )
 }
 
 /** A setting showing its current value; greyed out while the switch above it is off. */

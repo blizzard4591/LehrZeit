@@ -11,97 +11,65 @@ import de.janaberger.lehrzeit.data.CatalogRepository
 import de.janaberger.lehrzeit.data.DeleteResult
 import de.janaberger.lehrzeit.data.MAX_NAME_LENGTH
 import de.janaberger.lehrzeit.data.SaveResult
-import de.janaberger.lehrzeit.data.db.WorkActivity
 import de.janaberger.lehrzeit.ui.components.NameError
-import de.janaberger.lehrzeit.ui.navigation.AccountEditRoute
+import de.janaberger.lehrzeit.ui.navigation.ClassEditRoute
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class AccountEditUiState(
+data class ClassEditUiState(
     val isLoading: Boolean = true,
     val isNew: Boolean = true,
-    val isGeneral: Boolean = false,
     val isArchived: Boolean = false,
     val name: String = "",
-    val color: Int = 0,
-    /** The active activities the account can offer. */
-    val activities: List<WorkActivity> = emptyList(),
-    val checked: Set<Long> = emptySet(),
     val entryCount: Int = 0,
     val nameError: NameError? = null,
     val isSaving: Boolean = false,
-    /** Set once the account was saved or deleted; the screen then closes. */
+    /** Set once the class was saved or deleted; the screen then closes. */
     val isFinished: Boolean = false,
     private val savedName: String = "",
-    private val savedColor: Int = 0,
-    private val savedChecked: Set<Long> = emptySet(),
 ) {
-    val hasChanges: Boolean get() = name != savedName || color != savedColor || checked != savedChecked
+    val hasChanges: Boolean get() = name != savedName
 }
 
-class AccountEditViewModel(
+class ClassEditViewModel(
     savedStateHandle: SavedStateHandle,
     private val catalog: CatalogRepository,
 ) : ViewModel() {
-    private val accountId: Long? = savedStateHandle.toRoute<AccountEditRoute>().id
+    private val classId: Long? = savedStateHandle.toRoute<ClassEditRoute>().id
 
-    private val _uiState = MutableStateFlow(AccountEditUiState())
-    val uiState: StateFlow<AccountEditUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(ClassEditUiState())
+    val uiState: StateFlow<ClassEditUiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch { load() }
     }
 
     private suspend fun load() {
-        val activities = catalog.activeActivities()
-        if (accountId == null) {
-            // New accounts start with no activities ticked.
-            val color = catalog.nextAccountColor()
-            _uiState.value = AccountEditUiState(isLoading = false, color = color, activities = activities, savedColor = color)
+        if (classId == null) {
+            _uiState.value = ClassEditUiState(isLoading = false)
             return
         }
-        val details = catalog.getAccountDetails(accountId)
+        val details = catalog.getClassDetails(classId)
         if (details == null) {
             _uiState.update { it.copy(isFinished = true) }
             return
         }
-        val account = details.account
-        val checked = details.activityIds intersect activities.map { it.id }.toSet()
-        _uiState.value = AccountEditUiState(
+        val schoolClass = details.schoolClass
+        _uiState.value = ClassEditUiState(
             isLoading = false,
             isNew = false,
-            isGeneral = account.isGeneral,
-            isArchived = account.archived,
-            name = account.name,
-            color = account.color,
-            activities = activities,
-            checked = checked,
+            isArchived = schoolClass.archived,
+            name = schoolClass.name,
             entryCount = details.entryCount,
-            savedName = account.name,
-            savedColor = account.color,
-            savedChecked = checked,
+            savedName = schoolClass.name,
         )
     }
 
     fun onNameChange(name: String) {
         _uiState.update { it.copy(name = name.take(MAX_NAME_LENGTH), nameError = null) }
-    }
-
-    fun onColorChange(color: Int) {
-        _uiState.update { it.copy(color = color) }
-    }
-
-    fun onToggleActivity(activityId: Long) {
-        _uiState.update {
-            it.copy(checked = if (activityId in it.checked) it.checked - activityId else it.checked + activityId)
-        }
-    }
-
-    fun onSelectAll(selectAll: Boolean) {
-        _uiState.update { state -> state.copy(checked = if (selectAll) state.activities.map { it.id }.toSet() else emptySet()) }
     }
 
     fun save() = persist(archived = _uiState.value.isArchived)
@@ -116,7 +84,7 @@ class AccountEditViewModel(
         if (state.isLoading || state.isSaving) return
         _uiState.update { it.copy(isSaving = true) }
         viewModelScope.launch {
-            val result = catalog.saveAccount(accountId, state.name, state.color, state.checked, archived)
+            val result = catalog.saveClass(classId, state.name, archived)
             _uiState.update {
                 when (result) {
                     is SaveResult.Saved -> it.copy(isSaving = false, isFinished = true)
@@ -128,9 +96,9 @@ class AccountEditViewModel(
     }
 
     fun delete() {
-        val id = accountId ?: return
+        val id = classId ?: return
         viewModelScope.launch {
-            when (catalog.deleteAccount(id)) {
+            when (catalog.deleteClass(id)) {
                 DeleteResult.DELETED -> _uiState.update { it.copy(isFinished = true) }
                 // An entry was added in the meantime; the button disables itself.
                 DeleteResult.HAS_ENTRIES -> _uiState.update { it.copy(entryCount = maxOf(it.entryCount, 1)) }

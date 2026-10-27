@@ -60,23 +60,23 @@ class SystemEventsReceiver : BroadcastReceiver() {
     }
 }
 
-private const val EXTRA_ACCOUNT_ID = "de.janaberger.lehrzeit.extra.ACCOUNT_ID"
 private const val EXTRA_ACTIVITY_ID = "de.janaberger.lehrzeit.extra.ACTIVITY_ID"
+private const val EXTRA_CLASS_ID = "de.janaberger.lehrzeit.extra.CLASS_ID"
 
 /**
  * Adds [key] as extras. The data URI only makes each combination's intent distinct, so that their
  * PendingIntents don't replace each other.
  */
 fun Intent.putComboKey(key: ComboKey): Intent = apply {
-    data = "lehrzeit:combo/${key.accountId}/${key.activityId ?: "-"}".toUri()
-    putExtra(EXTRA_ACCOUNT_ID, key.accountId)
-    key.activityId?.let { putExtra(EXTRA_ACTIVITY_ID, it) }
+    data = "lehrzeit:combo/${key.activityId}/${key.classId ?: "-"}".toUri()
+    putExtra(EXTRA_ACTIVITY_ID, key.activityId)
+    key.classId?.let { putExtra(EXTRA_CLASS_ID, it) }
 }
 
 fun Intent.getComboKey(): ComboKey? {
-    if (!hasExtra(EXTRA_ACCOUNT_ID)) return null
-    val activityId = if (hasExtra(EXTRA_ACTIVITY_ID)) getLongExtra(EXTRA_ACTIVITY_ID, 0) else null
-    return ComboKey(getLongExtra(EXTRA_ACCOUNT_ID, 0), activityId)
+    if (!hasExtra(EXTRA_ACTIVITY_ID)) return null
+    val classId = if (hasExtra(EXTRA_CLASS_ID)) getLongExtra(EXTRA_CLASS_ID, 0) else null
+    return ComboKey(getLongExtra(EXTRA_ACTIVITY_ID, 0), classId)
 }
 
 /** Outside the app there is no snackbar, so a short toast says that a too-short entry was dropped. */

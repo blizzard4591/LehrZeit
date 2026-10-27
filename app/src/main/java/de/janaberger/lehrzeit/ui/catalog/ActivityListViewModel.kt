@@ -6,7 +6,7 @@ package de.janaberger.lehrzeit.ui.catalog
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import de.janaberger.lehrzeit.data.CatalogRepository
-import de.janaberger.lehrzeit.data.db.ActivityWithCount
+import de.janaberger.lehrzeit.data.db.WorkActivity
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -15,8 +15,9 @@ import kotlinx.coroutines.launch
 
 data class ActivityListUiState(
     val isLoading: Boolean = true,
-    val active: List<ActivityWithCount> = emptyList(),
-    val archived: List<ActivityWithCount> = emptyList(),
+    val general: WorkActivity? = null,
+    val active: List<WorkActivity> = emptyList(),
+    val archived: List<WorkActivity> = emptyList(),
 )
 
 class ActivityListViewModel(private val catalog: CatalogRepository) : ViewModel() {
@@ -24,8 +25,9 @@ class ActivityListViewModel(private val catalog: CatalogRepository) : ViewModel(
         .map { all ->
             ActivityListUiState(
                 isLoading = false,
-                active = all.filter { !it.activity.archived },
-                archived = all.filter { it.activity.archived },
+                general = all.firstOrNull { it.isGeneral },
+                active = all.filter { !it.isGeneral && !it.archived },
+                archived = all.filter { it.archived },
             )
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ActivityListUiState())

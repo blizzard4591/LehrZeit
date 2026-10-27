@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
 import java.time.ZoneId
 
-enum class BreakdownMode { ACCOUNT, ACTIVITY }
+enum class BreakdownMode { ACTIVITY, CLASS }
 
 data class StatsUiState(
     val isLoading: Boolean = true,
@@ -33,7 +33,7 @@ data class StatsUiState(
     /** Entries overlapping the period; the screen sums them up with the current time. */
     val entries: List<Entry> = emptyList(),
     val snapshot: CatalogSnapshot? = null,
-    val breakdown: BreakdownMode = BreakdownMode.ACCOUNT,
+    val breakdown: BreakdownMode = BreakdownMode.ACTIVITY,
     /** The bar the user tapped in the week or month chart. */
     val selectedDay: LocalDate? = null,
 ) {
@@ -47,7 +47,7 @@ class StatsViewModel(
 ) : ViewModel() {
     /** Null until the user picks a period: then it follows the current week. */
     private val chosenPeriod = MutableStateFlow<StatsPeriod?>(null)
-    private val breakdown = MutableStateFlow(BreakdownMode.ACCOUNT)
+    private val breakdown = MutableStateFlow(BreakdownMode.ACTIVITY)
     private val selectedDay = MutableStateFlow<LocalDate?>(null)
 
     private val today = currentDayFlow().map { it.date }

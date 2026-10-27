@@ -119,7 +119,7 @@ fun EntryEditScreen(
             state.combo?.let { combo ->
                 ListItem(
                     headlineContent = { Text(combo.label()) },
-                    leadingContent = { ColorDot(combo.account.color) },
+                    leadingContent = { ColorDot(combo.activity.color) },
                     trailingContent = { Icon(painterResource(R.drawable.ic_expand_more), contentDescription = null) },
                     modifier = Modifier.clickable { showPicker = true },
                 )
@@ -202,7 +202,7 @@ fun EntryEditScreen(
                     viewModel.onComboSelected(key)
                 },
                 onToggleFavorite = null,
-                onManageAccounts = null,
+                onManageActivities = null,
                 onDismiss = { showPicker = false },
             )
         }

@@ -13,10 +13,10 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import de.janaberger.lehrzeit.LehrZeitApplication
 import de.janaberger.lehrzeit.data.AppPreferences
 import de.janaberger.lehrzeit.ui.backup.BackupViewModel
-import de.janaberger.lehrzeit.ui.catalog.AccountEditViewModel
-import de.janaberger.lehrzeit.ui.catalog.AccountListViewModel
 import de.janaberger.lehrzeit.ui.catalog.ActivityEditViewModel
 import de.janaberger.lehrzeit.ui.catalog.ActivityListViewModel
+import de.janaberger.lehrzeit.ui.catalog.ClassEditViewModel
+import de.janaberger.lehrzeit.ui.catalog.ClassListViewModel
 import de.janaberger.lehrzeit.ui.entry.EntryEditViewModel
 import de.janaberger.lehrzeit.ui.export.ExportViewModel
 import de.janaberger.lehrzeit.ui.settings.SettingsViewModel
@@ -33,10 +33,10 @@ object AppViewModelProvider {
     val Factory = viewModelFactory {
         initializer { AppViewModel(app().container.preferences) }
         initializer { WelcomeViewModel(app().container.catalog, app().container.preferences) }
-        initializer { AccountListViewModel(app().container.catalog) }
-        initializer { AccountEditViewModel(createSavedStateHandle(), app().container.catalog) }
         initializer { ActivityListViewModel(app().container.catalog) }
         initializer { ActivityEditViewModel(createSavedStateHandle(), app().container.catalog) }
+        initializer { ClassListViewModel(app().container.catalog) }
+        initializer { ClassEditViewModel(createSavedStateHandle(), app().container.catalog) }
         initializer {
             val container = app().container
             TrackViewModel(container.entries, container.catalog, container.preferences, container.trackingController)

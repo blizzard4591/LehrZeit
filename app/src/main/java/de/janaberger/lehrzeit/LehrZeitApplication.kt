@@ -23,7 +23,7 @@ class LehrZeitApplication : Application() {
             container.trackingController.refreshNotification()
         }
         // Timer changes update the widget through the controller. This catches everything else
-        // shown in it while the app runs: renamed accounts, new favorites, changed most-used tiles.
+        // shown in it while the app runs: renamed activities, new favorites, changed most-used tiles.
         container.applicationScope.launch {
             container.trackingOverview().distinctUntilChanged().drop(1).collect { container.widgetUpdater.update() }
         }

@@ -12,7 +12,7 @@
     <color name="widget_on_surface_variant">#404944</color>
     <color name="widget_on_primary_container">#002118</color>
 
-    <!-- Account edges in the widget preview: General's blue grey and the palette's red. -->
+    <!-- Activity edges in the widget preview: General’s blue grey and the palette’s red. -->
     <color name="widget_preview_general">#546E7A</color>
-    <color name="widget_preview_account">#D32F2F</color>
+    <color name="widget_preview_activity">#D32F2F</color>
 </resources>

@@ -15,11 +15,9 @@
     <string name="action_unarchive">Aus dem Archiv holen</string>
     <string name="action_discard">Verwerfen</string>
     <string name="action_keep_editing">Weiter bearbeiten</string>
-    <string name="action_select_all">Alle</string>
-    <string name="action_select_none">Keine</string>
     <string name="action_reorder">Verschieben</string>
 
-    <!-- Shared by account and activity editors -->
+    <!-- Shared by the activity and class editors -->
     <string name="field_name">Name</string>
     <string name="error_name_empty">Bitte einen Namen eingeben</string>
     <string name="error_name_taken">Dieser Name ist schon vergeben</string>
@@ -33,49 +31,38 @@
     </plurals>
 
     <!-- More tab -->
-    <string name="more_accounts_summary">Deine Klassen und Bereiche</string>
     <string name="more_activities_summary">Woran du arbeitest, z. B. Korrekturen</string>
-
-    <!-- Accounts -->
-    <string name="account_general">Allgemein</string>
-    <string name="accounts_title">Konten</string>
-    <string name="accounts_add">Konto hinzufügen</string>
-    <string name="accounts_general_summary">Immer verfügbar, ohne Tätigkeiten</string>
-    <string name="accounts_empty">Noch keine Konten. Füge deine Klassen oder Bereiche mit + hinzu.</string>
-    <string name="account_new_title">Neues Konto</string>
-    <string name="account_edit_title">Konto bearbeiten</string>
-    <string name="account_color">Farbe</string>
-    <string name="account_general_locked">„Allgemein“ kann nicht umbenannt, archiviert oder gelöscht werden.</string>
-    <string name="account_activities_hint">Welche Tätigkeiten können auf dieses Konto gebucht werden?</string>
-    <string name="account_activities_empty">Noch keine Tätigkeiten. Lege sie unter Mehr › Tätigkeiten an.</string>
-    <string name="account_archived_note">Dieses Konto ist archiviert. Es wird beim Erfassen nicht angeboten, seine Einträge bleiben aber erhalten.</string>
-    <string name="account_no_activities">Keine Tätigkeiten</string>
-    <plurals name="account_activity_count">
-        <item quantity="one">%d Tätigkeit</item>
-        <item quantity="other">%d Tätigkeiten</item>
-    </plurals>
+    <string name="more_classes_summary">Deine Klassen und Kurse</string>
 
     <!-- Activities -->
+    <string name="activity_general">Allgemein</string>
     <string name="activities_title">Tätigkeiten</string>
     <string name="activities_add">Tätigkeit hinzufügen</string>
-    <string name="activities_empty">Noch keine Tätigkeiten. Lege eine mit + an.</string>
+    <string name="activities_general_summary">Immer auf der Startseite</string>
+    <string name="activities_empty">Noch keine eigenen Tätigkeiten. Lege eine mit + an.</string>
     <string name="activity_new_title">Neue Tätigkeit</string>
     <string name="activity_edit_title">Tätigkeit bearbeiten</string>
-    <string name="activity_accounts_hint">Auf welchen Konten kann diese Tätigkeit gebucht werden?</string>
-    <string name="activity_accounts_empty">Noch keine Konten. Lege sie unter Mehr › Konten an.</string>
+    <string name="activity_color">Farbe</string>
+    <string name="activity_general_locked">„Allgemein“ kann nicht umbenannt, archiviert oder gelöscht werden.</string>
+    <string name="activity_per_class">Pro Klasse</string>
+    <string name="activity_per_class_hint">Beim Buchen kann eine Klasse gewählt werden, z. B. „Korrekturen › 7b“.</string>
+    <string name="activity_no_classes">Ohne Klassen</string>
     <string name="activity_archived_note">Diese Tätigkeit ist archiviert. Sie wird beim Erfassen nicht angeboten, ihre Einträge bleiben aber erhalten.</string>
-    <string name="activity_no_accounts">Keinem Konto zugeordnet</string>
-    <plurals name="activity_account_count">
-        <item quantity="one">In %d Konto</item>
-        <item quantity="other">In %d Konten</item>
-    </plurals>
+
+    <!-- Classes -->
+    <string name="classes_title">Klassen</string>
+    <string name="classes_add">Klasse hinzufügen</string>
+    <string name="classes_empty">Noch keine Klassen. Lege eine mit + an.</string>
+    <string name="class_new_title">Neue Klasse</string>
+    <string name="class_edit_title">Klasse bearbeiten</string>
+    <string name="class_archived_note">Diese Klasse ist archiviert. Sie wird beim Erfassen nicht angeboten, ihre Einträge bleiben aber erhalten.</string>
 
     <!-- Welcome setup -->
     <string name="welcome_title">Willkommen bei LehrZeit</string>
-    <string name="welcome_intro">LehrZeit erfasst deine Arbeitszeit auf Konten: deinen Klassen oder Bereichen, etwa „7b“ oder „Fachschaft Mathe“. Zu jedem Konto kannst du außerdem festhalten, was du gemacht hast, z. B. Korrekturen oder Unterrichtsvorbereitung.</string>
-    <string name="welcome_question">Für welche Klassen oder Bereiche arbeitest du?</string>
-    <string name="welcome_field">Klasse oder Bereich</string>
-    <string name="welcome_note">Jedes Konto bekommt alle Start-Tätigkeiten. „Allgemein“ gibt es immer für alles andere. Du kannst das alles später unter Mehr › Konten ändern.</string>
+    <string name="welcome_intro">LehrZeit erfasst deine Arbeitszeit nach Tätigkeiten, etwa Unterrichtsvorbereitung oder Korrekturen. Wenn du möchtest, hältst du dazu auch die Klasse fest.</string>
+    <string name="welcome_question">Welche Klassen und Kurse unterrichtest du?</string>
+    <string name="welcome_field">Klasse oder Kurs</string>
+    <string name="welcome_note">Wenn du eine Tätigkeit wie Korrekturen buchst, kannst du dann eine Klasse wählen, z. B. „Korrekturen › 7b“. Du kannst das alles später unter Mehr ändern.</string>
     <string name="welcome_error_duplicate">Schon hinzugefügt</string>
     <string name="welcome_remove">%s entfernen</string>
     <string name="welcome_skip">Überspringen</string>
@@ -94,7 +81,7 @@
     <string name="track_idle_hint">Tippe auf eine Kachel, um zu starten.</string>
     <string name="track_paused">Pausiert</string>
     <string name="track_today">Heute: %s h</string>
-    <string name="track_all_accounts">Alle Konten…</string>
+    <string name="track_all_activities">Alle Tätigkeiten…</string>
     <string name="track_running">Läuft</string>
     <string name="track_start">Beginn</string>
     <string name="nudge_earlier_description">5 Minuten früher beginnen</string>
@@ -106,11 +93,11 @@
     <string name="notifications_off">Benachrichtigungen sind aus, deshalb erscheint der laufende Timer nicht in der Benachrichtigungsleiste.</string>
     <string name="picker_search">Suchen</string>
     <string name="picker_no_results">Nichts gefunden</string>
-    <string name="picker_manage">Konten verwalten</string>
+    <string name="picker_manage">Tätigkeiten verwalten</string>
     <string name="picker_pin">Auf der Startseite anheften</string>
     <string name="picker_unpin">Von der Startseite lösen</string>
-    <string name="picker_expand">Tätigkeiten anzeigen</string>
-    <string name="picker_collapse">Tätigkeiten ausblenden</string>
+    <string name="picker_expand">Klassen anzeigen</string>
+    <string name="picker_collapse">Klassen ausblenden</string>
     <string name="channel_tracking_name">Laufender Timer</string>
     <string name="channel_tracking_description">Zeigt den laufenden Timer mit Pause und Stopp.</string>
 
@@ -168,9 +155,9 @@
     <string name="stats_next">Nächster Zeitraum</string>
     <string name="stats_week_number">KW %d</string>
     <string name="stats_total">Gesamt</string>
-    <string name="stats_by_account">Nach Konto</string>
     <string name="stats_by_activity">Nach Tätigkeit</string>
-    <string name="stats_without_activity">Ohne Tätigkeit</string>
+    <string name="stats_by_class">Nach Klasse</string>
+    <string name="stats_without_class">Ohne Klasse</string>
     <string name="stats_empty">In diesem Zeitraum wurde keine Zeit erfasst.</string>
     <string name="stats_tap_bar">Tippe auf einen Balken, um den Tag zu sehen.</string>
     <string name="stats_open_day">Tag anzeigen</string>
@@ -206,8 +193,8 @@
     <string name="export_col_time">Zeit</string>
     <string name="export_col_duration">Dauer</string>
     <string name="export_col_hours">Stunden</string>
-    <string name="export_col_account">Konto</string>
     <string name="export_col_activity">Tätigkeit</string>
+    <string name="export_col_class">Klasse</string>
     <string name="export_col_note">Notiz</string>
     <string name="export_entries">Einträge</string>
     <string name="export_summary">Übersicht</string>
@@ -220,7 +207,7 @@
     <string name="backup_title">Sichern &amp; wiederherstellen</string>
     <string name="more_backup_summary">Daten auf ein neues Handy mitnehmen</string>
     <string name="backup_section_create">Sicherung</string>
-    <string name="backup_create_summary">Speichert alle Konten, Tätigkeiten, Einträge und Einstellungen in einer Datei. Bewahre sie an einem sicheren Ort auf, z. B. auf deinem Computer oder in deiner Cloud.</string>
+    <string name="backup_create_summary">Speichert alle Tätigkeiten, Klassen, Einträge und Einstellungen in einer Datei. Bewahre sie an einem sicheren Ort auf, z. B. auf deinem Computer oder in deiner Cloud.</string>
     <string name="backup_create">Sicherung erstellen…</string>
     <string name="backup_last">Letzte Sicherung: %s</string>
     <string name="backup_never">Noch keine Sicherung erstellt.</string>
@@ -230,13 +217,13 @@
     <string name="backup_confirm_title">Sicherung wiederherstellen?</string>
     <string name="backup_confirm_summary">Sicherung vom %1$s mit %2$s, %3$s und %4$s.</string>
     <string name="backup_confirm_warning">Alle Daten, die jetzt auf diesem Handy sind, werden ersetzt. Das kann nicht rückgängig gemacht werden.</string>
-    <plurals name="backup_accounts">
-        <item quantity="one">%d Konto</item>
-        <item quantity="other">%d Konten</item>
-    </plurals>
     <plurals name="backup_activities">
         <item quantity="one">%d Tätigkeit</item>
         <item quantity="other">%d Tätigkeiten</item>
+    </plurals>
+    <plurals name="backup_classes">
+        <item quantity="one">%d Klasse</item>
+        <item quantity="other">%d Klassen</item>
     </plurals>
     <plurals name="backup_entries">
         <item quantity="one">%d Eintrag</item>
@@ -249,6 +236,7 @@
     <string name="backup_error_not_backup">Diese Datei ist keine LehrZeit-Sicherung.</string>
     <string name="backup_error_damaged">Diese Sicherung ist beschädigt und kann nicht wiederhergestellt werden.</string>
     <string name="backup_error_too_new">Diese Sicherung stammt von einer neueren LehrZeit-Version. Bitte aktualisiere zuerst die App.</string>
+    <string name="backup_error_too_old">Diese Sicherung stammt von einer Testversion von LehrZeit vor 0.1.0, die die Daten anders gespeichert hat. Sie kann nicht wiederhergestellt werden.</string>
     <string name="backup_error_restore">Die Wiederherstellung ist fehlgeschlagen. Deine Daten sind unverändert.</string>
     <string name="welcome_restore">Sicherung wiederherstellen</string>
 

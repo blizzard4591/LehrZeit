@@ -144,7 +144,7 @@ private fun EntryRow(entry: Entry, snapshot: CatalogSnapshot, now: Long, onClick
                 }
             }
         },
-        leadingContent = { combo?.let { ColorDot(it.account.color) } },
+        leadingContent = { combo?.let { ColorDot(it.activity.color) } },
         trailingContent = {
             Text(
                 formatHoursMinutes((entry.endUtc ?: now) - entry.startUtc),

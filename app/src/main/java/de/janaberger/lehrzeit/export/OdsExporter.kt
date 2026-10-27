@@ -13,8 +13,8 @@ import java.util.zip.ZipOutputStream
 private const val ODS_MIME = "application/vnd.oasis.opendocument.spreadsheet"
 
 /**
- * An OpenDocument spreadsheet with two sheets: every entry, and a summary (total, by account
- * with its activities, by activity, per day). Written directly as the zip of XML files that ODF
+ * An OpenDocument spreadsheet with two sheets: every entry, and a summary (total, by activity
+ * with its classes, by class, per day). Written directly as the zip of XML files that ODF
  * consists of. Cells are typed (dates, times, durations, numbers), so the sheet can be
  * calculated with right away; their display follows the spreadsheet program's language.
  */
@@ -76,7 +76,7 @@ private fun content(data: ExportData, labels: ExportLabels): String = buildStrin
     append("""<table:table-column table:style-name="co_m"/><table:table-column table:style-name="co_s" table:number-columns-repeated="4"/>""")
     append("""<table:table-column table:style-name="co_l" table:number-columns-repeated="2"/><table:table-column table:style-name="co_xl"/>""")
     row {
-        listOf(labels.date, labels.start, labels.end, labels.duration, labels.hours, labels.account, labels.activity, labels.note)
+        listOf(labels.date, labels.start, labels.end, labels.duration, labels.hours, labels.activity, labels.schoolClass, labels.note)
             .forEach { textCell(it, "ce_bold") }
     }
     for (entry in data.entries) {
@@ -86,8 +86,8 @@ private fun content(data: ExportData, labels: ExportLabels): String = buildStrin
             timeCell(entry.end.hour * 60 + entry.end.minute, "ce_time")
             durationCell(entry.durationMillis, "ce_duration")
             hoursCell(entry.durationMillis, "ce_hours")
-            textCell(entry.account)
-            textCell(entry.activity.orEmpty())
+            textCell(entry.activity)
+            textCell(entry.schoolClass.orEmpty())
             textCell(entry.note)
         }
     }
@@ -127,8 +127,8 @@ private fun content(data: ExportData, labels: ExportLabels): String = buildStrin
             }
         }
     }
-    section(labels.byAccount, data.byAccount)
     section(labels.byActivity, data.byActivity)
+    section(labels.byClass, data.byClass)
     row {}
     row {
         textCell(labels.perDay, "ce_bold")

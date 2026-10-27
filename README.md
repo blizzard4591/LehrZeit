@@ -2,7 +2,7 @@
 
 A quick time tracker for teachers, for Android.
 
-Start a timer with one tap on a favorite account and activity (e.g. "7b › Correcting"). Stop or pause it from the notification or the home-screen widget. Fix start and end times in the worklog, see daily, weekly and monthly totals, and export to CSV, ODS or PDF. All data stays on the phone: the app has no internet permission and no account.
+Start a timer with one tap on an activity, optionally for a class (e.g. "Correcting › 7b"). Stop or pause it from the notification or the home-screen widget. Fix start and end times in the worklog, see daily, weekly and monthly totals, and export to CSV, ODS or PDF. All data stays on the phone: the app has no internet permission and no account.
 
 > **Status:** in development and not released yet. See [PLAN.md](PLAN.md) for the screens, data model and milestones.
 

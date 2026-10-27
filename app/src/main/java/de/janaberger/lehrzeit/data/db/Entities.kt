@@ -10,108 +10,85 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 
-/** Top level of what time is booked on: a class, an area, or the permanent General account. */
-@Entity(tableName = "account")
-data class Account(
+/** Top level of what time is booked on, from one shared catalog, e.g. "Correcting", or the permanent General. */
+@Entity(tableName = "activity")
+data class WorkActivity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     /** Ignored for General, whose display name comes from string resources. */
     val name: String,
     /** ARGB. */
     val color: Int,
     val isGeneral: Boolean = false,
+    /** Whether a class can be chosen under this activity. */
+    val perClass: Boolean = true,
     val archived: Boolean = false,
     val sortOrder: Int = 0,
 )
 
 /**
- * An entry in the shared activity catalog, e.g. "Correcting".
- * Named WorkActivity to keep it apart from android.app.Activity.
+ * The optional second level: a class, course or AG, e.g. "7b".
+ * Named SchoolClass to keep it apart from Kotlin's class keyword.
  */
-@Entity(tableName = "activity")
-data class WorkActivity(
+@Entity(tableName = "school_class")
+data class SchoolClass(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
     val archived: Boolean = false,
     val sortOrder: Int = 0,
 )
 
-/** An activity that an account offers. */
-@Entity(
-    tableName = "account_activity",
-    primaryKeys = ["accountId", "activityId"],
-    foreignKeys = [
-        ForeignKey(
-            entity = Account::class,
-            parentColumns = ["id"],
-            childColumns = ["accountId"],
-            onDelete = ForeignKey.CASCADE,
-        ),
-        ForeignKey(
-            entity = WorkActivity::class,
-            parentColumns = ["id"],
-            childColumns = ["activityId"],
-            onDelete = ForeignKey.CASCADE,
-        ),
-    ],
-    indices = [Index("activityId")],
-)
-data class AccountActivity(
-    val accountId: Long,
-    val activityId: Long,
-)
-
-/** A pinned home-screen tile: an account plus an optional activity. */
+/** A pinned home-screen tile: an activity plus an optional class. */
 @Entity(
     tableName = "favorite",
     foreignKeys = [
         ForeignKey(
-            entity = Account::class,
-            parentColumns = ["id"],
-            childColumns = ["accountId"],
-            onDelete = ForeignKey.CASCADE,
-        ),
-        ForeignKey(
             entity = WorkActivity::class,
             parentColumns = ["id"],
             childColumns = ["activityId"],
             onDelete = ForeignKey.CASCADE,
         ),
+        ForeignKey(
+            entity = SchoolClass::class,
+            parentColumns = ["id"],
+            childColumns = ["classId"],
+            onDelete = ForeignKey.CASCADE,
+        ),
     ],
-    indices = [Index("accountId"), Index("activityId")],
+    indices = [Index("activityId"), Index("classId")],
 )
 data class Favorite(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val accountId: Long,
-    val activityId: Long?,
+    val activityId: Long,
+    val classId: Long?,
     val sortOrder: Int = 0,
 )
 
 /**
  * One booked time span. Times are UTC epoch milliseconds; [endUtc] is null while the entry is running.
- * Accounts and activities with entries cannot be deleted (RESTRICT), only archived.
+ * Activities and classes with entries cannot be deleted (RESTRICT), only archived.
  */
 @Entity(
     tableName = "entry",
     foreignKeys = [
-        ForeignKey(
-            entity = Account::class,
-            parentColumns = ["id"],
-            childColumns = ["accountId"],
-            onDelete = ForeignKey.RESTRICT,
-        ),
         ForeignKey(
             entity = WorkActivity::class,
             parentColumns = ["id"],
             childColumns = ["activityId"],
             onDelete = ForeignKey.RESTRICT,
         ),
+        ForeignKey(
+            entity = SchoolClass::class,
+            parentColumns = ["id"],
+            childColumns = ["classId"],
+            onDelete = ForeignKey.RESTRICT,
+        ),
     ],
-    indices = [Index("accountId"), Index("activityId"), Index("startUtc")],
+    indices = [Index("activityId"), Index("classId"), Index("startUtc")],
 )
 data class Entry(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val accountId: Long,
-    val activityId: Long?,
+    val activityId: Long,
+    val classId: Long?,
     val startUtc: Long,
     val endUtc: Long?,
     val note: String = "",
@@ -121,18 +98,6 @@ data class Entry(
 
 data class EntryWithCombo(
     @Embedded val entry: Entry,
-    @Relation(parentColumn = "accountId", entityColumn = "id") val account: Account,
-    @Relation(parentColumn = "activityId", entityColumn = "id") val activity: WorkActivity?,
-)
-
-data class AccountWithCount(
-    @Embedded val account: Account,
-    /** Number of non-archived activities the account offers. */
-    val activityCount: Int,
-)
-
-data class ActivityWithCount(
-    @Embedded val activity: WorkActivity,
-    /** Number of non-archived accounts that offer the activity. */
-    val accountCount: Int,
+    @Relation(parentColumn = "activityId", entityColumn = "id") val activity: WorkActivity,
+    @Relation(parentColumn = "classId", entityColumn = "id") val schoolClass: SchoolClass?,
 )

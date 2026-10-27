@@ -48,19 +48,19 @@ data class StatsPeriod(val type: PeriodType, val start: LocalDate) {
 
 data class DayTotal(val date: LocalDate, val millis: Long)
 
-/** [activityId] null means booked on the account without an activity. */
-data class ActivityTotal(val activityId: Long?, val millis: Long)
+/** [classId] null means booked on the activity without a class. */
+data class ClassTotal(val classId: Long?, val millis: Long)
 
-data class AccountTotal(val accountId: Long, val millis: Long, val activities: List<ActivityTotal>)
+data class ActivityTotal(val activityId: Long, val millis: Long, val classes: List<ClassTotal>)
 
 data class Stats(
     val totalMillis: Long,
     /** One value per day of the period, in order. */
     val perDay: List<DayTotal>,
-    /** Largest first; each account's activities likewise. */
-    val byAccount: List<AccountTotal>,
-    /** Largest first, summed over all accounts. */
+    /** Largest first; each activity's classes likewise. */
     val byActivity: List<ActivityTotal>,
+    /** Largest first, summed over all activities. */
+    val byClass: List<ClassTotal>,
 )
 
 /**
@@ -74,23 +74,23 @@ fun computeStats(entries: List<Entry>, period: StatsPeriod, zone: ZoneId, now: L
     val perCombo = entries.groupBy { it.comboKey }
         .mapValues { (_, comboEntries) -> totalWithin(comboEntries, from, to, now) }
         .filterValues { it > 0 }
-    val byAccount = perCombo.entries.groupBy { it.key.accountId }
-        .map { (accountId, combos) ->
-            AccountTotal(
-                accountId = accountId,
+    val byActivity = perCombo.entries.groupBy { it.key.activityId }
+        .map { (activityId, combos) ->
+            ActivityTotal(
+                activityId = activityId,
                 millis = combos.sumOf { it.value },
-                activities = combos.map { ActivityTotal(it.key.activityId, it.value) }.sortedByDescending { it.millis },
+                classes = combos.map { ClassTotal(it.key.classId, it.value) }.sortedByDescending { it.millis },
             )
         }
         .sortedByDescending { it.millis }
-    val byActivity = perCombo.entries.groupBy { it.key.activityId }
-        .map { (activityId, combos) -> ActivityTotal(activityId, combos.sumOf { it.value }) }
+    val byClass = perCombo.entries.groupBy { it.key.classId }
+        .map { (classId, combos) -> ClassTotal(classId, combos.sumOf { it.value }) }
         .sortedByDescending { it.millis }
     return Stats(
         totalMillis = perCombo.values.sum(),
         perDay = days.map { DayTotal(it.date, totalWithin(entries, it.startUtc, it.endUtc, now)) },
-        byAccount = byAccount,
         byActivity = byActivity,
+        byClass = byClass,
     )
 }
 

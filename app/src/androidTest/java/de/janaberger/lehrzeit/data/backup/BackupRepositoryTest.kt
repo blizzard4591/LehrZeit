@@ -13,6 +13,7 @@ import de.janaberger.lehrzeit.data.ComboKey
 import de.janaberger.lehrzeit.data.EntryRepository
 import de.janaberger.lehrzeit.data.SaveResult
 import de.janaberger.lehrzeit.data.ShortEntrySettings
+import de.janaberger.lehrzeit.data.StarterActivity
 import de.janaberger.lehrzeit.data.db.LehrZeitDatabase
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -37,7 +38,11 @@ class BackupRepositoryTest {
     fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         db = Room.inMemoryDatabaseBuilder(context, LehrZeitDatabase::class.java).build()
-        catalog = CatalogRepository(db, starterActivityNames = { listOf("Teaching", "Correcting") }, generalDisplayName = { "General" })
+        catalog = CatalogRepository(
+            db,
+            starterActivities = { listOf(StarterActivity("Teaching", perClass = true), StarterActivity("Meetings", perClass = false)) },
+            generalDisplayName = { "General" },
+        )
         entries = EntryRepository(db)
         preferences = AppPreferences(context)
         backups = BackupRepository(db, preferences, entries)
@@ -50,34 +55,34 @@ class BackupRepositoryTest {
 
     @Test
     fun backupThenRestore_bringsBackExactlyTheSameDataAndSettings() = runTest {
-        catalog.createInitialAccounts(listOf("7b", "9a"))
-        val account = catalog.activeRegularAccounts().first()
-        val activity = catalog.activeActivities().first()
-        entries.toggleFavorite(ComboKey(account.id, activity.id))
-        entries.start(ComboKey(account.id, activity.id), now = 0)
-        entries.start(ComboKey(account.id, null), now = 30 * 60_000L) // first entry finished, second running
+        catalog.createInitialClasses(listOf("7b", "9a"))
+        val activity = catalog.activeRegularActivities().first()
+        val schoolClass = catalog.activeClasses().first()
+        entries.toggleFavorite(ComboKey(activity.id, schoolClass.id))
+        entries.start(ComboKey(activity.id, schoolClass.id), now = 0)
+        entries.start(ComboKey(activity.id, null), now = 30 * 60_000L) // first entry finished, second running
         preferences.setShortEntries(ShortEntrySettings(enabled = false, minSeconds = 120))
         val backup = backups.create(now = 1, appVersion = "test")
 
         // Change everything, then restore.
-        catalog.saveAccount(null, "Fachschaft", color = 0, activityIds = emptySet())
+        catalog.saveActivity(null, "Fachschaft", color = 0, perClass = false)
         entries.stop(now = 40 * 60_000L)
-        entries.toggleFavorite(ComboKey(account.id, activity.id))
+        entries.toggleFavorite(ComboKey(activity.id, schoolClass.id))
         preferences.setShortEntries(ShortEntrySettings())
         backups.restore(backup)
 
         assertEquals(backup, backups.create(now = 1, appVersion = "test"))
         assertEquals(ShortEntrySettings(enabled = false, minSeconds = 120), preferences.shortEntries.first())
-        assertEquals(account.id, entries.getRunning()!!.entry.accountId)
+        assertEquals(activity.id, entries.getRunning()!!.entry.activityId)
         assertTrue(preferences.onboardingCompleted.first())
         // New rows still get fresh IDs after a restore.
-        assertTrue(catalog.saveAccount(null, "Neu", color = 0, activityIds = emptySet()) is SaveResult.Saved)
+        assertTrue(catalog.saveActivity(null, "Neu", color = 0, perClass = true) is SaveResult.Saved)
     }
 
     @Test
     fun aBackupOfRealData_survivesTheFileFormat() = runTest {
-        catalog.createInitialAccounts(listOf("7b"))
-        entries.start(ComboKey(catalog.activeRegularAccounts().first().id, null), now = 0)
+        catalog.createInitialClasses(listOf("7b"))
+        entries.start(ComboKey(catalog.activeRegularActivities().first().id, null), now = 0)
         val backup = backups.create(now = 1, appVersion = "test")
 
         val bytes = ByteArrayOutputStream().also { writeBackup(backup, it) }.toByteArray()

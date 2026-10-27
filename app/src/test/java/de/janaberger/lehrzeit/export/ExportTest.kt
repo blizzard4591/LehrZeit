@@ -4,9 +4,8 @@
 package de.janaberger.lehrzeit.export
 
 import de.janaberger.lehrzeit.data.CatalogSnapshot
-import de.janaberger.lehrzeit.data.ComboKey
-import de.janaberger.lehrzeit.data.db.Account
 import de.janaberger.lehrzeit.data.db.Entry
+import de.janaberger.lehrzeit.data.db.SchoolClass
 import de.janaberger.lehrzeit.data.db.WorkActivity
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -28,25 +27,24 @@ class ExportTest {
     private val hour = 3_600_000L
 
     private val snapshot = CatalogSnapshot(
-        accounts = listOf(
-            Account(id = 1, name = "General", color = 0, isGeneral = true),
-            Account(id = 2, name = "7b", color = 0),
+        activities = listOf(
+            WorkActivity(id = 1, name = "General", color = 0, isGeneral = true),
+            WorkActivity(id = 2, name = "Correcting", color = 0),
         ),
-        activities = listOf(WorkActivity(id = 10, name = "Correcting")),
-        links = setOf(ComboKey(2, 10)),
+        classes = listOf(SchoolClass(id = 10, name = "7b")),
     )
 
     private val labels = ExportLabels(
-        date = "Date", start = "Start", end = "End", duration = "Duration", hours = "Hours", account = "Account",
-        activity = "Activity", note = "Note", entriesTitle = "Entries", summaryTitle = "Summary", period = "Period",
-        total = "Total", byAccount = "By account", byActivity = "By activity", perDay = "Per day", withoutActivity = "Without activity",
+        date = "Date", start = "Start", end = "End", duration = "Duration", hours = "Hours", activity = "Activity",
+        schoolClass = "Class", note = "Note", entriesTitle = "Entries", summaryTitle = "Summary", period = "Period",
+        total = "Total", byActivity = "By activity", byClass = "By class", perDay = "Per day", withoutClass = "Without class",
         reportTitle = "Working time", time = "Time", bookedOn = "Booked on", pageOf = "Page %1${'$'}d of %2${'$'}d", createdOn = "Created on %s",
     )
 
     private fun utc(dateTime: String): Long = LocalDateTime.parse(dateTime).atZone(berlin).toInstant().toEpochMilli()
 
-    private fun entry(account: Long, activity: Long?, start: String, end: String?, note: String = "") = Entry(
-        accountId = account, activityId = activity, startUtc = utc(start), endUtc = end?.let(::utc), note = note, createdAt = 0, updatedAt = 0,
+    private fun entry(activity: Long, schoolClass: Long?, start: String, end: String?, note: String = "") = Entry(
+        activityId = activity, classId = schoolClass, startUtc = utc(start), endUtc = end?.let(::utc), note = note, createdAt = 0, updatedAt = 0,
     )
 
     private fun data() = buildExportData(
@@ -62,22 +60,22 @@ class ExportTest {
         lastDay = LocalDate.parse("2026-10-22"),
         zone = berlin,
         generalName = "Allgemein",
-        withoutActivity = "Without activity",
+        withoutClass = "Without class",
     )
 
     @Test
     fun buildExportData_keepsFinishedEntriesStartingInRange() {
         val data = data()
 
-        assertEquals(listOf("7b", "Allgemein", "7b"), data.entries.map { it.account })
+        assertEquals(listOf("Correcting", "Allgemein", "Correcting"), data.entries.map { it.activity })
         assertEquals(LocalDate.parse("2026-10-22"), data.entries[2].endDate)
         assertEquals(5 * hour + hour / 4, data.totalMillis)
         assertEquals(
             listOf(
-                ExportTotal("7b", 4 * hour + hour / 2, listOf(ExportTotal("Without activity", 3 * hour), ExportTotal("Correcting", hour + hour / 2))),
-                ExportTotal("Allgemein", hour * 3 / 4, listOf(ExportTotal("Without activity", hour * 3 / 4))),
+                ExportTotal("Correcting", 4 * hour + hour / 2, listOf(ExportTotal("Without class", 3 * hour), ExportTotal("7b", hour + hour / 2))),
+                ExportTotal("Allgemein", hour * 3 / 4, listOf(ExportTotal("Without class", hour * 3 / 4))),
             ),
-            data.byAccount,
+            data.byActivity,
         )
         assertEquals(listOf(LocalDate.parse("2026-10-20") to hour + hour / 2, LocalDate.parse("2026-10-21") to 3 * hour + hour * 3 / 4), data.perDay)
         assertEquals("LehrZeit_2026-10-20_2026-10-22.ods", exportFileName(data.firstDay, data.lastDay, ExportFormat.ODS))
@@ -89,9 +87,9 @@ class ExportTest {
         val lines = csv.removePrefix("\uFEFF").split("\r\n")
 
         assertTrue(csv.startsWith("\uFEFF"))
-        assertEquals("Date;Start;End;Duration;Hours;Account;Activity;Note", lines[0])
-        assertEquals("2026-10-20;19:30;21:00;1:30;1,50;7b;Correcting;\"Klausur; \"\"Teil 2\"\"\"", lines[1])
-        assertEquals("2026-10-21;22:00;01:00;3:00;3,00;7b;;", lines[3])
+        assertEquals("Date;Start;End;Duration;Hours;Activity;Class;Note", lines[0])
+        assertEquals("2026-10-20;19:30;21:00;1:30;1,50;Correcting;7b;\"Klausur; \"\"Teil 2\"\"\"", lines[1])
+        assertEquals("2026-10-21;22:00;01:00;3:00;3,00;Correcting;;", lines[3])
     }
 
     @Test

@@ -45,12 +45,12 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -76,6 +76,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -108,7 +109,7 @@ import kotlinx.coroutines.flow.collectLatest
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrackScreen(
-    onManageAccounts: () -> Unit,
+    onManageActivities: () -> Unit,
     onEditEntry: (id: Long) -> Unit,
     viewModel: TrackViewModel = viewModel(factory = AppViewModelProvider.Factory),
 ) {
@@ -141,7 +142,7 @@ fun TrackScreen(
         viewModel.shortenedNotices.collectLatest { notice ->
             val message = resources.getString(
                 R.string.nudge_shortened,
-                notice.combo.label(resources.getString(R.string.account_general)),
+                notice.combo.label(resources.getString(R.string.activity_general)),
                 formatTimeOfDay(notice.newEnd, resources.configuration.locales[0]),
             )
             val result = snackbarHostState.showSnackbar(message, actionLabel = resources.getString(R.string.action_undo), duration = SnackbarDuration.Long)
@@ -196,7 +197,7 @@ fun TrackScreen(
                     )
                 }
             }
-            items(state.tiles, key = { "${it.key.accountId}-${it.key.activityId}" }) { combo ->
+            items(state.tiles, key = { "${it.key.activityId}-${it.key.classId}" }) { combo ->
                 ComboTile(
                     combo = combo,
                     isRunning = state.running?.combo?.key == combo.key,
@@ -205,7 +206,7 @@ fun TrackScreen(
             }
             item(span = { GridItemSpan(maxLineSpan) }) {
                 OutlinedButton(onClick = { showPicker = true }, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.track_all_accounts))
+                    Text(stringResource(R.string.track_all_activities))
                 }
             }
         }
@@ -221,9 +222,9 @@ fun TrackScreen(
                     select(key)
                 },
                 onToggleFavorite = viewModel::toggleFavorite,
-                onManageAccounts = {
+                onManageActivities = {
                     showPicker = false
-                    onManageAccounts()
+                    onManageActivities()
                 },
                 onDismiss = { showPicker = false },
             )
@@ -406,7 +407,7 @@ private fun NoteDialog(initial: String, onSave: (String) -> Unit, onDismiss: () 
 @Composable
 private fun ComboHeadline(combo: Combo) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        ColorDot(combo.account.color, size = 12.dp)
+        ColorDot(combo.activity.color, size = 12.dp)
         Spacer(Modifier.width(8.dp))
         Text(combo.label(), style = MaterialTheme.typography.titleMedium)
     }
@@ -431,7 +432,7 @@ private fun ComboTile(combo: Combo, isRunning: Boolean, onClick: () -> Unit) {
                 Modifier
                     .width(6.dp)
                     .fillMaxHeight()
-                    .background(Color(combo.account.color)),
+                    .background(Color(combo.activity.color)),
             )
             Column(
                 verticalArrangement = Arrangement.Center,
@@ -440,17 +441,18 @@ private fun ComboTile(combo: Combo, isRunning: Boolean, onClick: () -> Unit) {
                     .padding(horizontal = 12.dp),
             ) {
                 Text(
-                    combo.account.displayName(),
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
+                    combo.activity.displayName(),
+                    // Long German words like "Unterrichtsvorbereitung" need a hyphen to fit two lines.
+                    style = MaterialTheme.typography.titleMedium.copy(hyphens = Hyphens.Auto),
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                combo.activity?.let {
+                combo.schoolClass?.let {
                     Text(
                         it.name,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }

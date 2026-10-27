@@ -3,8 +3,8 @@
 
 package de.janaberger.lehrzeit.data.backup
 
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.intOrNull
@@ -20,8 +20,11 @@ import java.util.zip.ZipOutputStream
 
 const val BACKUP_FORMAT = "de.janaberger.lehrzeit.backup"
 
-/** Raise when the content changes; older versions must stay readable (migrate them in [readBackup]). */
-const val BACKUP_VERSION = 1
+/**
+ * Raise when the content changes; older versions must stay readable (migrate them in [readBackup]).
+ * Version 1 came from test builds before 0.1.0, which booked on account › activity; it can't be restored.
+ */
+const val BACKUP_VERSION = 2
 
 private const val BACKUP_ENTRY = "backup.json"
 
@@ -38,31 +41,35 @@ data class Backup(
     val version: Int = BACKUP_VERSION,
     val createdAtUtc: Long,
     val appVersion: String,
-    val accounts: List<BackupAccount>,
     val activities: List<BackupActivity>,
-    val accountActivities: List<BackupLink>,
+    val classes: List<BackupClass>,
     val favorites: List<BackupFavorite>,
     val entries: List<BackupEntry>,
     val settings: BackupSettings,
 )
 
 @Serializable
-data class BackupAccount(val id: Long, val name: String, val color: Int, val isGeneral: Boolean, val archived: Boolean, val sortOrder: Int)
+data class BackupActivity(
+    val id: Long,
+    val name: String,
+    val color: Int,
+    val isGeneral: Boolean,
+    val perClass: Boolean = true,
+    val archived: Boolean,
+    val sortOrder: Int,
+)
 
 @Serializable
-data class BackupActivity(val id: Long, val name: String, val archived: Boolean, val sortOrder: Int)
+data class BackupClass(val id: Long, val name: String, val archived: Boolean, val sortOrder: Int)
 
 @Serializable
-data class BackupLink(val accountId: Long, val activityId: Long)
-
-@Serializable
-data class BackupFavorite(val id: Long, val accountId: Long, val activityId: Long? = null, val sortOrder: Int)
+data class BackupFavorite(val id: Long, val activityId: Long, val classId: Long? = null, val sortOrder: Int)
 
 @Serializable
 data class BackupEntry(
     val id: Long,
-    val accountId: Long,
-    val activityId: Long? = null,
+    val activityId: Long,
+    val classId: Long? = null,
     val startUtc: Long,
     val endUtc: Long? = null,
     val note: String = "",
@@ -83,6 +90,7 @@ sealed interface BackupReadResult {
     data class Ok(val backup: Backup) : BackupReadResult
     data object NotABackup : BackupReadResult
     data object TooNew : BackupReadResult
+    data object TooOld : BackupReadResult
     data object Damaged : BackupReadResult
 }
 
@@ -120,6 +128,7 @@ fun readBackup(input: InputStream): BackupReadResult {
     if (root["format"]?.jsonPrimitive?.content != BACKUP_FORMAT) return BackupReadResult.NotABackup
     val version = root["version"]?.jsonPrimitive?.intOrNull ?: return BackupReadResult.Damaged
     if (version > BACKUP_VERSION) return BackupReadResult.TooNew
+    if (version < 2) return BackupReadResult.TooOld
 
     val backup = try {
         json.decodeFromJsonElement<Backup>(root)
@@ -131,19 +140,18 @@ fun readBackup(input: InputStream): BackupReadResult {
     return if (backup.isConsistent()) BackupReadResult.Ok(backup) else BackupReadResult.Damaged
 }
 
-/** The database rules a restore relies on: one General, unique IDs, no dangling links, at most one running entry. */
+/** The database rules a restore relies on: one General, unique IDs, no dangling references, at most one running entry. */
 internal fun Backup.isConsistent(): Boolean {
-    val accountIds = accounts.map { it.id }.toSet()
     val activityIds = activities.map { it.id }.toSet()
-    fun knownActivity(id: Long?) = id == null || id in activityIds
-    return accounts.count { it.isGeneral } == 1 &&
-        accountIds.size == accounts.size &&
+    val classIds = classes.map { it.id }.toSet()
+    fun knownClass(id: Long?) = id == null || id in classIds
+    return activities.count { it.isGeneral } == 1 &&
         activityIds.size == activities.size &&
+        classIds.size == classes.size &&
         favorites.map { it.id }.toSet().size == favorites.size &&
         entries.map { it.id }.toSet().size == entries.size &&
-        accountActivities.all { it.accountId in accountIds && it.activityId in activityIds } &&
-        favorites.all { it.accountId in accountIds && knownActivity(it.activityId) } &&
-        entries.all { it.accountId in accountIds && knownActivity(it.activityId) && (it.endUtc == null || it.endUtc > it.startUtc) } &&
+        favorites.all { it.activityId in activityIds && knownClass(it.classId) } &&
+        entries.all { it.activityId in activityIds && knownClass(it.classId) && (it.endUtc == null || it.endUtc > it.startUtc) } &&
         entries.count { it.endUtc == null } <= 1
 }
 

@@ -21,9 +21,9 @@ import java.util.Locale
 @RunWith(AndroidJUnit4::class)
 class PdfExporterTest {
     private val labels = ExportLabels(
-        date = "Datum", start = "Beginn", end = "Ende", duration = "Dauer", hours = "Stunden", account = "Konto",
-        activity = "Tätigkeit", note = "Notiz", entriesTitle = "Einträge", summaryTitle = "Übersicht", period = "Zeitraum",
-        total = "Gesamt", byAccount = "Nach Konto", byActivity = "Nach Tätigkeit", perDay = "Pro Tag", withoutActivity = "Ohne Tätigkeit",
+        date = "Datum", start = "Beginn", end = "Ende", duration = "Dauer", hours = "Stunden", activity = "Konto",
+        schoolClass = "Tätigkeit", note = "Notiz", entriesTitle = "Einträge", summaryTitle = "Übersicht", period = "Zeitraum",
+        total = "Gesamt", byActivity = "Nach Konto", byClass = "Nach Tätigkeit", perDay = "Pro Tag", withoutClass = "Ohne Tätigkeit",
         reportTitle = "Arbeitszeit", time = "Zeit", bookedOn = "Gebucht auf", pageOf = "Seite %1\$d von %2\$d", createdOn = "erstellt am %s",
     )
 
@@ -38,8 +38,8 @@ class PdfExporterTest {
                 end = start.plusMinutes(90),
                 endDate = LocalDate.of(2026, 10, 1).plusDays(i / 4L),
                 durationMillis = 90 * minute,
-                account = if (i % 2 == 0) "7b" else "9a Mathe",
-                activity = if (i % 3 == 0) null else "Korrekturen",
+                activity = if (i % 2 == 0) "7b" else "9a Mathe",
+                schoolClass = if (i % 3 == 0) null else "Korrekturen",
                 note = if (i % 5 == 0) "Klausur 2, Teil A und B korrigiert, Notenliste aktualisiert und an die Schulleitung geschickt" else "",
             )
         }
@@ -48,8 +48,8 @@ class PdfExporterTest {
             lastDay = LocalDate.of(2026, 10, 31),
             entries = entries,
             totalMillis = entries.sumOf { it.durationMillis },
-            byAccount = listOf(ExportTotal("7b", 90 * 60 * minute, listOf(ExportTotal("Korrekturen", 60 * 60 * minute))), ExportTotal("9a Mathe", 90 * 60 * minute)),
-            byActivity = listOf(ExportTotal("Korrekturen", 120 * 60 * minute), ExportTotal("Ohne Tätigkeit", 60 * 60 * minute)),
+            byActivity = listOf(ExportTotal("7b", 90 * 60 * minute, listOf(ExportTotal("Korrekturen", 60 * 60 * minute))), ExportTotal("9a Mathe", 90 * 60 * minute)),
+            byClass = listOf(ExportTotal("Korrekturen", 120 * 60 * minute), ExportTotal("Ohne Tätigkeit", 60 * 60 * minute)),
             perDay = entries.groupBy { it.date }.map { (date, day) -> date to day.sumOf { it.durationMillis } },
         )
         val context = ApplicationProvider.getApplicationContext<Context>()

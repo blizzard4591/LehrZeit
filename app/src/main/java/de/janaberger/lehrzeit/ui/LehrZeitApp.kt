@@ -29,29 +29,29 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import de.janaberger.lehrzeit.R
 import de.janaberger.lehrzeit.ui.backup.BackupScreen
-import de.janaberger.lehrzeit.ui.catalog.AccountEditScreen
-import de.janaberger.lehrzeit.ui.catalog.AccountListScreen
 import de.janaberger.lehrzeit.ui.catalog.ActivityEditScreen
 import de.janaberger.lehrzeit.ui.catalog.ActivityListScreen
+import de.janaberger.lehrzeit.ui.catalog.ClassEditScreen
+import de.janaberger.lehrzeit.ui.catalog.ClassListScreen
 import de.janaberger.lehrzeit.ui.entry.EntryEditScreen
 import de.janaberger.lehrzeit.ui.export.ExportScreen
 import de.janaberger.lehrzeit.ui.more.MoreScreen
-import de.janaberger.lehrzeit.ui.navigation.AccountEditRoute
-import de.janaberger.lehrzeit.ui.navigation.AccountsRoute
-import de.janaberger.lehrzeit.ui.navigation.BackupRoute
-import de.janaberger.lehrzeit.ui.navigation.EntryEditRoute
-import de.janaberger.lehrzeit.ui.navigation.ExportRoute
 import de.janaberger.lehrzeit.ui.navigation.ActivitiesRoute
 import de.janaberger.lehrzeit.ui.navigation.ActivityEditRoute
+import de.janaberger.lehrzeit.ui.navigation.BackupRoute
+import de.janaberger.lehrzeit.ui.navigation.ClassEditRoute
+import de.janaberger.lehrzeit.ui.navigation.ClassesRoute
+import de.janaberger.lehrzeit.ui.navigation.EntryEditRoute
+import de.janaberger.lehrzeit.ui.navigation.ExportRoute
 import de.janaberger.lehrzeit.ui.navigation.MoreGraph
 import de.janaberger.lehrzeit.ui.navigation.MoreRoute
 import de.janaberger.lehrzeit.ui.navigation.SettingsRoute
-import de.janaberger.lehrzeit.ui.settings.SettingsScreen
-import de.janaberger.lehrzeit.ui.stats.StatsScreen
 import de.janaberger.lehrzeit.ui.navigation.StatsRoute
 import de.janaberger.lehrzeit.ui.navigation.TopLevelDestination
 import de.janaberger.lehrzeit.ui.navigation.TrackRoute
 import de.janaberger.lehrzeit.ui.navigation.WorklogRoute
+import de.janaberger.lehrzeit.ui.settings.SettingsScreen
+import de.janaberger.lehrzeit.ui.stats.StatsScreen
 import de.janaberger.lehrzeit.ui.track.TrackScreen
 import de.janaberger.lehrzeit.ui.welcome.WelcomeScreen
 import de.janaberger.lehrzeit.ui.worklog.WorklogScreen
@@ -111,7 +111,7 @@ private fun MainScreen() {
         ) {
             composable<TrackRoute> {
                 TrackScreen(
-                    onManageAccounts = { navController.navigate(AccountsRoute) },
+                    onManageActivities = { navController.navigate(ActivitiesRoute) },
                     onEditEntry = { id -> navController.navigate(EntryEditRoute(id)) },
                 )
             }
@@ -121,20 +121,13 @@ private fun MainScreen() {
             navigation<MoreGraph>(startDestination = MoreRoute) {
                 composable<MoreRoute> {
                     MoreScreen(
-                        onOpenAccounts = { navController.navigate(AccountsRoute) },
                         onOpenActivities = { navController.navigate(ActivitiesRoute) },
+                        onOpenClasses = { navController.navigate(ClassesRoute) },
                         onOpenExport = { navController.navigate(ExportRoute) },
                         onOpenBackup = { navController.navigate(BackupRoute) },
                         onOpenSettings = { navController.navigate(SettingsRoute) },
                     )
                 }
-                composable<AccountsRoute> {
-                    AccountListScreen(
-                        onBack = navController::navigateUp,
-                        onOpenAccount = { id -> navController.navigate(AccountEditRoute(id)) },
-                    )
-                }
-                composable<AccountEditRoute> { AccountEditScreen(onDone = navController::navigateUp) }
                 composable<ActivitiesRoute> {
                     ActivityListScreen(
                         onBack = navController::navigateUp,
@@ -142,6 +135,13 @@ private fun MainScreen() {
                     )
                 }
                 composable<ActivityEditRoute> { ActivityEditScreen(onDone = navController::navigateUp) }
+                composable<ClassesRoute> {
+                    ClassListScreen(
+                        onBack = navController::navigateUp,
+                        onOpenClass = { id -> navController.navigate(ClassEditRoute(id)) },
+                    )
+                }
+                composable<ClassEditRoute> { ClassEditScreen(onDone = navController::navigateUp) }
                 composable<SettingsRoute> { SettingsScreen(onBack = navController::navigateUp) }
                 composable<ExportRoute> { ExportScreen(onBack = navController::navigateUp) }
                 composable<BackupRoute> { BackupScreen(onBack = navController::navigateUp) }

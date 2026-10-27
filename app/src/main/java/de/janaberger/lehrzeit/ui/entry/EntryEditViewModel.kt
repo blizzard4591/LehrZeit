@@ -98,7 +98,7 @@ class EntryEditViewModel(
             _uiState.update {
                 it.copy(
                     isLoading = false,
-                    combo = general?.let { account -> Combo(account, null) },
+                    combo = general?.let { activity -> Combo(activity, null) },
                     startUtc = end - 60 * 60_000L,
                     endUtc = end,
                 ).withOriginal()
@@ -208,10 +208,10 @@ class EntryEditViewModel(
 
     private fun editedEntry(state: EntryEditUiState): Entry? {
         val key = state.combo?.key ?: return null
-        val base = loaded ?: Entry(accountId = key.accountId, activityId = key.activityId, startUtc = 0, endUtc = null, createdAt = 0, updatedAt = 0)
+        val base = loaded ?: Entry(activityId = key.activityId, classId = key.classId, startUtc = 0, endUtc = null, createdAt = 0, updatedAt = 0)
         return base.copy(
-            accountId = key.accountId,
             activityId = key.activityId,
+            classId = key.classId,
             startUtc = state.startUtc,
             endUtc = state.endUtc,
             note = state.note.trim(),

@@ -21,16 +21,16 @@ import de.janaberger.lehrzeit.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MoreScreen(
-    onOpenAccounts: () -> Unit,
     onOpenActivities: () -> Unit,
+    onOpenClasses: () -> Unit,
     onOpenExport: () -> Unit,
     onOpenBackup: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.nav_more)) }) }) { padding ->
         Column(Modifier.padding(padding)) {
-            MoreItem(stringResource(R.string.accounts_title), stringResource(R.string.more_accounts_summary), onOpenAccounts)
             MoreItem(stringResource(R.string.activities_title), stringResource(R.string.more_activities_summary), onOpenActivities)
+            MoreItem(stringResource(R.string.classes_title), stringResource(R.string.more_classes_summary), onOpenClasses)
             MoreItem(stringResource(R.string.export_title), stringResource(R.string.more_export_summary), onOpenExport)
             MoreItem(stringResource(R.string.backup_title), stringResource(R.string.more_backup_summary), onOpenBackup)
             MoreItem(stringResource(R.string.settings_title), stringResource(R.string.more_settings_summary), onOpenSettings)

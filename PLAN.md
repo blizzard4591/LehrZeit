@@ -238,7 +238,7 @@ Entry            id, activityId, classId?, startUtc, endUtc?, note, createdAt, u
     - A button is greyed out when it can't move the start.
     - −5 also moves the previous entry's end back if it's in the way, e.g. right after a switch, with Undo.
     - A note for the running entry can be added and edited on the card, and shows there.
-12. Activity › class instead of account › activity (see [Booking model](#product-decisions)), with store texts and screenshots updated.
+12. **(done 2026-10-27)** Activity › class instead of account › activity (see [Booking model](#product-decisions)), with store texts and screenshots updated. Backups from before this change are refused with their own message.
 
 Later, after 0.1.0: import teaching time from WebUntis. WebUntis can export a timetable as an iCalendar (.ics) file. Past lessons would be imported as "Teaching" entries, matched to classes by name, so cancellations and substitutions are already accounted for. This waits for a sample export of one week from the tester. Clocking in by location and a timetable that books automatically every week were ruled out: the first needs location access in the background, and the second goes wrong on every holiday, cancellation or short day.
 
@@ -267,6 +267,7 @@ Unit tests cover the time arithmetic: midnight split, the summer/winter time cha
 - Android's own backup (`allowBackup`) stays enabled as a bonus. It only does anything if the user has turned on backup on the phone.
 - Activities and classes can be deleted only while they have no entries. After that they can only be archived.
 - Colors belong to activities (tile edge, dots in the stats). Classes have none.
+- On the Track screen's tiles, long activity names get two lines and are hyphenated ("Unterrichtsvorberei-tung"). The widget can't hyphenate, so there they stay on one line and end with "…".
 - In the stats' "by class" view, entries without a class are listed as "Without class".
 - Names are at most 40 characters. They must be unique among non-archived items, ignoring case, and neither an activity nor a class can be called "General"/"Allgemein". Archived items don't block a name, so next school year's "7b" can exist next to last year's archived one. Restoring a duplicate from the archive asks for a rename first.
 - In the editors, *Archive* and *Restore from archive* also save the other changes on the screen. Leaving with unsaved changes asks first. An item restored from the archive goes to the end of its list.

@@ -29,7 +29,9 @@ class CatalogRepositoryTest {
             .build()
         catalog = CatalogRepository(
             db = db,
-            starterActivityNames = { listOf("Teaching", "Correcting", "Exams") },
+            starterActivities = {
+                listOf(StarterActivity("Teaching", perClass = true), StarterActivity("Correcting", perClass = true), StarterActivity("Meetings", perClass = false))
+            },
             generalDisplayName = { "General" },
         )
     }
@@ -39,18 +41,17 @@ class CatalogRepositoryTest {
         db.close()
     }
 
-    private suspend fun accountsByName() = catalog.observeAccounts().first().associateBy { it.account.name }
+    private suspend fun activitiesByName() = catalog.observeActivities().first().associateBy { it.name }
 
-    private suspend fun activityIds(vararg names: String): Set<Long> {
-        val byName = catalog.observeActivities().first().associateBy { it.activity.name }
-        return names.map { byName.getValue(it).activity.id }.toSet()
-    }
+    private suspend fun classNames() = catalog.observeClasses().first().map { it.name }
+
+    private suspend fun classId(name: String) = catalog.observeClasses().first().single { it.name == name }.id
 
     private fun savedId(result: SaveResult): Long = (result as SaveResult.Saved).id
 
-    private suspend fun addEntry(accountId: Long, activityId: Long?) {
+    private suspend fun addEntry(activityId: Long, classId: Long?) {
         db.entryDao().insert(
-            Entry(accountId = accountId, activityId = activityId, startUtc = 0, endUtc = 1, createdAt = 0, updatedAt = 0),
+            Entry(activityId = activityId, classId = classId, startUtc = 0, endUtc = 1, createdAt = 0, updatedAt = 0),
         )
     }
 
@@ -59,150 +60,123 @@ class CatalogRepositoryTest {
         catalog.seedIfNeeded()
         catalog.seedIfNeeded()
 
-        val accounts = catalog.observeAccounts().first()
-        assertEquals(1, accounts.size)
-        assertTrue(accounts.single().account.isGeneral)
-        assertEquals(listOf("Teaching", "Correcting", "Exams"), catalog.observeActivities().first().map { it.activity.name })
+        val activities = catalog.observeActivities().first()
+        assertEquals(listOf("General", "Teaching", "Correcting", "Meetings"), activities.map { it.name })
+        assertTrue(activities.first().isGeneral)
+        assertEquals(listOf(true, true, true, false), activities.map { it.perClass })
+        assertEquals("each its own color", 4, activities.map { it.color }.toSet().size)
+        assertTrue(classNames().isEmpty())
     }
 
     @Test
-    fun createInitialAccounts_enablesAllActivitiesAndSkipsInvalidNames() = runTest {
-        catalog.createInitialAccounts(listOf("7b", " 9a  Mathe ", "7B", "general", "  "))
+    fun createInitialClasses_skipsInvalidNames() = runTest {
+        catalog.createInitialClasses(listOf("7b", " 9a  Mathe ", "7B", "general", "  "))
 
-        val accounts = catalog.observeAccounts().first()
-        assertEquals(listOf("General", "7b", "9a Mathe"), accounts.map { it.account.name })
-        assertEquals(listOf(0, 3, 3), accounts.map { it.activityCount })
+        assertEquals(listOf("7b", "9a Mathe"), classNames())
+        assertEquals("seeded on the way", 4, catalog.observeActivities().first().size)
     }
 
     @Test
-    fun saveAccount_newAccountGetsOnlyTheCheckedActivities() = runTest {
+    fun saveActivity_storesPerClass() = runTest {
         catalog.seedIfNeeded()
-        val id = savedId(catalog.saveAccount(null, "7b", color = 1, activityIds = activityIds("Exams")))
+        val id = savedId(catalog.saveActivity(null, "Mentoring", color = 1, perClass = false))
+        assertFalse(catalog.getActivityDetails(id)!!.activity.perClass)
 
-        val details = catalog.getAccountDetails(id)!!
-        assertEquals(activityIds("Exams"), details.activityIds)
+        catalog.saveActivity(id, "Mentoring", color = 1, perClass = true)
+        assertTrue(catalog.getActivityDetails(id)!!.activity.perClass)
     }
 
     @Test
-    fun saveAccount_rejectsEmptyAndTakenNamesIgnoringCase() = runTest {
+    fun saveActivity_rejectsEmptyAndTakenNamesIgnoringCase() = runTest {
         catalog.seedIfNeeded()
-        catalog.saveAccount(null, "Äpfel 7b", color = 1, activityIds = emptySet())
+        catalog.saveActivity(null, "Äpfel schälen", color = 1, perClass = true)
 
-        assertEquals(SaveResult.NameEmpty, catalog.saveAccount(null, "   ", color = 1, activityIds = emptySet()))
-        assertEquals(SaveResult.NameTaken, catalog.saveAccount(null, "äpfel  7B", color = 1, activityIds = emptySet()))
-        assertEquals(SaveResult.NameTaken, catalog.saveAccount(null, "GENERAL", color = 1, activityIds = emptySet()))
+        assertEquals(SaveResult.NameEmpty, catalog.saveActivity(null, "   ", color = 1, perClass = true))
+        assertEquals(SaveResult.NameTaken, catalog.saveActivity(null, "äpfel  SCHÄLEN", color = 1, perClass = true))
+        assertEquals(SaveResult.NameTaken, catalog.saveActivity(null, "GENERAL", color = 1, perClass = true))
     }
 
     @Test
     fun archivedNamesCanBeReused_butBlockRestoringTheDuplicate() = runTest {
-        catalog.seedIfNeeded()
-        val oldId = savedId(catalog.saveAccount(null, "7b", color = 1, activityIds = emptySet()))
-        catalog.saveAccount(oldId, "7b", color = 1, activityIds = emptySet(), archived = true)
+        val oldId = savedId(catalog.saveClass(null, "7b"))
+        catalog.saveClass(oldId, "7b", archived = true)
 
-        assertTrue(catalog.saveAccount(null, "7b", color = 2, activityIds = emptySet()) is SaveResult.Saved)
-        assertEquals(
-            SaveResult.NameTaken,
-            catalog.saveAccount(oldId, "7b", color = 1, activityIds = emptySet(), archived = false),
-        )
-        assertTrue(catalog.saveAccount(oldId, "7b 2025", color = 1, activityIds = emptySet(), archived = false) is SaveResult.Saved)
+        assertTrue(catalog.saveClass(null, "7b") is SaveResult.Saved)
+        assertEquals(SaveResult.NameTaken, catalog.saveClass(oldId, "7b", archived = false))
+        assertTrue(catalog.saveClass(oldId, "7b 2025", archived = false) is SaveResult.Saved)
     }
 
     @Test
-    fun restoringFromArchive_movesAccountToTheEnd() = runTest {
+    fun restoringFromArchive_movesActivityToTheEnd() = runTest {
         catalog.seedIfNeeded()
-        val first = savedId(catalog.saveAccount(null, "A", color = 1, activityIds = emptySet()))
-        catalog.saveAccount(null, "B", color = 1, activityIds = emptySet())
-        catalog.saveAccount(first, "A", color = 1, activityIds = emptySet(), archived = true)
-        catalog.saveAccount(first, "A", color = 1, activityIds = emptySet(), archived = false)
+        val teaching = activitiesByName().getValue("Teaching")
+        catalog.saveActivity(teaching.id, "Teaching", color = 1, perClass = true, archived = true)
+        catalog.saveActivity(teaching.id, "Teaching", color = 1, perClass = true, archived = false)
 
-        assertEquals(listOf("General", "B", "A"), catalog.observeAccounts().first().map { it.account.name })
+        assertEquals(listOf("General", "Correcting", "Meetings", "Teaching"), catalog.observeActivities().first().map { it.name })
     }
 
     @Test
-    fun saveAccount_keepsLinksToArchivedActivities() = runTest {
+    fun general_onlyItsColorAndPerClassCanChange() = runTest {
         catalog.seedIfNeeded()
-        val all = activityIds("Teaching", "Correcting", "Exams")
-        val accountId = savedId(catalog.saveAccount(null, "7b", color = 1, activityIds = all))
-        val examsId = activityIds("Exams").single()
-        catalog.saveActivity(examsId, "Exams", accountIds = setOf(accountId), archived = true)
+        val general = activitiesByName().getValue("General")
 
-        // The account editor only shows active activities, so it saves without Exams.
-        catalog.saveAccount(accountId, "7b", color = 1, activityIds = activityIds("Teaching"))
-
-        assertEquals(activityIds("Teaching", "Exams"), catalog.getAccountDetails(accountId)!!.activityIds)
-    }
-
-    @Test
-    fun general_onlyItsColorCanChange() = runTest {
-        catalog.seedIfNeeded()
-        val general = accountsByName().getValue("General").account
-
-        val result = catalog.saveAccount(general.id, "Renamed", color = 42, activityIds = activityIds("Exams"), archived = true)
+        val result = catalog.saveActivity(general.id, "Renamed", color = 42, perClass = false, archived = true)
 
         assertEquals(SaveResult.Saved(general.id), result)
-        val details = catalog.getAccountDetails(general.id)!!
-        assertEquals("General", details.account.name)
-        assertEquals(42, details.account.color)
-        assertFalse(details.account.archived)
-        assertTrue(details.activityIds.isEmpty())
+        val saved = catalog.getActivityDetails(general.id)!!.activity
+        assertEquals("General", saved.name)
+        assertEquals(42, saved.color)
+        assertFalse(saved.perClass)
+        assertFalse(saved.archived)
     }
 
     @Test(expected = IllegalArgumentException::class)
     fun general_cannotBeDeleted() = runTest {
         catalog.seedIfNeeded()
-        catalog.deleteAccount(accountsByName().getValue("General").account.id)
-    }
-
-    @Test
-    fun deleteAccount_onlyWithoutEntries() = runTest {
-        catalog.seedIfNeeded()
-        val used = savedId(catalog.saveAccount(null, "Used", color = 1, activityIds = activityIds("Exams")))
-        val unused = savedId(catalog.saveAccount(null, "Unused", color = 1, activityIds = activityIds("Exams")))
-        addEntry(used, activityId = null)
-
-        assertEquals(DeleteResult.HAS_ENTRIES, catalog.deleteAccount(used))
-        assertEquals(DeleteResult.DELETED, catalog.deleteAccount(unused))
-        assertEquals(setOf("General", "Used"), accountsByName().keys)
-        // The deleted account's links are gone, so Exams is offered by one account only.
-        assertEquals(1, catalog.observeActivities().first().single { it.activity.name == "Exams" }.accountCount)
+        catalog.deleteActivity(activitiesByName().getValue("General").id)
     }
 
     @Test
     fun deleteActivity_onlyWithoutEntries() = runTest {
         catalog.seedIfNeeded()
-        val general = accountsByName().getValue("General").account
-        val examsId = activityIds("Exams").single()
-        val teachingId = activityIds("Teaching").single()
-        addEntry(general.id, examsId)
+        val used = savedId(catalog.saveActivity(null, "Used", color = 1, perClass = true))
+        val unused = savedId(catalog.saveActivity(null, "Unused", color = 1, perClass = true))
+        addEntry(used, classId = null)
 
-        assertEquals(DeleteResult.HAS_ENTRIES, catalog.deleteActivity(examsId))
-        assertEquals(DeleteResult.DELETED, catalog.deleteActivity(teachingId))
-        assertEquals(listOf("Correcting", "Exams"), catalog.observeActivities().first().map { it.activity.name })
+        assertEquals(DeleteResult.HAS_ENTRIES, catalog.deleteActivity(used))
+        assertEquals(DeleteResult.DELETED, catalog.deleteActivity(unused))
+        assertEquals(setOf("General", "Teaching", "Correcting", "Meetings", "Used"), activitiesByName().keys)
     }
 
     @Test
-    fun saveActivity_linksCheckedAccountsAndRejectsDuplicateNames() = runTest {
-        catalog.seedIfNeeded()
-        val a = savedId(catalog.saveAccount(null, "7b", color = 1, activityIds = emptySet()))
-        catalog.saveAccount(null, "8c", color = 1, activityIds = emptySet())
+    fun deleteClass_onlyWithoutEntries() = runTest {
+        catalog.createInitialClasses(listOf("7b", "8a"))
+        addEntry(activitiesByName().getValue("General").id, classId("7b"))
 
-        val id = savedId(catalog.saveActivity(null, "Class trip", accountIds = setOf(a)))
+        assertEquals(DeleteResult.HAS_ENTRIES, catalog.deleteClass(classId("7b")))
+        assertEquals(DeleteResult.DELETED, catalog.deleteClass(classId("8a")))
+        assertEquals(listOf("7b"), classNames())
+    }
 
-        assertEquals(setOf(a), catalog.getActivityDetails(id)!!.accountIds)
-        assertEquals(SaveResult.NameTaken, catalog.saveActivity(null, "class TRIP", accountIds = emptySet()))
+    @Test
+    fun saveClass_rejectsEmptyTakenAndGeneralNames() = runTest {
+        catalog.saveClass(null, "Q1")
+
+        assertEquals(SaveResult.NameEmpty, catalog.saveClass(null, "  "))
+        assertEquals(SaveResult.NameTaken, catalog.saveClass(null, "q1"))
+        assertEquals(SaveResult.NameTaken, catalog.saveClass(null, "General"))
     }
 
     @Test
     fun reorder_persistsNewOrder() = runTest {
-        catalog.seedIfNeeded()
-        val a = savedId(catalog.saveAccount(null, "A", color = 1, activityIds = emptySet()))
-        val b = savedId(catalog.saveAccount(null, "B", color = 1, activityIds = emptySet()))
-        val c = savedId(catalog.saveAccount(null, "C", color = 1, activityIds = emptySet()))
+        catalog.createInitialClasses(listOf("7b", "8a", "9c"))
+        val activities = activitiesByName()
 
-        catalog.reorderAccounts(listOf(c, a, b))
-        catalog.reorderActivities(activityIds("Exams", "Teaching", "Correcting").toList())
+        catalog.reorderActivities(listOf("Meetings", "Teaching", "Correcting").map { activities.getValue(it).id })
+        catalog.reorderClasses(listOf(classId("9c"), classId("7b"), classId("8a")))
 
-        assertEquals(listOf("General", "C", "A", "B"), catalog.observeAccounts().first().map { it.account.name })
-        assertEquals(listOf("Exams", "Teaching", "Correcting"), catalog.observeActivities().first().map { it.activity.name })
+        assertEquals(listOf("General", "Meetings", "Teaching", "Correcting"), catalog.observeActivities().first().map { it.name })
+        assertEquals(listOf("9c", "7b", "8a"), classNames())
     }
 }

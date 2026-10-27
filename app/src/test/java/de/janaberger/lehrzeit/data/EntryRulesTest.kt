@@ -10,7 +10,7 @@ import org.junit.Test
 
 class EntryRulesTest {
     private fun entry(id: Long, start: Long, end: Long?) =
-        Entry(id = id, accountId = 1, activityId = null, startUtc = start, endUtc = end, createdAt = 0, updatedAt = 0)
+        Entry(id = id, activityId = 1, classId = null, startUtc = start, endUtc = end, createdAt = 0, updatedAt = 0)
 
     @Test
     fun validate() {

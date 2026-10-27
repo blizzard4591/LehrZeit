@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-enum class BackupError { WRITE_FAILED, NOT_A_BACKUP, DAMAGED, TOO_NEW, RESTORE_FAILED }
+enum class BackupError { WRITE_FAILED, NOT_A_BACKUP, DAMAGED, TOO_NEW, TOO_OLD, RESTORE_FAILED }
 
 data class BackupUiState(
     val lastBackupAt: Long? = null,
@@ -63,6 +63,7 @@ class BackupViewModel(
             BackupReadResult.NotABackup -> state.update { it.copy(error = BackupError.NOT_A_BACKUP) }
             BackupReadResult.Damaged -> state.update { it.copy(error = BackupError.DAMAGED) }
             BackupReadResult.TooNew -> state.update { it.copy(error = BackupError.TOO_NEW) }
+            BackupReadResult.TooOld -> state.update { it.copy(error = BackupError.TOO_OLD) }
         }
     }
 

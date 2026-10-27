@@ -3,56 +3,57 @@
 
 package de.janaberger.lehrzeit.data
 
-import de.janaberger.lehrzeit.data.db.Account
 import de.janaberger.lehrzeit.data.db.Entry
+import de.janaberger.lehrzeit.data.db.SchoolClass
 import de.janaberger.lehrzeit.data.db.WorkActivity
 
-/** What time is booked on: an account plus an optional activity. Also used as a Room result row. */
-data class ComboKey(val accountId: Long, val activityId: Long?)
+/** What time is booked on: an activity plus an optional class. Also used as a Room result row. */
+data class ComboKey(val activityId: Long, val classId: Long?)
 
-val Entry.comboKey: ComboKey get() = ComboKey(accountId, activityId)
+val Entry.comboKey: ComboKey get() = ComboKey(activityId, classId)
 
-data class Combo(val account: Account, val activity: WorkActivity?) {
-    val key: ComboKey get() = ComboKey(account.id, activity?.id)
+data class Combo(val activity: WorkActivity, val schoolClass: SchoolClass?) {
+    val key: ComboKey get() = ComboKey(activity.id, schoolClass?.id)
 
-    /** E.g. "7b › Correcting", or just "7b". [generalName] is General's localized name. */
+    /** E.g. "Correcting › 7b", or just "Correcting". [generalName] is General's localized name. */
     fun label(generalName: String): String =
-        listOfNotNull(if (account.isGeneral) generalName else account.name, activity?.name).joinToString(" › ")
+        listOfNotNull(if (activity.isGeneral) generalName else activity.name, schoolClass?.name).joinToString(" › ")
 }
 
-/** All accounts, activities and their links at one point in time. */
+/** All activities and classes at one point in time. */
 data class CatalogSnapshot(
-    /** General first, then by sort order. Includes archived accounts. */
-    val accounts: List<Account>,
-    /** By sort order. Includes archived activities. */
+    /** General first, then by sort order. Includes archived activities. */
     val activities: List<WorkActivity>,
-    /** Which activity each account offers; [ComboKey.activityId] is never null here. */
-    val links: Set<ComboKey>,
+    /** By sort order. Includes archived classes. */
+    val classes: List<SchoolClass>,
 ) {
-    private val accountsById = accounts.associateBy { it.id }
     private val activitiesById = activities.associateBy { it.id }
+    private val classesById = classes.associateBy { it.id }
 
-    val general: Account? get() = accounts.firstOrNull { it.isGeneral }
+    val general: WorkActivity? get() = activities.firstOrNull { it.isGeneral }
 
-    /** Non-archived accounts, General first. */
-    val activeAccounts: List<Account> get() = accounts.filter { !it.archived }
+    /** Non-archived activities, General first. */
+    val activeActivities: List<WorkActivity> get() = activities.filter { !it.archived }
 
     fun combo(key: ComboKey): Combo? {
-        val account = accountsById[key.accountId] ?: return null
-        val activity = key.activityId?.let { activitiesById[it] ?: return null }
-        return Combo(account, activity)
+        val activity = activitiesById[key.activityId] ?: return null
+        val schoolClass = key.classId?.let { classesById[it] ?: return null }
+        return Combo(activity, schoolClass)
     }
 
-    /** Non-archived activities the account offers, in catalog order. */
-    fun activeActivitiesFor(accountId: Long): List<WorkActivity> =
-        activities.filter { !it.archived && ComboKey(accountId, it.id) in links }
+    /** Non-archived classes. */
+    val activeClasses: List<SchoolClass> get() = classes.filter { !it.archived }
 
-    /** True if time can be booked on [key] right now: nothing archived and the account offers the activity. */
+    /** The classes that can be chosen under the activity: all non-archived ones if it's booked per class, else none. */
+    fun activeClassesFor(activityId: Long): List<SchoolClass> =
+        if (activitiesById[activityId]?.perClass == true) activeClasses else emptyList()
+
+    /** True if time can be booked on [key] right now: nothing archived, and a class only under a per-class activity. */
     fun isBookable(key: ComboKey): Boolean {
-        val account = accountsById[key.accountId] ?: return false
-        if (account.archived) return false
-        val activityId = key.activityId ?: return true
-        val activity = activitiesById[activityId] ?: return false
-        return !account.isGeneral && !activity.archived && key in links
+        val activity = activitiesById[key.activityId] ?: return false
+        if (activity.archived) return false
+        val classId = key.classId ?: return true
+        val schoolClass = classesById[classId] ?: return false
+        return activity.perClass && !schoolClass.archived
     }
 }

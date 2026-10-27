@@ -9,13 +9,12 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [Account::class, WorkActivity::class, AccountActivity::class, Favorite::class, Entry::class],
+    entities = [WorkActivity::class, SchoolClass::class, Favorite::class, Entry::class],
     version = 1,
 )
 abstract class LehrZeitDatabase : RoomDatabase() {
-    abstract fun accountDao(): AccountDao
     abstract fun activityDao(): ActivityDao
-    abstract fun accountActivityDao(): AccountActivityDao
+    abstract fun classDao(): ClassDao
     abstract fun entryDao(): EntryDao
     abstract fun favoriteDao(): FavoriteDao
     abstract fun backupDao(): BackupDao

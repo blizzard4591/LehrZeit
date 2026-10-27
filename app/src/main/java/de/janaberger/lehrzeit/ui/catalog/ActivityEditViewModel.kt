@@ -11,7 +11,6 @@ import de.janaberger.lehrzeit.data.CatalogRepository
 import de.janaberger.lehrzeit.data.DeleteResult
 import de.janaberger.lehrzeit.data.MAX_NAME_LENGTH
 import de.janaberger.lehrzeit.data.SaveResult
-import de.janaberger.lehrzeit.data.db.Account
 import de.janaberger.lehrzeit.ui.components.NameError
 import de.janaberger.lehrzeit.ui.navigation.ActivityEditRoute
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,20 +22,22 @@ import kotlinx.coroutines.launch
 data class ActivityEditUiState(
     val isLoading: Boolean = true,
     val isNew: Boolean = true,
+    val isGeneral: Boolean = false,
     val isArchived: Boolean = false,
     val name: String = "",
-    /** The active accounts (except General) that can offer the activity. */
-    val accounts: List<Account> = emptyList(),
-    val checked: Set<Long> = emptySet(),
+    val color: Int = 0,
+    /** Whether a class can be chosen under the activity. */
+    val perClass: Boolean = true,
     val entryCount: Int = 0,
     val nameError: NameError? = null,
     val isSaving: Boolean = false,
     /** Set once the activity was saved or deleted; the screen then closes. */
     val isFinished: Boolean = false,
     private val savedName: String = "",
-    private val savedChecked: Set<Long> = emptySet(),
+    private val savedColor: Int = 0,
+    private val savedPerClass: Boolean = true,
 ) {
-    val hasChanges: Boolean get() = name != savedName || checked != savedChecked
+    val hasChanges: Boolean get() = name != savedName || color != savedColor || perClass != savedPerClass
 }
 
 class ActivityEditViewModel(
@@ -53,10 +54,9 @@ class ActivityEditViewModel(
     }
 
     private suspend fun load() {
-        val accounts = catalog.activeRegularAccounts()
         if (activityId == null) {
-            // New activities start out offered by no account.
-            _uiState.value = ActivityEditUiState(isLoading = false, accounts = accounts)
+            val color = catalog.nextActivityColor()
+            _uiState.value = ActivityEditUiState(isLoading = false, color = color, savedColor = color)
             return
         }
         val details = catalog.getActivityDetails(activityId)
@@ -65,17 +65,18 @@ class ActivityEditViewModel(
             return
         }
         val activity = details.activity
-        val checked = details.accountIds intersect accounts.map { it.id }.toSet()
         _uiState.value = ActivityEditUiState(
             isLoading = false,
             isNew = false,
+            isGeneral = activity.isGeneral,
             isArchived = activity.archived,
             name = activity.name,
-            accounts = accounts,
-            checked = checked,
+            color = activity.color,
+            perClass = activity.perClass,
             entryCount = details.entryCount,
             savedName = activity.name,
-            savedChecked = checked,
+            savedColor = activity.color,
+            savedPerClass = activity.perClass,
         )
     }
 
@@ -83,14 +84,12 @@ class ActivityEditViewModel(
         _uiState.update { it.copy(name = name.take(MAX_NAME_LENGTH), nameError = null) }
     }
 
-    fun onToggleAccount(accountId: Long) {
-        _uiState.update {
-            it.copy(checked = if (accountId in it.checked) it.checked - accountId else it.checked + accountId)
-        }
+    fun onColorChange(color: Int) {
+        _uiState.update { it.copy(color = color) }
     }
 
-    fun onSelectAll(selectAll: Boolean) {
-        _uiState.update { state -> state.copy(checked = if (selectAll) state.accounts.map { it.id }.toSet() else emptySet()) }
+    fun onPerClassChange(perClass: Boolean) {
+        _uiState.update { it.copy(perClass = perClass) }
     }
 
     fun save() = persist(archived = _uiState.value.isArchived)
@@ -105,7 +104,7 @@ class ActivityEditViewModel(
         if (state.isLoading || state.isSaving) return
         _uiState.update { it.copy(isSaving = true) }
         viewModelScope.launch {
-            val result = catalog.saveActivity(activityId, state.name, state.checked, archived)
+            val result = catalog.saveActivity(activityId, state.name, state.color, state.perClass, archived)
             _uiState.update {
                 when (result) {
                     is SaveResult.Saved -> it.copy(isSaving = false, isFinished = true)

@@ -34,17 +34,17 @@ import androidx.compose.ui.unit.dp
 import de.janaberger.lehrzeit.R
 import de.janaberger.lehrzeit.data.CatalogSnapshot
 import de.janaberger.lehrzeit.data.ComboKey
-import de.janaberger.lehrzeit.data.db.Account
+import de.janaberger.lehrzeit.data.db.SchoolClass
 import de.janaberger.lehrzeit.data.db.WorkActivity
 import de.janaberger.lehrzeit.ui.components.ColorDot
 import de.janaberger.lehrzeit.ui.components.NoteText
 
-private data class PickerGroup(val account: Account, val activities: List<WorkActivity>)
+private data class PickerGroup(val activity: WorkActivity, val classes: List<SchoolClass>)
 
 /**
- * All bookable accounts with their activities. Tapping an account books it alone; tapping an
- * activity books the combination. The star pins a combination to the home screen; it and the
- * "Manage accounts" link are left out when their callback is null.
+ * All bookable activities with their classes. Tapping an activity books it alone; tapping a
+ * class books the combination. The star pins a combination to the home screen; it and the
+ * "Manage activities" link are left out when their callback is null.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,12 +53,12 @@ fun PickerSheet(
     favorites: Set<ComboKey>,
     onSelect: (ComboKey) -> Unit,
     onToggleFavorite: ((ComboKey) -> Unit)?,
-    onManageAccounts: (() -> Unit)?,
+    onManageActivities: (() -> Unit)?,
     onDismiss: () -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var expanded by rememberSaveable { mutableStateOf(emptyList<Long>()) }
-    val generalName = stringResource(R.string.account_general)
+    val generalName = stringResource(R.string.activity_general)
     val groups = pickerGroups(snapshot, query.trim(), generalName)
     val searching = query.isNotBlank()
 
@@ -81,21 +81,21 @@ fun PickerSheet(
                 item(key = "empty") { NoteText(stringResource(R.string.picker_no_results)) }
             }
             groups.forEach { group ->
-                val account = group.account
-                val isExpanded = searching || account.id in expanded
-                item(key = "account-${account.id}") {
-                    val key = ComboKey(account.id, null)
+                val activity = group.activity
+                val isExpanded = searching || activity.id in expanded
+                item(key = "activity-${activity.id}") {
+                    val key = ComboKey(activity.id, null)
                     ListItem(
-                        headlineContent = { Text(if (account.isGeneral) generalName else account.name) },
-                        leadingContent = { ColorDot(account.color) },
+                        headlineContent = { Text(if (activity.isGeneral) generalName else activity.name) },
+                        leadingContent = { ColorDot(activity.color) },
                         trailingContent = {
                             Row {
                                 // General is always on the home screen, so it can't be pinned.
-                                if (!account.isGeneral && onToggleFavorite != null) {
+                                if (!activity.isGeneral && onToggleFavorite != null) {
                                     FavoriteButton(isFavorite = key in favorites, onClick = { onToggleFavorite(key) })
                                 }
-                                if (group.activities.isNotEmpty() && !searching) {
-                                    IconButton(onClick = { expanded = if (isExpanded) expanded - account.id else expanded + account.id }) {
+                                if (group.classes.isNotEmpty() && !searching) {
+                                    IconButton(onClick = { expanded = if (isExpanded) expanded - activity.id else expanded + activity.id }) {
                                         Icon(
                                             painterResource(if (isExpanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more),
                                             contentDescription = stringResource(if (isExpanded) R.string.picker_collapse else R.string.picker_expand),
@@ -108,10 +108,10 @@ fun PickerSheet(
                     )
                 }
                 if (isExpanded) {
-                    items(group.activities, key = { "activity-${account.id}-${it.id}" }) { activity ->
-                        val key = ComboKey(account.id, activity.id)
+                    items(group.classes, key = { "class-${activity.id}-${it.id}" }) { schoolClass ->
+                        val key = ComboKey(activity.id, schoolClass.id)
                         ListItem(
-                            headlineContent = { Text(activity.name) },
+                            headlineContent = { Text(schoolClass.name) },
                             leadingContent = { Spacer(Modifier.width(24.dp)) },
                             trailingContent = onToggleFavorite?.let { toggle ->
                                 { FavoriteButton(isFavorite = key in favorites, onClick = { toggle(key) }) }
@@ -121,9 +121,9 @@ fun PickerSheet(
                     }
                 }
             }
-            if (onManageAccounts != null) {
+            if (onManageActivities != null) {
                 item(key = "manage") {
-                    TextButton(onClick = onManageAccounts, modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
+                    TextButton(onClick = onManageActivities, modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
                         Text(stringResource(R.string.picker_manage))
                     }
                 }
@@ -143,17 +143,17 @@ private fun FavoriteButton(isFavorite: Boolean, onClick: () -> Unit) {
 }
 
 /**
- * Active accounts with their offered activities. While searching, an account matching the query
- * shows all its activities; otherwise only the matching activities are shown.
+ * Active activities with their offered classes. While searching, an activity matching the query
+ * shows all its classes; otherwise only the matching classes are shown.
  */
 private fun pickerGroups(snapshot: CatalogSnapshot, query: String, generalName: String): List<PickerGroup> =
-    snapshot.activeAccounts.mapNotNull { account ->
-        val activities = snapshot.activeActivitiesFor(account.id)
-        val accountName = if (account.isGeneral) generalName else account.name
+    snapshot.activeActivities.mapNotNull { activity ->
+        val classes = snapshot.activeClassesFor(activity.id)
+        val activityName = if (activity.isGeneral) generalName else activity.name
         when {
-            query.isEmpty() || accountName.contains(query, ignoreCase = true) -> PickerGroup(account, activities)
-            else -> activities.filter { it.name.contains(query, ignoreCase = true) }
+            query.isEmpty() || activityName.contains(query, ignoreCase = true) -> PickerGroup(activity, classes)
+            else -> classes.filter { it.name.contains(query, ignoreCase = true) }
                 .takeIf { it.isNotEmpty() }
-                ?.let { PickerGroup(account, it) }
+                ?.let { PickerGroup(activity, it) }
         }
     }

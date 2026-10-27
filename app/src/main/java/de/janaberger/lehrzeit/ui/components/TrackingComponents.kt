@@ -19,7 +19,7 @@ import de.janaberger.lehrzeit.time.formatTimeOfDay
 import kotlinx.coroutines.delay
 
 @Composable
-fun Combo.label(): String = label(stringResource(R.string.account_general))
+fun Combo.label(): String = label(stringResource(R.string.activity_general))
 
 @Composable
 fun timeOfDay(utc: Long): String = formatTimeOfDay(utc, LocalConfiguration.current.locales[0])

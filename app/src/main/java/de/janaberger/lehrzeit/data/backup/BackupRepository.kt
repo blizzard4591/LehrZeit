@@ -8,11 +8,10 @@ import de.janaberger.lehrzeit.data.AppPreferences
 import de.janaberger.lehrzeit.data.EntryRepository
 import de.janaberger.lehrzeit.data.ReminderSettings
 import de.janaberger.lehrzeit.data.ShortEntrySettings
-import de.janaberger.lehrzeit.data.db.Account
-import de.janaberger.lehrzeit.data.db.AccountActivity
 import de.janaberger.lehrzeit.data.db.Entry
 import de.janaberger.lehrzeit.data.db.Favorite
 import de.janaberger.lehrzeit.data.db.LehrZeitDatabase
+import de.janaberger.lehrzeit.data.db.SchoolClass
 import de.janaberger.lehrzeit.data.db.WorkActivity
 import kotlinx.coroutines.flow.first
 
@@ -31,12 +30,13 @@ class BackupRepository(
             Backup(
                 createdAtUtc = now,
                 appVersion = appVersion,
-                accounts = dao.accounts().map { BackupAccount(it.id, it.name, it.color, it.isGeneral, it.archived, it.sortOrder) },
-                activities = dao.activities().map { BackupActivity(it.id, it.name, it.archived, it.sortOrder) },
-                accountActivities = dao.links().map { BackupLink(it.accountId, it.activityId) },
-                favorites = dao.favorites().map { BackupFavorite(it.id, it.accountId, it.activityId, it.sortOrder) },
+                activities = dao.activities().map {
+                    BackupActivity(it.id, it.name, it.color, it.isGeneral, it.perClass, it.archived, it.sortOrder)
+                },
+                classes = dao.classes().map { BackupClass(it.id, it.name, it.archived, it.sortOrder) },
+                favorites = dao.favorites().map { BackupFavorite(it.id, it.activityId, it.classId, it.sortOrder) },
                 entries = dao.entries().map {
-                    BackupEntry(it.id, it.accountId, it.activityId, it.startUtc, it.endUtc, it.note, it.createdAt, it.updatedAt)
+                    BackupEntry(it.id, it.activityId, it.classId, it.startUtc, it.endUtc, it.note, it.createdAt, it.updatedAt)
                 },
                 settings = BackupSettings(shortEntries.enabled, shortEntries.minSeconds, reminder.enabled, reminder.hours),
             )
@@ -53,15 +53,15 @@ class BackupRepository(
             // Children before parents, because of the foreign keys.
             dao.deleteEntries()
             dao.deleteFavorites()
-            dao.deleteLinks()
+            dao.deleteClasses()
             dao.deleteActivities()
-            dao.deleteAccounts()
-            dao.insertAccounts(backup.accounts.map { Account(it.id, it.name, it.color, it.isGeneral, it.archived, it.sortOrder) })
-            dao.insertActivities(backup.activities.map { WorkActivity(it.id, it.name, it.archived, it.sortOrder) })
-            dao.insertLinks(backup.accountActivities.map { AccountActivity(it.accountId, it.activityId) })
-            dao.insertFavorites(backup.favorites.map { Favorite(it.id, it.accountId, it.activityId, it.sortOrder) })
+            dao.insertActivities(
+                backup.activities.map { WorkActivity(it.id, it.name, it.color, it.isGeneral, it.perClass, it.archived, it.sortOrder) },
+            )
+            dao.insertClasses(backup.classes.map { SchoolClass(it.id, it.name, it.archived, it.sortOrder) })
+            dao.insertFavorites(backup.favorites.map { Favorite(it.id, it.activityId, it.classId, it.sortOrder) })
             dao.insertEntries(
-                backup.entries.map { Entry(it.id, it.accountId, it.activityId, it.startUtc, it.endUtc, it.note, it.createdAt, it.updatedAt) },
+                backup.entries.map { Entry(it.id, it.activityId, it.classId, it.startUtc, it.endUtc, it.note, it.createdAt, it.updatedAt) },
             )
         }
         preferences.setShortEntries(ShortEntrySettings(backup.settings.discardShortEntries, backup.settings.minEntrySeconds.coerceAtLeast(1)))

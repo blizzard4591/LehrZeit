@@ -23,28 +23,25 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import de.janaberger.lehrzeit.R
-import de.janaberger.lehrzeit.data.db.AccountWithCount
+import de.janaberger.lehrzeit.data.db.SchoolClass
 import de.janaberger.lehrzeit.ui.AppViewModelProvider
 import de.janaberger.lehrzeit.ui.components.BackTopAppBar
-import de.janaberger.lehrzeit.ui.components.ColorDot
 import de.janaberger.lehrzeit.ui.components.DragHandleIcon
 import de.janaberger.lehrzeit.ui.components.NoteText
 import de.janaberger.lehrzeit.ui.components.archivedSection
-import de.janaberger.lehrzeit.ui.components.displayName
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @Composable
-fun AccountListScreen(
+fun ClassListScreen(
     onBack: () -> Unit,
-    onOpenAccount: (id: Long?) -> Unit,
-    viewModel: AccountListViewModel = viewModel(factory = AppViewModelProvider.Factory),
+    onOpenClass: (id: Long?) -> Unit,
+    viewModel: ClassListViewModel = viewModel(factory = AppViewModelProvider.Factory),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     // Local copy that follows the finger while dragging; the database is written when the drag ends.
@@ -52,18 +49,18 @@ fun AccountListScreen(
     var showArchived by rememberSaveable { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val reorderState = rememberReorderableLazyListState(listState) { from, to ->
-        val fromIndex = active.indexOfFirst { it.account.id == from.key }
-        val toIndex = active.indexOfFirst { it.account.id == to.key }
+        val fromIndex = active.indexOfFirst { it.id == from.key }
+        val toIndex = active.indexOfFirst { it.id == to.key }
         if (fromIndex >= 0 && toIndex >= 0) {
             active = active.toMutableList().apply { add(toIndex, removeAt(fromIndex)) }
         }
     }
 
     Scaffold(
-        topBar = { BackTopAppBar(stringResource(R.string.accounts_title), onBack) },
+        topBar = { BackTopAppBar(stringResource(R.string.classes_title), onBack) },
         floatingActionButton = {
-            FloatingActionButton(onClick = { onOpenAccount(null) }) {
-                Icon(painterResource(R.drawable.ic_add), contentDescription = stringResource(R.string.accounts_add))
+            FloatingActionButton(onClick = { onOpenClass(null) }) {
+                Icon(painterResource(R.drawable.ic_add), contentDescription = stringResource(R.string.classes_add))
             }
         },
     ) { padding ->
@@ -75,30 +72,20 @@ fun AccountListScreen(
                 bottom = padding.calculateBottomPadding() + 88.dp,
             ),
         ) {
-            state.general?.let { general ->
-                item(key = "general") {
-                    ListItem(
-                        headlineContent = { Text(general.account.displayName()) },
-                        supportingContent = { Text(stringResource(R.string.accounts_general_summary)) },
-                        leadingContent = { ColorDot(general.account.color) },
-                        modifier = Modifier.clickable { onOpenAccount(general.account.id) },
-                    )
-                }
-            }
             if (active.isEmpty()) {
-                item(key = "empty") { NoteText(stringResource(R.string.accounts_empty)) }
+                item(key = "empty") { NoteText(stringResource(R.string.classes_empty)) }
             }
-            items(active, key = { it.account.id }) { item ->
-                ReorderableItem(reorderState, key = item.account.id) { isDragging ->
+            items(active, key = { it.id }) { item ->
+                ReorderableItem(reorderState, key = item.id) { isDragging ->
                     val elevation by animateDpAsState(if (isDragging) 4.dp else 0.dp, label = "dragElevation")
                     Surface(shadowElevation = elevation) {
-                        AccountRow(
+                        ClassRow(
                             item = item,
-                            onClick = { onOpenAccount(item.account.id) },
+                            onClick = { onOpenClass(item.id) },
                             trailing = {
                                 DragHandleIcon(
                                     Modifier.draggableHandle(
-                                        onDragStopped = { viewModel.saveOrder(active.map { it.account.id }) },
+                                        onDragStopped = { viewModel.saveOrder(active.map { it.id }) },
                                     ),
                                 )
                             },
@@ -111,8 +98,8 @@ fun AccountListScreen(
                 expanded = showArchived,
                 onToggle = { showArchived = !showArchived },
             ) {
-                items(state.archived, key = { "archived-${it.account.id}" }) { item ->
-                    AccountRow(item = item, onClick = { onOpenAccount(item.account.id) })
+                items(state.archived, key = { "archived-${it.id}" }) { item ->
+                    ClassRow(item = item, onClick = { onOpenClass(item.id) })
                 }
             }
         }
@@ -120,23 +107,13 @@ fun AccountListScreen(
 }
 
 @Composable
-private fun AccountRow(
-    item: AccountWithCount,
+private fun ClassRow(
+    item: SchoolClass,
     onClick: () -> Unit,
     trailing: (@Composable () -> Unit)? = null,
 ) {
     ListItem(
-        headlineContent = { Text(item.account.displayName()) },
-        supportingContent = {
-            Text(
-                if (item.activityCount == 0) {
-                    stringResource(R.string.account_no_activities)
-                } else {
-                    pluralStringResource(R.plurals.account_activity_count, item.activityCount, item.activityCount)
-                },
-            )
-        },
-        leadingContent = { ColorDot(item.account.color) },
+        headlineContent = { Text(item.name) },
         trailingContent = trailing,
         modifier = Modifier.clickable(onClick = onClick),
     )

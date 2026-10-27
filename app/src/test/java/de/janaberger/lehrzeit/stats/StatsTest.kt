@@ -18,8 +18,8 @@ class StatsTest {
 
     private fun utc(dateTime: String): Long = LocalDateTime.parse(dateTime).atZone(berlin).toInstant().toEpochMilli()
 
-    private fun entry(account: Long, activity: Long?, start: String, end: String?) = Entry(
-        accountId = account, activityId = activity, startUtc = utc(start), endUtc = end?.let(::utc), createdAt = 0, updatedAt = 0,
+    private fun entry(activity: Long, schoolClass: Long?, start: String, end: String?) = Entry(
+        activityId = activity, classId = schoolClass, startUtc = utc(start), endUtc = end?.let(::utc), createdAt = 0, updatedAt = 0,
     )
 
     @Test
@@ -53,13 +53,13 @@ class StatsTest {
 
         assertEquals(listOf(4 * hour, 2 * hour, 2 * hour, 0L, 0L, 0L, hour + hour / 2), stats.perDay.map { it.millis })
         assertEquals(9 * hour + hour / 2, stats.totalMillis)
-        // Account 2 has 4 h + 1.5 h running, account 1 has 1 h + 3 h.
-        assertEquals(listOf(2L, 1L), stats.byAccount.map { it.accountId })
-        assertEquals(listOf(5 * hour + hour / 2, 4 * hour), stats.byAccount.map { it.millis })
-        assertEquals(listOf(ActivityTotal(null, 4 * hour), ActivityTotal(10, hour + hour / 2)), stats.byAccount[0].activities)
+        // Activity 2 has 4 h + 1.5 h running, activity 1 has 1 h + 3 h.
+        assertEquals(listOf(2L, 1L), stats.byActivity.map { it.activityId })
+        assertEquals(listOf(5 * hour + hour / 2, 4 * hour), stats.byActivity.map { it.millis })
+        assertEquals(listOf(ClassTotal(null, 4 * hour), ClassTotal(10, hour + hour / 2)), stats.byActivity[0].classes)
         assertEquals(
-            listOf(ActivityTotal(null, 4 * hour), ActivityTotal(11, 3 * hour), ActivityTotal(10, 2 * hour + hour / 2)),
-            stats.byActivity,
+            listOf(ClassTotal(null, 4 * hour), ClassTotal(11, 3 * hour), ClassTotal(10, 2 * hour + hour / 2)),
+            stats.byClass,
         )
     }
 

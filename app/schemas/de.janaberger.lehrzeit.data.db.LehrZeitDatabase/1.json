@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "99b7727f5f233aff57929116a47d5af9",
+    "identityHash": "68f2d04da336df5e141bf2c6499e7940",
     "entities": [
       {
-        "tableName": "account",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `color` INTEGER NOT NULL, `isGeneral` INTEGER NOT NULL, `archived` INTEGER NOT NULL, `sortOrder` INTEGER NOT NULL)",
+        "tableName": "activity",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `color` INTEGER NOT NULL, `isGeneral` INTEGER NOT NULL, `perClass` INTEGER NOT NULL, `archived` INTEGER NOT NULL, `sortOrder` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -33,6 +33,12 @@
             "notNull": true
           },
           {
+            "fieldPath": "perClass",
+            "columnName": "perClass",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
             "fieldPath": "archived",
             "columnName": "archived",
             "affinity": "INTEGER",
@@ -53,7 +59,7 @@
         }
       },
       {
-        "tableName": "activity",
+        "tableName": "school_class",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `archived` INTEGER NOT NULL, `sortOrder` INTEGER NOT NULL)",
         "fields": [
           {
@@ -89,68 +95,8 @@
         }
       },
       {
-        "tableName": "account_activity",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`accountId` INTEGER NOT NULL, `activityId` INTEGER NOT NULL, PRIMARY KEY(`accountId`, `activityId`), FOREIGN KEY(`accountId`) REFERENCES `account`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`activityId`) REFERENCES `activity`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
-        "fields": [
-          {
-            "fieldPath": "accountId",
-            "columnName": "accountId",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "activityId",
-            "columnName": "activityId",
-            "affinity": "INTEGER",
-            "notNull": true
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": false,
-          "columnNames": [
-            "accountId",
-            "activityId"
-          ]
-        },
-        "indices": [
-          {
-            "name": "index_account_activity_activityId",
-            "unique": false,
-            "columnNames": [
-              "activityId"
-            ],
-            "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_account_activity_activityId` ON `${TABLE_NAME}` (`activityId`)"
-          }
-        ],
-        "foreignKeys": [
-          {
-            "table": "account",
-            "onDelete": "CASCADE",
-            "onUpdate": "NO ACTION",
-            "columns": [
-              "accountId"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
-          },
-          {
-            "table": "activity",
-            "onDelete": "CASCADE",
-            "onUpdate": "NO ACTION",
-            "columns": [
-              "activityId"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
-          }
-        ]
-      },
-      {
         "tableName": "favorite",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `accountId` INTEGER NOT NULL, `activityId` INTEGER, `sortOrder` INTEGER NOT NULL, FOREIGN KEY(`accountId`) REFERENCES `account`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`activityId`) REFERENCES `activity`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `activityId` INTEGER NOT NULL, `classId` INTEGER, `sortOrder` INTEGER NOT NULL, FOREIGN KEY(`activityId`) REFERENCES `activity`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`classId`) REFERENCES `school_class`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -159,14 +105,14 @@
             "notNull": true
           },
           {
-            "fieldPath": "accountId",
-            "columnName": "accountId",
+            "fieldPath": "activityId",
+            "columnName": "activityId",
             "affinity": "INTEGER",
             "notNull": true
           },
           {
-            "fieldPath": "activityId",
-            "columnName": "activityId",
+            "fieldPath": "classId",
+            "columnName": "classId",
             "affinity": "INTEGER"
           },
           {
@@ -184,15 +130,6 @@
         },
         "indices": [
           {
-            "name": "index_favorite_accountId",
-            "unique": false,
-            "columnNames": [
-              "accountId"
-            ],
-            "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_favorite_accountId` ON `${TABLE_NAME}` (`accountId`)"
-          },
-          {
             "name": "index_favorite_activityId",
             "unique": false,
             "columnNames": [
@@ -200,20 +137,18 @@
             ],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_favorite_activityId` ON `${TABLE_NAME}` (`activityId`)"
+          },
+          {
+            "name": "index_favorite_classId",
+            "unique": false,
+            "columnNames": [
+              "classId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_favorite_classId` ON `${TABLE_NAME}` (`classId`)"
           }
         ],
         "foreignKeys": [
-          {
-            "table": "account",
-            "onDelete": "CASCADE",
-            "onUpdate": "NO ACTION",
-            "columns": [
-              "accountId"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
-          },
           {
             "table": "activity",
             "onDelete": "CASCADE",
@@ -224,12 +159,23 @@
             "referencedColumns": [
               "id"
             ]
+          },
+          {
+            "table": "school_class",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "classId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
           }
         ]
       },
       {
         "tableName": "entry",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `accountId` INTEGER NOT NULL, `activityId` INTEGER, `startUtc` INTEGER NOT NULL, `endUtc` INTEGER, `note` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, FOREIGN KEY(`accountId`) REFERENCES `account`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`activityId`) REFERENCES `activity`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `activityId` INTEGER NOT NULL, `classId` INTEGER, `startUtc` INTEGER NOT NULL, `endUtc` INTEGER, `note` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, FOREIGN KEY(`activityId`) REFERENCES `activity`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`classId`) REFERENCES `school_class`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
         "fields": [
           {
             "fieldPath": "id",
@@ -238,14 +184,14 @@
             "notNull": true
           },
           {
-            "fieldPath": "accountId",
-            "columnName": "accountId",
+            "fieldPath": "activityId",
+            "columnName": "activityId",
             "affinity": "INTEGER",
             "notNull": true
           },
           {
-            "fieldPath": "activityId",
-            "columnName": "activityId",
+            "fieldPath": "classId",
+            "columnName": "classId",
             "affinity": "INTEGER"
           },
           {
@@ -286,15 +232,6 @@
         },
         "indices": [
           {
-            "name": "index_entry_accountId",
-            "unique": false,
-            "columnNames": [
-              "accountId"
-            ],
-            "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_entry_accountId` ON `${TABLE_NAME}` (`accountId`)"
-          },
-          {
             "name": "index_entry_activityId",
             "unique": false,
             "columnNames": [
@@ -302,6 +239,15 @@
             ],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_entry_activityId` ON `${TABLE_NAME}` (`activityId`)"
+          },
+          {
+            "name": "index_entry_classId",
+            "unique": false,
+            "columnNames": [
+              "classId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_entry_classId` ON `${TABLE_NAME}` (`classId`)"
           },
           {
             "name": "index_entry_startUtc",
@@ -315,22 +261,22 @@
         ],
         "foreignKeys": [
           {
-            "table": "account",
+            "table": "activity",
             "onDelete": "RESTRICT",
             "onUpdate": "NO ACTION",
             "columns": [
-              "accountId"
+              "activityId"
             ],
             "referencedColumns": [
               "id"
             ]
           },
           {
-            "table": "activity",
+            "table": "school_class",
             "onDelete": "RESTRICT",
             "onUpdate": "NO ACTION",
             "columns": [
-              "activityId"
+              "classId"
             ],
             "referencedColumns": [
               "id"
@@ -341,7 +287,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '99b7727f5f233aff57929116a47d5af9')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '68f2d04da336df5e141bf2c6499e7940')"
     ]
   }
 }
