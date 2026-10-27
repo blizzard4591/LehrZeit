@@ -38,6 +38,9 @@ import de.janaberger.lehrzeit.R
 import de.janaberger.lehrzeit.data.AppPreferences
 import de.janaberger.lehrzeit.data.ReminderSettings
 import de.janaberger.lehrzeit.data.ShortEntrySettings
+import de.janaberger.lehrzeit.timetable.TimetableRepository
+import de.janaberger.lehrzeit.timetable.TimetableStatus
+import de.janaberger.lehrzeit.timetable.normalizeTimetableUrl
 import de.janaberger.lehrzeit.tracking.TrackingController
 import de.janaberger.lehrzeit.ui.AppViewModelProvider
 import de.janaberger.lehrzeit.ui.components.BackTopAppBar
@@ -52,12 +55,16 @@ import kotlinx.coroutines.launch
 class SettingsViewModel(
     private val preferences: AppPreferences,
     private val controller: TrackingController,
+    private val timetable: TimetableRepository,
 ) : ViewModel() {
     val shortEntries: StateFlow<ShortEntrySettings?> =
         preferences.shortEntries.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     val reminder: StateFlow<ReminderSettings?> =
         preferences.reminder.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    val timetableStatus: StateFlow<TimetableStatus?> =
+        timetable.status.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     fun updateShortEntries(transform: (ShortEntrySettings) -> ShortEntrySettings) {
         val current = shortEntries.value ?: return
@@ -72,9 +79,22 @@ class SettingsViewModel(
             controller.refreshNotification()
         }
     }
+
+    /** Returns false, saving nothing, if [input] isn't an https link. */
+    fun saveTimetableLink(input: String): Boolean {
+        val url = normalizeTimetableUrl(input) ?: return false
+        viewModelScope.launch { timetable.setUrl(url) }
+        return true
+    }
+
+    fun removeTimetableLink() {
+        viewModelScope.launch { timetable.removeUrl() }
+    }
+
+    fun updateTimetable() = timetable.updateSoon()
 }
 
-private enum class SettingsDialog { MIN_LENGTH, REMINDER_HOURS }
+private enum class SettingsDialog { MIN_LENGTH, REMINDER_HOURS, TIMETABLE_LINK }
 
 @Composable
 fun SettingsScreen(
@@ -83,11 +103,13 @@ fun SettingsScreen(
 ) {
     val shortEntries by viewModel.shortEntries.collectAsStateWithLifecycle()
     val reminder by viewModel.reminder.collectAsStateWithLifecycle()
+    val timetableStatus by viewModel.timetableStatus.collectAsStateWithLifecycle()
     var dialog by rememberSaveable { mutableStateOf<SettingsDialog?>(null) }
 
     Scaffold(topBar = { BackTopAppBar(stringResource(R.string.settings_title), onBack) }) { padding ->
         val short = shortEntries ?: return@Scaffold
         val remind = reminder ?: return@Scaffold
+        val timetable = timetableStatus ?: return@Scaffold
         Column(
             Modifier
                 .padding(padding)
@@ -120,6 +142,13 @@ fun SettingsScreen(
                 enabled = remind.enabled,
                 onClick = { dialog = SettingsDialog.REMINDER_HOURS },
             )
+
+            SectionHeader(stringResource(R.string.settings_section_timetable), Modifier.padding(top = 8.dp))
+            TimetableSection(
+                status = timetable,
+                onEditLink = { dialog = SettingsDialog.TIMETABLE_LINK },
+                onUpdate = viewModel::updateTimetable,
+            )
         }
 
         when (dialog) {
@@ -135,6 +164,15 @@ fun SettingsScreen(
                 choices = ReminderSettings.CHOICES_HOURS.map { it to pluralStringResource(R.plurals.duration_hours, it, it) },
                 selected = remind.hours,
                 onSelect = { hours -> viewModel.updateReminder { it.copy(hours = hours) } },
+                onDismiss = { dialog = null },
+            )
+            SettingsDialog.TIMETABLE_LINK -> TimetableLinkDialog(
+                hasLink = timetable.url != null,
+                onSave = viewModel::saveTimetableLink,
+                onRemove = {
+                    viewModel.removeTimetableLink()
+                    dialog = null
+                },
                 onDismiss = { dialog = null },
             )
             null -> Unit

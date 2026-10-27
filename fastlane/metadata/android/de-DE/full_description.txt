@@ -16,4 +16,4 @@ Starte einen Timer mit einem Tipp auf eine Kachel, zum Beispiel „Korrekturen �
 </ul>
 
 <b>Datenschutz</b>
-Deine Daten bleiben auf deinem Gerät. LehrZeit hat keine Internetberechtigung, keine Werbung und kein Tracking und braucht kein Konto.
+Deine Daten bleiben auf deinem Gerät. LehrZeit hat keine Werbung und kein Tracking und braucht kein Konto. Ins Internet geht die App nur, wenn du einen Stundenplan-Link eingibst (z. B. aus WebUntis): Dann lädt sie diesen Stundenplan einmal am Tag herunter und sendet sonst nichts.

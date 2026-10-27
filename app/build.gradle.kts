@@ -88,4 +88,6 @@ dependencies {
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.kotlinx.coroutines.test)
+    // Checks the database migrations against the exported schemas.
+    androidTestImplementation(libs.androidx.room.testing)
 }

@@ -272,6 +272,30 @@
     <string name="settings_discard_short_summary">If a timer is stopped, paused or switched before the minimum length, its entry is deleted, e.g. after tapping the wrong tile. Entries you add or edit yourself are always kept.</string>
     <string name="settings_min_length">Minimum length</string>
 
+    <!-- Timetable link -->
+    <string name="settings_section_timetable">Timetable</string>
+    <string name="timetable_link">Timetable link (iCal)</string>
+    <string name="timetable_link_none">Optional, e.g. your iCal link from WebUntis. LehrZeit then downloads your timetable once a day.</string>
+    <string name="timetable_dialog_text">Paste the iCal link of your timetable, e.g. from WebUntis. LehrZeit downloads it once a day and keeps the lessons on your phone. For this, the app goes online; it sends nothing.\n\nThe link works like a password, so don’t share it.</string>
+    <string name="timetable_link_placeholder" translatable="false">https://…</string>
+    <string name="timetable_link_replace">Paste a new link</string>
+    <string name="timetable_link_invalid">Enter a valid link starting with https://</string>
+    <string name="timetable_remove">Remove link and stored lessons</string>
+    <string name="timetable_update">Update</string>
+    <string name="timetable_updating">Updating…</string>
+    <string name="timetable_no_lessons">No lessons stored yet</string>
+    <plurals name="timetable_lessons">
+        <item quantity="one">%1$d lesson stored, %2$s – %3$s</item>
+        <item quantity="other">%1$d lessons stored, %2$s – %3$s</item>
+    </plurals>
+    <string name="timetable_last_update">Last updated: %s</string>
+    <string name="timetable_pending">Downloads as soon as there is an internet connection.</string>
+    <string name="timetable_failed">Update failed (%1$s): %2$s.</string>
+    <string name="timetable_problem_network">no connection</string>
+    <string name="timetable_problem_http">the server reported error %d</string>
+    <string name="timetable_problem_not_calendar">the link doesn’t lead to a calendar file</string>
+    <string name="timetable_problem_too_large">the file is too large</string>
+
     <!-- Seeded once at first launch; afterwards they are ordinary, editable data. -->
     <string-array name="starter_activities">
         <item>Teaching</item>

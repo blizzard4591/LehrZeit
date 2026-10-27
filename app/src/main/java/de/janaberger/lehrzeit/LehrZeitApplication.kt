@@ -21,6 +21,7 @@ class LehrZeitApplication : Application() {
             container.catalog.seedIfNeeded()
             // The notification may be gone if the app was force-stopped while tracking.
             container.trackingController.refreshNotification()
+            container.timetable.ensureScheduled()
         }
         // Timer changes update the widget through the controller. This catches everything else
         // shown in it while the app runs: renamed activities, new favorites, changed most-used tiles.

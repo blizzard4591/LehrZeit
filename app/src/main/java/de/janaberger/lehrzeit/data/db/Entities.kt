@@ -101,3 +101,19 @@ data class EntryWithCombo(
     @Relation(parentColumn = "activityId", entityColumn = "id") val activity: WorkActivity,
     @Relation(parentColumn = "classId", entityColumn = "id") val schoolClass: SchoolClass?,
 )
+
+/** A lesson from the timetable link, kept locally. [uid] comes from the iCalendar file. */
+@Entity(tableName = "lesson", indices = [Index("startUtc")])
+data class Lesson(
+    @PrimaryKey val uid: String,
+    val startUtc: Long,
+    val endUtc: Long,
+    /** In WebUntis the subject, e.g. "BI" or "S1 G2". */
+    val summary: String,
+    /** In WebUntis the class and the teacher's abbreviation, e.g. "08.2 XYZ". */
+    val description: String,
+    /** The room. */
+    val location: String,
+)
+
+data class LessonSummary(val count: Int, val firstStart: Long?, val lastStart: Long?)

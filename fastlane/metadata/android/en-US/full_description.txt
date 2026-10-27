@@ -16,4 +16,4 @@ Start a timer with one tap on a tile, for example "Correcting › 7b" or simply 
 </ul>
 
 <b>Privacy</b>
-Your data stays on your phone. LehrZeit has no internet permission, no ads and no tracking, and it needs no account.
+Your data stays on your phone. LehrZeit has no ads and no tracking, and it needs no account. It only goes online if you enter a timetable link (e.g. from WebUntis): it then downloads that timetable once a day and sends nothing else.

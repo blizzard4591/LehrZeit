@@ -267,6 +267,29 @@
     <string name="settings_discard_short_summary">Wird ein Timer vor Ablauf der Mindestdauer beendet, pausiert oder gewechselt, wird sein Eintrag gelöscht, z. B. nach einem versehentlichen Tippen. Selbst angelegte oder bearbeitete Einträge bleiben immer erhalten.</string>
     <string name="settings_min_length">Mindestdauer</string>
 
+    <!-- Timetable link -->
+    <string name="settings_section_timetable">Stundenplan</string>
+    <string name="timetable_link">Stundenplan-Link (iCal)</string>
+    <string name="timetable_link_none">Optional, z. B. dein iCal-Link aus WebUntis. LehrZeit lädt deinen Stundenplan dann einmal am Tag herunter.</string>
+    <string name="timetable_dialog_text">Füge den iCal-Link deines Stundenplans ein, z. B. aus WebUntis. LehrZeit lädt ihn einmal am Tag herunter und speichert die Termine auf deinem Handy. Dafür geht die App ins Internet; gesendet wird nichts.\n\nDer Link funktioniert wie ein Passwort. Gib ihn deshalb nicht weiter.</string>
+    <string name="timetable_link_replace">Neuen Link einfügen</string>
+    <string name="timetable_link_invalid">Bitte einen gültigen Link eingeben, der mit https:// beginnt.</string>
+    <string name="timetable_remove">Link und gespeicherte Termine entfernen</string>
+    <string name="timetable_update">Aktualisieren</string>
+    <string name="timetable_updating">Wird aktualisiert…</string>
+    <string name="timetable_no_lessons">Noch keine Termine gespeichert</string>
+    <plurals name="timetable_lessons">
+        <item quantity="one">%1$d Termin gespeichert, %2$s – %3$s</item>
+        <item quantity="other">%1$d Termine gespeichert, %2$s – %3$s</item>
+    </plurals>
+    <string name="timetable_last_update">Zuletzt aktualisiert: %s</string>
+    <string name="timetable_pending">Wird geladen, sobald eine Internetverbindung besteht.</string>
+    <string name="timetable_failed">Aktualisierung fehlgeschlagen (%1$s): %2$s.</string>
+    <string name="timetable_problem_network">keine Verbindung</string>
+    <string name="timetable_problem_http">der Server meldet Fehler %d</string>
+    <string name="timetable_problem_not_calendar">der Link führt zu keiner Kalenderdatei</string>
+    <string name="timetable_problem_too_large">die Datei ist zu groß</string>
+
     <string-array name="starter_activities">
         <item>Unterricht</item>
         <item>Unterrichtsvorbereitung</item>

@@ -12,6 +12,10 @@ import de.janaberger.lehrzeit.data.backup.BackupRepository
 import de.janaberger.lehrzeit.data.backup.BackupService
 import de.janaberger.lehrzeit.data.db.LehrZeitDatabase
 import de.janaberger.lehrzeit.export.ExportWriter
+import de.janaberger.lehrzeit.timetable.HttpTimetableFetcher
+import de.janaberger.lehrzeit.timetable.TimetableRepository
+import de.janaberger.lehrzeit.timetable.WorkManagerTimetableScheduler
+import de.janaberger.lehrzeit.timetable.timetableDataStore
 import de.janaberger.lehrzeit.tracking.AlarmReminderScheduler
 import de.janaberger.lehrzeit.tracking.TrackingController
 import de.janaberger.lehrzeit.tracking.TrackingNotifier
@@ -38,6 +42,13 @@ class AppContainer(context: Context) {
     )
 
     val entries = EntryRepository(database)
+
+    val timetable = TimetableRepository(
+        store = context.timetableDataStore,
+        db = database,
+        fetcher = HttpTimetableFetcher(),
+        scheduler = WorkManagerTimetableScheduler(context),
+    )
 
     val exportWriter = ExportWriter(context, entries, catalog)
 

@@ -6,6 +6,7 @@ package de.janaberger.lehrzeit.data.db
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
@@ -204,4 +205,22 @@ interface FavoriteDao {
 
     @Insert
     suspend fun insert(favorite: Favorite)
+}
+
+@Dao
+interface LessonDao {
+    @Query("SELECT COUNT(*) AS count, MIN(startUtc) AS firstStart, MAX(startUtc) AS lastStart FROM lesson")
+    fun observeSummary(): Flow<LessonSummary>
+
+    @Query("SELECT * FROM lesson ORDER BY startUtc")
+    suspend fun getAll(): List<Lesson>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(lessons: List<Lesson>)
+
+    @Query("DELETE FROM lesson WHERE startUtc >= :fromUtc")
+    suspend fun deleteFrom(fromUtc: Long)
+
+    @Query("DELETE FROM lesson")
+    suspend fun deleteAll()
 }

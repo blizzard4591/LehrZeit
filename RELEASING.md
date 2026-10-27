@@ -53,11 +53,18 @@ Builds:
     gradle:
       - yes
 
+AntiFeatures:
+  NonFreeNet:
+    en-US: Can download the timetable from WebUntis, a proprietary service, if the user enters a link.
+    de-DE: Kann den Stundenplan von WebUntis herunterladen, einem proprietären Dienst, wenn ein Link eingegeben wird.
+
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
 CurrentVersion: 0.1.0
 CurrentVersionCode: 1
 ```
+
+The `NonFreeNet` anti-feature is a guess: the app only contacts WebUntis (or another timetable server) if the user enters a link, but F-Droid usually marks optional use of a proprietary network service, too. The reviewers decide; drop the block if they disagree.
 
 By default, F-Droid signs the APK with its own key. Because the build is reproducible, F-Droid can instead publish the APK signed with your key, so that the F-Droid and GitHub downloads can update each other. For that, add these two lines to the recipe:
 

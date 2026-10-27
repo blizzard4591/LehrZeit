@@ -93,9 +93,14 @@ Status: product decisions agreed on 2026-10-25 and revised on 2026-10-27 after t
 **Extras in v1**
 - Home-screen widget.
 
+**Timetable link (optional, milestone 13, decided 2026-10-27)**
+- Under More › Settings, a timetable link can be entered: any https link to an iCalendar file, e.g. the personal iCal link from WebUntis. `webcal://` links are accepted and fetched over https.
+- LehrZeit downloads it right away and then once a day while there is a network connection, and stores the lessons locally. In this step it only shows the result: how many lessons are stored, for which period, and when the last update was. Booking teaching time from it comes later.
+- The link works like a password, so it isn't part of the backup file, Android's own backup leaves it out, and the app shows only its host (e.g. "schule.webuntis.com").
+
 **Distribution**
 - F-Droid, so no proprietary dependencies (no Google Play Services, no Firebase).
-- The app needs no internet permission.
+- The app goes online only to download the timetable link the user entered, and sends nothing else. Without a link it never connects. The store texts and the README say so. F-Droid will probably mark the app with the "NonFreeNet" anti-feature, because WebUntis is a proprietary service.
 
 ## Android components
 
@@ -110,6 +115,7 @@ The app uses a single `Activity`: every screen is a Compose destination inside `
 | `SystemEventsReceiver` | BroadcastReceiver | Runs on `BOOT_COMPLETED` and `MY_PACKAGE_REPLACED`. Posts the notification again, reschedules the reminder and refreshes the widget. Tracking state lives in the database, so it survives reboots and the process being killed |
 | `TrackingWidget` / `TrackingWidgetReceiver` | Glance app widget | Shows the running timer with Pause/Stop (or Resume), plus as many of the Track screen's tiles as fit. The timer is a system chronometer, so the widget needs no updates while it counts. `TrackingController` updates it on every change; edits in the app (names, favorites, most-used tiles) reach it through an observer that runs while the app process lives |
 | `FileProvider` | ContentProvider | Shares export and backup files with other apps |
+| `TimetableSyncWorker` | WorkManager worker | Downloads the timetable link: once right after it was entered or "Update now" was tapped, and then daily, each time only with a network connection |
 
 **No foreground service.**
 - The notification timer is drawn by the system.
@@ -123,6 +129,7 @@ The app uses a single `Activity`: every screen is a Compose destination inside `
 **Permissions:**
 - `POST_NOTIFICATIONS`, requested on the first timer start (Android 13+).
 - `RECEIVE_BOOT_COMPLETED`.
+- `INTERNET`, only used for the optional timetable link.
 - No storage permission: files are saved through the system file dialog.
 
 ## Screens
@@ -180,7 +187,7 @@ Bottom navigation: **Track · Worklog · Stats · More** (DE: Erfassen · Protok
    - "Restore backup…" picks a file, checks it, and asks for confirmation with a summary ("Backup from … with 10 activities, 2 classes and 71 entries") before replacing everything.
    - Files that aren't backups, damaged backups and backups from newer app versions are refused with an explanation; the current data stays untouched.
    - The welcome setup offers "Restore a backup" too, so a new phone can start from a backup.
-11. **Settings**: discard short entries (on/off and minimum length), reminder on/off and after how many hours, and a shortcut to the system's per-app language setting.
+11. **Settings**: discard short entries (on/off and minimum length), reminder on/off and after how many hours, the timetable link with its status ("386 lessons stored, 2 Nov 2026 – 16 Mar 2027", last update, "Update now"), and a shortcut to the system's per-app language setting.
 12. **About**: version, license (GPL-3.0), source code link, and licenses of the libraries used.
 
 ## Data model (Room)
@@ -190,7 +197,11 @@ Activity         id, name, color, isGeneral, perClass, archived, sortOrder   -- 
 SchoolClass      id, name, archived, sortOrder
 Favorite         id, activityId, classId?, sortOrder                         -- pinned tiles
 Entry            id, activityId, classId?, startUtc, endUtc?, note, createdAt, updatedAt
+Lesson           uid, startUtc, endUtc, summary, description, location   -- from the timetable link
 ```
+
+- Lessons are a local copy of the timetable link. Each update replaces the stored lessons from today on (or from the file's first day, if that is earlier) with the file's content. Older lessons are kept even after they drop out of the file, because WebUntis no longer provides them.
+- Milestone 13 raises the database to version 2 with an automatic migration that adds the lesson table, so installing over a milestone-12 build keeps the data.
 
 - No version has been released, so milestone 12 starts the database over at version 1 instead of migrating the old account › activity data. Testers uninstall the old build first. Backups made before the change are refused.
 
@@ -239,8 +250,27 @@ Entry            id, activityId, classId?, startUtc, endUtc?, note, createdAt, u
     - −5 also moves the previous entry's end back if it's in the way, e.g. right after a switch, with Undo.
     - A note for the running entry can be added and edited on the card, and shows there.
 12. **(done 2026-10-27)** Activity › class instead of account › activity (see [Booking model](#product-decisions)), with store texts and screenshots updated. Backups from before this change are refused with their own message.
+13. **(done 2026-10-27)** Timetable link (see [Product decisions](#product-decisions)): enter an iCal link, download it daily, store the lessons, show the status in Settings. Store texts and README updated for the internet access. Checked with the first tester's real WebUntis link, in the debug and the minified release build.
 
-Later, after 0.1.0: import teaching time from WebUntis. WebUntis can export a timetable as an iCalendar (.ics) file. Past lessons would be imported as "Teaching" entries, matched to classes by name, so cancellations and substitutions are already accounted for. This waits for a sample export of one week from the tester. Clocking in by location and a timetable that books automatically every week were ruled out: the first needs location access in the background, and the second goes wrong on every holiday, cancellation or short day.
+Later: book teaching time from the WebUntis timetable (see [Timetable from WebUntis](#timetable-from-webuntis)). Clocking in by location and a timetable typed into the app that books automatically every week were ruled out: the first needs location access in the background, and the second goes wrong on every holiday, cancellation or short day.
+
+### Timetable from WebUntis
+
+Findings from a real export of the first tester's timetable (downloaded 2026-10-27, during the autumn holidays):
+
+- **The link:** WebUntis offers a personal iCalendar subscription link (`https://<school>.webuntis.com/WebUntis/ical_export?school=…&id=…&elemId=…&token=…`). Whoever has the link can read the timetable, so it has to be treated like a password.
+- **Range:** a window of 140 days (20 weeks) from the day of the download. The export started with the first school day after the holidays and ended exactly 140 days after the download, in the middle of a week. Lessons from before the holidays weren't in it, so the past is missing, apart from at most a few days. *Still to check:* re-download after the first school day and see whether that day's lessons are still included.
+- **Consequence:** past lessons can't be fetched afterwards. Whatever LehrZeit wants to book has to be kept while it is still in the file, i.e. downloaded at least daily or ahead of time.
+- **Refresh:** the file asks calendar apps to reload it once a day (`REFRESH-INTERVAL: P1D`), and the server forbids caching it. It is generated on every download.
+- **Holidays and other free days** have no lessons in the file, so they need no handling of their own.
+- **Events:** every lesson is its own event, with no repeat rules. Start and end are in Europe/Berlin time.
+  - `SUMMARY`: the subject, with the course group in the upper school (`BI`, `S1 G2`). Some entries are special, such as `BER` (standby duty, "Bereitschaft") or `V_Std.DoBe` (probably a substitution or team-teaching lesson).
+  - `DESCRIPTION`: the class or year group, followed by the teacher's abbreviation (`08.2 XYZ`, `Q1 XYZ`).
+  - `LOCATION`: the room, or the area for a break supervision.
+  - `UID`: an ID per lesson, which looks stable across downloads (still to check).
+  - `STATUS` is always `CONFIRMED`: the file doesn't say whether a lesson is cancelled or replaced. A one-off entry (probably an exam supervision) can overlap the regular lesson at the same time.
+- **Lengths:** lessons are 45 minutes and double lessons 95 (including the 5-minute break). Entries without a subject, of 30 or 5 minutes at break times, are probably break supervisions.
+- **Still unknown:** whether cancelled lessons disappear from the file or stay in it.
 
 Unit tests cover the time arithmetic: midnight split, the summer/winter time change, overlap resolution and most-used ranking. They also cover the exporters: CSV escaping and ODS structure.
 
@@ -286,5 +316,12 @@ Unit tests cover the time arithmetic: midnight split, the summer/winter time cha
 - An entry crossing midnight appears in the worklog under both days; each day's total counts only its own part.
 - A new entry starts as the last full hour (rounded to 5 minutes) on General.
 - If the running entry is stopped (e.g. from the notification) while its editor is open, saving is refused instead of restarting it.
+- Timetable link:
+  - A failed download leaves the stored lessons as they are. Settings shows the problem and when the last successful update was; there is no notification. After a network error the daily job tries again a few times.
+  - Files over 5 MB are refused.
+  - All-day events are ignored (a timetable has none), and so are events marked as cancelled. Repeat rules aren't expanded; WebUntis doesn't use them.
+  - Removing the link also deletes the stored lessons, including past ones.
+  - Restoring a backup leaves the timetable link and its lessons as they are.
+  - After saving a new link, the field starts empty when it is opened again, so the token isn't shown on screen.
 
 Confirmed on 2026-10-25: the overlap edge cases, leaving running entries out of exports, and restore replacing all data.

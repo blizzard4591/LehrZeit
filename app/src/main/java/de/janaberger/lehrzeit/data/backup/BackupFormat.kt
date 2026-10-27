@@ -3,6 +3,7 @@
 
 package de.janaberger.lehrzeit.data.backup
 
+import de.janaberger.lehrzeit.data.readAtMost
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
@@ -10,7 +11,6 @@ import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -153,16 +153,4 @@ internal fun Backup.isConsistent(): Boolean {
         favorites.all { it.activityId in activityIds && knownClass(it.classId) } &&
         entries.all { it.activityId in activityIds && knownClass(it.classId) && (it.endUtc == null || it.endUtc > it.startUtc) } &&
         entries.count { it.endUtc == null } <= 1
-}
-
-/** Reads up to [limit] + 1 bytes, so a caller can tell that the content was too large. */
-private fun InputStream.readAtMost(limit: Int): ByteArray {
-    val out = ByteArrayOutputStream()
-    val buffer = ByteArray(64 * 1024)
-    while (out.size() <= limit) {
-        val read = read(buffer)
-        if (read < 0) break
-        out.write(buffer, 0, read)
-    }
-    return out.toByteArray()
 }
