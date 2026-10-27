@@ -5,7 +5,29 @@ package de.janaberger.lehrzeit.data
 
 import de.janaberger.lehrzeit.data.db.Entry
 
+const val MAX_NOTE_LENGTH = 500
+
+/** Moving the running entry's start may shorten the previous entry, but not below this. */
+const val MIN_SHORTENED_MILLIS = 60_000L
+
 enum class EntryError { IN_FUTURE, END_NOT_AFTER_START }
+
+/**
+ * Where the running entry's [start] lands when moved by [deltaMillis], or null if the full step
+ * doesn't fit. The start can't pass [now]. [previous], the entry that ended last before [start],
+ * is shortened if it's in the way, but must keep [MIN_SHORTENED_MILLIS].
+ */
+fun nudgedStart(start: Long, previous: Entry?, deltaMillis: Long, now: Long): Long? {
+    val moved = start + deltaMillis
+    if (moved > now) return null
+    val previousEnd = previous?.endUtc ?: return moved
+    return moved.takeIf { previousEnd <= moved || moved - previous.startUtc >= MIN_SHORTENED_MILLIS }
+}
+
+data class EntryChange(val original: Entry, val changed: Entry)
+
+/** A moved start of the running entry, and the previous entry if it had to be shortened. */
+data class StartNudge(val running: EntryChange, val previous: EntryChange?)
 
 /** Checks an edited entry; [endUtc] is null for a running entry. */
 fun validateEntry(startUtc: Long, endUtc: Long?, now: Long): EntryError? = when {

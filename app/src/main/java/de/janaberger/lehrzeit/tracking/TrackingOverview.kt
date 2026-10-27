@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlin.time.Duration.Companion.days
 
-data class RunningTimer(val entryId: Long, val combo: Combo, val startUtc: Long)
+data class RunningTimer(val entryId: Long, val combo: Combo, val startUtc: Long, val note: String)
 
 data class PausedTimer(val combo: Combo, val pausedAt: Long)
 
@@ -43,7 +43,7 @@ fun observeTrackingOverview(
     TrackingOverview(
         snapshot = snapshot,
         favorites = favorites,
-        running = running?.let { RunningTimer(it.entry.id, Combo(it.account, it.activity), it.entry.startUtc) },
+        running = running?.let { RunningTimer(it.entry.id, Combo(it.account, it.activity), it.entry.startUtc, it.entry.note) },
         paused = paused?.takeIf { running == null }?.let { p -> snapshot.combo(p.key)?.let { PausedTimer(it, p.pausedAt) } },
         tiles = buildTiles(snapshot, favorites, mostUsed),
     )

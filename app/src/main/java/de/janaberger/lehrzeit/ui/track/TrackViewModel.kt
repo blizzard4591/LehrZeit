@@ -13,6 +13,8 @@ import de.janaberger.lehrzeit.data.ComboKey
 import de.janaberger.lehrzeit.data.DeletedEntry
 import de.janaberger.lehrzeit.data.EntryRepository
 import de.janaberger.lehrzeit.data.ShortEntrySettings
+import de.janaberger.lehrzeit.data.StartNudge
+import de.janaberger.lehrzeit.data.comboKey
 import de.janaberger.lehrzeit.data.db.Entry
 import de.janaberger.lehrzeit.time.DayBounds
 import de.janaberger.lehrzeit.time.currentDayFlow
@@ -43,9 +45,14 @@ data class TrackUiState(
     /** Today's entries; the screen sums them up with the current time so the total ticks. */
     val today: DayBounds? = null,
     val todayEntries: List<Entry> = emptyList(),
+    /** The entry that ended last before the running one started, which limits moving its start. */
+    val beforeRunning: Entry? = null,
     /** Waiting for the user to confirm switching from the running combination to this one. */
     val pendingSwitch: Combo? = null,
 )
+
+/** Moving the running entry's start shortened [combo]'s entry, so it now ends at [newEnd]. */
+data class ShortenedNotice(val nudge: StartNudge, val combo: Combo, val newEnd: Long)
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class TrackViewModel(
@@ -67,11 +74,17 @@ class TrackViewModel(
         entries.observeEntriesOverlapping(bounds.startUtc, bounds.endUtc).map { bounds to it }
     }
 
+    private val shortenedChannel = Channel<ShortenedNotice>(Channel.BUFFERED)
+
+    /** Emits each time moving the start shortened the previous entry, to offer undo. */
+    val shortenedNotices: Flow<ShortenedNotice> = shortenedChannel.receiveAsFlow()
+
     val uiState: StateFlow<TrackUiState> = combine(
         observeTrackingOverview(catalog, entries, preferences),
         todayEntries,
+        entries.observeBeforeRunning(),
         pendingSwitch,
-    ) { overview, (today, todayEntries), pending ->
+    ) { overview, (today, todayEntries), beforeRunning, pending ->
         TrackUiState(
             isLoading = false,
             running = overview.running,
@@ -81,6 +94,7 @@ class TrackViewModel(
             favorites = overview.favorites.toSet(),
             today = today,
             todayEntries = todayEntries,
+            beforeRunning = beforeRunning,
             pendingSwitch = pending?.let(overview.snapshot::combo),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TrackUiState())
@@ -133,7 +147,20 @@ class TrackViewModel(
     }
 
     fun nudgeStart(minutes: Int) {
-        viewModelScope.launch { controller.adjustRunningStart(minutes * 60_000L) }
+        viewModelScope.launch {
+            val nudge = controller.nudgeRunningStart(minutes * 60_000L) ?: return@launch
+            val shortened = nudge.previous?.changed ?: return@launch
+            val combo = uiState.value.snapshot?.combo(shortened.comboKey) ?: return@launch
+            shortenedChannel.trySend(ShortenedNotice(nudge, combo, shortened.endUtc!!))
+        }
+    }
+
+    fun undoNudge(nudge: StartNudge) {
+        viewModelScope.launch { controller.undoNudge(nudge) }
+    }
+
+    fun setNote(entryId: Long, note: String) {
+        viewModelScope.launch { entries.setNote(entryId, note, System.currentTimeMillis()) }
     }
 
     fun toggleFavorite(key: ComboKey) {

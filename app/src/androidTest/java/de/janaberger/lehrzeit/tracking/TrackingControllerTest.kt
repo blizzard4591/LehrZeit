@@ -108,7 +108,7 @@ class TrackingControllerTest {
         now = 10 * hour
         controller.start(general)
         now = 11 * hour
-        controller.adjustRunningStart(30 * 60_000) // the start moves later, so does the reminder
+        controller.nudgeRunningStart(30 * 60_000) // the start moves later, so does the reminder
         assertEquals(13 * hour + 30 * 60_000, scheduler.scheduledAt)
 
         now = 13 * hour

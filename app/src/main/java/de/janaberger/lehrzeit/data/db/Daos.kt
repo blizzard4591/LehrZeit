@@ -160,9 +160,22 @@ interface EntryDao {
     @Query("SELECT * FROM entry WHERE endUtc IS NULL LIMIT 1")
     fun observeRunningWithCombo(): Flow<EntryWithCombo?>
 
-    /** End of the latest finished entry that ended at or before [utc], i.e. the one before a running entry. */
-    @Query("SELECT MAX(endUtc) FROM entry WHERE endUtc IS NOT NULL AND endUtc <= :utc")
-    suspend fun latestEndAtOrBefore(utc: Long): Long?
+    /** The finished entry that ended last at or before [utc], i.e. the one before a running entry. */
+    @Query("SELECT * FROM entry WHERE endUtc IS NOT NULL AND endUtc <= :utc ORDER BY endUtc DESC LIMIT 1")
+    suspend fun getLatestEndingAtOrBefore(utc: Long): Entry?
+
+    /** The finished entry that ended last before the running one started; null while nothing runs. */
+    @Query(
+        """
+        SELECT * FROM entry
+        WHERE endUtc IS NOT NULL AND endUtc <= (SELECT startUtc FROM entry WHERE endUtc IS NULL)
+        ORDER BY endUtc DESC LIMIT 1
+        """,
+    )
+    fun observeBeforeRunning(): Flow<Entry?>
+
+    @Query("UPDATE entry SET note = :note, updatedAt = :now WHERE id = :id")
+    suspend fun setNote(id: Long, note: String, now: Long)
 
     /** Entries overlapping [fromUtc, toUtc), including a running one. */
     @Query("SELECT * FROM entry WHERE startUtc < :toUtc AND (endUtc IS NULL OR endUtc > :fromUtc) ORDER BY startUtc")

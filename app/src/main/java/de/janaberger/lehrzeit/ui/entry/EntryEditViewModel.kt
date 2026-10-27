@@ -13,6 +13,7 @@ import de.janaberger.lehrzeit.data.Combo
 import de.janaberger.lehrzeit.data.ComboKey
 import de.janaberger.lehrzeit.data.EntryError
 import de.janaberger.lehrzeit.data.EntryRepository
+import de.janaberger.lehrzeit.data.MAX_NOTE_LENGTH
 import de.janaberger.lehrzeit.data.OverlapChange
 import de.janaberger.lehrzeit.data.OverlapPlan
 import de.janaberger.lehrzeit.data.SaveEntryResult
@@ -35,8 +36,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
-
-private const val MAX_NOTE_LENGTH = 500
 
 /** The editable part of an entry, to tell whether anything changed. */
 data class EntryFields(val key: ComboKey?, val startUtc: Long, val endUtc: Long?, val note: String)

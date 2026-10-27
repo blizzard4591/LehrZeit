@@ -96,8 +96,11 @@
     <string name="track_today">Heute: %s h</string>
     <string name="track_all_accounts">Alle Konten…</string>
     <string name="track_running">Läuft</string>
-    <string name="nudge_earlier">−5 Min.</string>
-    <string name="nudge_later">+5 Min.</string>
+    <string name="track_start">Beginn</string>
+    <string name="nudge_earlier_description">5 Minuten früher beginnen</string>
+    <string name="nudge_later_description">5 Minuten später beginnen</string>
+    <string name="nudge_shortened">%1$s endet jetzt um %2$s.</string>
+    <string name="note_add">Notiz hinzufügen</string>
     <string name="switch_title">Wechseln?</string>
     <string name="switch_text">Damit endet %1$s und %2$s beginnt.</string>
     <string name="notifications_off">Benachrichtigungen sind aus, deshalb erscheint der laufende Timer nicht in der Benachrichtigungsleiste.</string>

@@ -67,18 +67,41 @@ class EntryRepository(private val db: LehrZeitDatabase) {
         entries.getRunning()?.let { finish(it, now, minDurationMillis) }
     }
 
+    /** The entry that ended last before the running one started; null while nothing runs. */
+    fun observeBeforeRunning(): Flow<Entry?> = entries.observeBeforeRunning()
+
     /**
-     * Moves the running entry's start by [deltaMillis], but not before the previous entry's end
-     * and not after [now]. Returns false if nothing changed.
+     * Moves the running entry's start by [deltaMillis], shortening the previous entry if it's in
+     * the way. Returns null, changing nothing, if the full step doesn't fit (see [nudgedStart]).
      */
-    suspend fun adjustRunningStart(deltaMillis: Long, now: Long): Boolean = db.withTransaction {
-        val running = entries.getRunning() ?: return@withTransaction false
-        val earliest = entries.latestEndAtOrBefore(running.startUtc) ?: Long.MIN_VALUE
-        val newStart = (running.startUtc + deltaMillis).coerceIn(earliest, maxOf(earliest, now))
-        if (newStart == running.startUtc) return@withTransaction false
-        entries.update(running.copy(startUtc = newStart, updatedAt = now))
+    suspend fun nudgeRunningStart(deltaMillis: Long, now: Long): StartNudge? = db.withTransaction {
+        val running = entries.getRunning() ?: return@withTransaction null
+        val previous = entries.getLatestEndingAtOrBefore(running.startUtc)
+        val start = nudgedStart(running.startUtc, previous, deltaMillis, now) ?: return@withTransaction null
+        val shortened = previous?.takeIf { it.endUtc!! > start }?.let { EntryChange(it, it.copy(endUtc = start, updatedAt = now)) }
+        val moved = EntryChange(running, running.copy(startUtc = start, updatedAt = now))
+        shortened?.let { entries.update(it.changed) }
+        entries.update(moved.changed)
+        StartNudge(moved, shortened)
+    }
+
+    /** Undo for [nudgeRunningStart]. Returns false, changing nothing, if either entry was changed since. */
+    suspend fun undoNudge(nudge: StartNudge, now: Long): Boolean = db.withTransaction {
+        val originalStart = nudge.running.original.startUtc
+        val running = entries.get(nudge.running.changed.id)
+            ?.takeIf { it.startUtc == nudge.running.changed.startUtc && (it.endUtc == null || it.endUtc > originalStart) }
+            ?: return@withTransaction false
+        val shortened = nudge.previous
+        val previous = shortened?.let { change ->
+            entries.get(change.changed.id)?.takeIf { it.endUtc == change.changed.endUtc } ?: return@withTransaction false
+        }
+        entries.update(running.copy(startUtc = originalStart, updatedAt = now))
+        if (previous != null && shortened != null) entries.update(previous.copy(endUtc = shortened.original.endUtc, updatedAt = now))
         true
     }
+
+    /** Sets the note of entry [id], running or not. */
+    suspend fun setNote(id: Long, note: String, now: Long) = entries.setNote(id, note.trim().take(MAX_NOTE_LENGTH), now)
 
     /** Entries that end after [fromUtc] or are still running, oldest first. */
     fun observeFrom(fromUtc: Long): Flow<List<Entry>> = entries.observeOverlapping(fromUtc, Long.MAX_VALUE)

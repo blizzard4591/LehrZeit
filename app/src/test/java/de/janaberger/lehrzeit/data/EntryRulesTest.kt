@@ -73,4 +73,21 @@ class EntryRulesTest {
             planOverlaps(entry(2, 100, null), listOf(entry(5, 20, 60), crossing, covered)),
         )
     }
+
+    @Test
+    fun nudgedStart_onlyMovesTheFullStep() {
+        val minute = 60_000L
+        // With nothing before, earlier always fits, and later up to now.
+        assertEquals(25 * minute, nudgedStart(30 * minute, previous = null, deltaMillis = -5 * minute, now = 32 * minute))
+        assertNull(nudgedStart(30 * minute, previous = null, deltaMillis = 5 * minute, now = 34 * minute))
+        assertEquals(35 * minute, nudgedStart(30 * minute, previous = null, deltaMillis = 5 * minute, now = 35 * minute))
+
+        // A previous entry in the way is shortened, but keeps a minute.
+        assertEquals(25 * minute, nudgedStart(30 * minute, entry(1, 20 * minute, 30 * minute), -5 * minute, now = 40 * minute))
+        assertEquals(21 * minute, nudgedStart(26 * minute, entry(1, 20 * minute, 26 * minute), -5 * minute, now = 40 * minute))
+        assertNull(nudgedStart(25 * minute, entry(1, 20 * minute, 25 * minute), -5 * minute, now = 40 * minute))
+
+        // One that ended early enough doesn't matter, however short it is.
+        assertEquals(25 * minute, nudgedStart(30 * minute, entry(1, 24 * minute, 25 * minute), -5 * minute, now = 40 * minute))
+    }
 }

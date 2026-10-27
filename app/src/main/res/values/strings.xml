@@ -98,8 +98,13 @@
     <string name="track_today">Today: %s h</string>
     <string name="track_all_accounts">All accounts…</string>
     <string name="track_running">Running</string>
-    <string name="nudge_earlier">−5 min</string>
-    <string name="nudge_later">+5 min</string>
+    <string name="track_start">Start</string>
+    <string name="nudge_earlier" translatable="false">−5</string>
+    <string name="nudge_later" translatable="false">+5</string>
+    <string name="nudge_earlier_description">Start 5 minutes earlier</string>
+    <string name="nudge_later_description">Start 5 minutes later</string>
+    <string name="nudge_shortened">%1$s now ends at %2$s.</string>
+    <string name="note_add">Add note</string>
     <string name="switch_title">Switch?</string>
     <string name="switch_text">This stops %1$s and starts %2$s.</string>
     <string name="notifications_off">Notifications are off, so the running timer won’t appear in the notification bar.</string>

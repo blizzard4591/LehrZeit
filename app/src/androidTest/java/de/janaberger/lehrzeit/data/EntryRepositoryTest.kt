@@ -13,6 +13,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -100,20 +101,35 @@ class EntryRepositoryTest {
         assertEquals(listOf(b), allEntries().map { it.comboKey })
     }
 
-    @Test
-    fun adjustRunningStart_staysBetweenPreviousEndAndNow() = runTest {
-        tracking.start(a, now = 0)
-        tracking.stop(now = 20 * minute)
-        tracking.start(b, now = 30 * minute)
+    private suspend fun spans() = allEntries().map { it.startUtc to it.endUtc }
 
-        assertTrue(tracking.adjustRunningStart(-5 * minute, now = 40 * minute))
-        assertEquals(25 * minute, tracking.getRunning()!!.entry.startUtc)
-        assertTrue(tracking.adjustRunningStart(-15 * minute, now = 40 * minute))
-        assertEquals(20 * minute, tracking.getRunning()!!.entry.startUtc) // clamped to a's end
-        assertFalse(tracking.adjustRunningStart(-5 * minute, now = 40 * minute))
-        assertTrue(tracking.adjustRunningStart(30 * minute, now = 40 * minute))
-        assertEquals(40 * minute, tracking.getRunning()!!.entry.startUtc) // clamped to now
-        assertFalse(tracking.adjustRunningStart(5 * minute, now = 40 * minute))
+    @Test
+    fun nudgeRunningStart_shortensThePreviousEntry_andCanBeUndone() = runTest {
+        tracking.start(a, now = 0)
+        tracking.start(b, now = 20 * minute) // a switch, so a ends exactly where b starts
+
+        val nudge = tracking.nudgeRunningStart(-5 * minute, now = 30 * minute)!!
+        assertEquals(listOf(0L to 15 * minute, 15 * minute to null), spans())
+        assertEquals(15 * minute, nudge.previous!!.changed.endUtc)
+
+        assertTrue(tracking.undoNudge(nudge, now = 31 * minute))
+        assertEquals(listOf(0L to 20 * minute, 20 * minute to null), spans())
+        assertFalse("only once", tracking.undoNudge(nudge, now = 31 * minute))
+    }
+
+    @Test
+    fun nudgeRunningStart_onlyMovesTheFullStep() = runTest {
+        tracking.start(a, now = 0)
+        tracking.start(b, now = 4 * minute)
+
+        assertNull("a keeps a minute", tracking.nudgeRunningStart(-5 * minute, now = 6 * minute))
+        assertNull("no start in the future", tracking.nudgeRunningStart(5 * minute, now = 6 * minute))
+        assertEquals(listOf(0L to 4 * minute, 4 * minute to null), spans())
+
+        assertNotNull("a is shortened to a minute", tracking.nudgeRunningStart(-3 * minute, now = 6 * minute)!!.previous)
+        assertEquals(listOf(0L to 1 * minute, 1 * minute to null), spans())
+        assertNull("without a previous entry in the way, there's nothing to undo", tracking.nudgeRunningStart(5 * minute, now = 6 * minute)!!.previous)
+        assertEquals(listOf(0L to 1 * minute, 6 * minute to null), spans())
     }
 
     @Test

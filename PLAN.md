@@ -2,7 +2,7 @@
 
 A quick time tracker for teachers. Android, open source (GPL-3.0), distributed via F-Droid.
 
-Status: product decisions agreed on 2026-10-25. Items under [Defaults](#defaults-veto-if-wrong) are proposals that stand unless someone objects.
+Status: product decisions agreed on 2026-10-25 and revised on 2026-10-27 after the first tester's feedback (activity before class, running card). Items under [Defaults](#defaults-veto-if-wrong) are proposals that stand unless someone objects.
 
 ## Project identity
 
@@ -17,40 +17,41 @@ Status: product decisions agreed on 2026-10-25. Items under [Defaults](#defaults
 
 | Term (code / EN UI) | DE UI | Meaning |
 |---|---|---|
-| Account | Konto | Top level of what time is booked on, e.g. "7b", "Fachschaft Mathe", "General" |
-| Activity (code: `WorkActivity`) | Tätigkeit | Second level, from one shared catalog, e.g. "Correcting", "Lesson prep" |
-| Combination | – | Account + optional activity, e.g. "7b › Correcting" or just "7b" |
+| Activity (code: `WorkActivity`) | Tätigkeit | Top level of what time is booked on, from one shared catalog, e.g. "Correcting", "Lesson prep", or the permanent "General" |
+| Class (code: `SchoolClass`) | Klasse | Optional second level: a class, course or AG, e.g. "7b", "Q1" |
+| Combination | – | Activity + optional class, e.g. "Correcting › 7b" or just "Correcting" |
 | Entry | Eintrag | One booked time span: combination, start, end, note |
 | Worklog | Protokoll | List of all entries |
 | `Activity` (Android) | – | The Android component. Written in code font to avoid confusion with the work activity |
 
 ## Product decisions
 
-**Booking model**
-- Two levels: account › activity. Not deeper.
-- Activities come from one shared catalog. Each account enables a subset of them, so stats can add up "Correcting" across all classes.
-- Booking on an account alone (no activity) is allowed. The activity can be added later in the worklog.
-- **General** is a permanent account with no activities. It is always on the home screen.
+**Booking model** (revised 2026-10-27, milestone 12; until then it was account › activity)
+- Two levels: activity › class. Not deeper.
+- Every entry has an activity. The class is optional: an entry without one shows just the activity ("Lesson prep"). The class can be added later in the worklog.
+- Each activity has a **per class** switch. While it's on, every non-archived class can be chosen under the activity, including classes added later. While it's off, the activity is only booked on its own.
+- Stats can add up an activity across all classes, and a class across all activities.
+- **General** is a permanent activity. It is always on the home screen and can be booked per class too.
 
 **Starter content and first launch**
 - On first launch the app adds General and this starter catalog of activities, in the phone's language at that moment:
 
-  | EN | DE |
-  |---|---|
-  | Teaching | Unterricht |
-  | Lesson prep | Unterrichtsvorbereitung |
-  | Correcting | Korrekturen |
-  | Exams | Prüfungen |
-  | Meetings & conferences | Konferenzen & Besprechungen |
-  | Parent communication | Elternarbeit |
-  | Supervision | Aufsichten |
-  | Trips & events | Fahrten & Veranstaltungen |
-  | Further training | Fortbildung |
-  | Administration | Verwaltung |
+  | EN | DE | Per class |
+  |---|---|---|
+  | Teaching | Unterricht | on |
+  | Lesson prep | Unterrichtsvorbereitung | on |
+  | Correcting | Korrekturen | on |
+  | Exams | Prüfungen | on |
+  | Meetings & conferences | Konferenzen & Besprechungen | off |
+  | Parent communication | Elternarbeit | on |
+  | Supervision | Aufsichten | off |
+  | Trips & events | Fahrten & Veranstaltungen | on |
+  | Further training | Fortbildung | off |
+  | Administration | Verwaltung | off |
 
 - After that they are ordinary data: they can be renamed, archived, or deleted if they have no entries. Changing the phone language later does not rename them.
-- A short, skippable **welcome setup** asks "Which classes/areas do you work for?". Every account created there gets all starter activities enabled.
-- Accounts created later start with **no** activities enabled. You tick the ones that apply.
+- A short, skippable **welcome setup** asks which classes and courses you teach. They can then be chosen under every activity whose per-class switch is on.
+- An activity created later starts with its per-class switch on.
 
 **Tracking**
 - Only one timer runs at a time.
@@ -58,7 +59,7 @@ Status: product decisions agreed on 2026-10-25. Items under [Defaults](#defaults
 - Tapping a different combination while one runs shows a confirmation: "Stop A and start B?" Confirming ends A and starts B at the same instant.
 - **Pause** ends the current entry and remembers the combination, so **Resume** starts a new entry for it.
 - **Short entries:** an entry shorter than the minimum length (default 1 minute) is discarded when its timer is stopped, paused or switched, and the app says so. Under More › Settings this can be turned off or set from 30 seconds to 10 minutes. Entries added or edited by hand are never discarded.
-- **Forgotten timer:** after a configurable time, a reminder notification asks "Still on 7b › Correcting?" with *Stop* / *Keep going*. Nothing is changed automatically.
+- **Forgotten timer:** after a configurable time, a reminder notification asks "Still on Correcting › 7b?" with *Stop* / *Keep going*. Nothing is changed automatically.
 
 **Notification**
 - Ongoing notification showing the combination and a live timer. Android draws the timer from the start timestamp, so the app doesn't need to keep running.
@@ -73,10 +74,10 @@ Status: product decisions agreed on 2026-10-25. Items under [Defaults](#defaults
 - Tap a time to change it with a picker. Nudge buttons −15 / −5 / +5 / +15 min sit next to start and end (−15 added so a forgotten stop is one tap).
 - Optional note per entry.
 - Missed entries can be added afterwards.
-- If an edit makes an entry overlap another one, a dialog offers to shorten the other entry, e.g. "Overlaps 7b › Prep (14:00–14:30). Shorten it to 14:10–14:30?" with [Shorten] [Cancel].
+- If an edit makes an entry overlap another one, a dialog offers to shorten the other entry, e.g. "Overlaps Lesson prep › 7b (14:00–14:30). Shorten it to 14:10–14:30?" with [Shorten] [Cancel].
 
 **Stats**
-- Hours per day, week and month, broken down by account (which expands to its activities) or by activity across all accounts.
+- Hours per day, week and month, broken down by activity (which expands to its classes) or by class across all activities.
 - No target hours or overtime balance in v1.
 
 **Export**
@@ -129,22 +130,22 @@ The app uses a single `Activity`: every screen is a Compose destination inside `
 Bottom navigation: **Track · Worklog · Stats · More** (DE: Erfassen · Protokoll · Statistik · Mehr).
 
 0. **Welcome setup** (first launch only)
-   - Short explanation of accounts and activities.
-   - Enter the names of your classes or areas. Each one gets all starter activities.
+   - Short explanation of activities and classes.
+   - Enter the names of your classes and courses.
    - Skip button.
 1. **Track (home)**
    - Status card with three states:
      - idle
-     - running: combination, live timer, start time, Pause, Stop; the start can be adjusted
+     - running: combination, live timer, the start time with −5 / +5 min buttons on either side ("Start [−5] 10:15 [+5]"), the note, Pause, Stop
      - paused: Resume
    - Tile grid: General, then favorites, then most-used.
-   - "All accounts…" button, which opens the picker.
+   - "All activities…" button, which opens the picker.
    - Today's total.
    - The switch confirmation dialog.
    - A banner if notifications are blocked.
 2. **Picker** (bottom sheet)
-   - Accounts, each expandable to its enabled activities.
-   - Tapping an account row books the account alone. Tapping an activity books the combination.
+   - Activities, each expandable to the classes if its per-class switch is on.
+   - Tapping an activity row books the activity alone. Tapping a class books the combination.
    - Search.
    - A star to pin a combination as a favorite.
    - Link to "Manage…".
@@ -154,7 +155,7 @@ Bottom navigation: **Track · Worklog · Stats · More** (DE: Erfassen · Protok
    - "+" adds an entry. Tapping an entry opens the editor.
    - Loads the last 60 days; "Show older entries" loads 90 more each time.
 4. **Edit entry** (full screen, like the other editors; also opened by tapping "Since …" on the Track screen's running card)
-   - Fields: account + activity (same searchable picker), date, start and end time (each with nudge buttons), resulting duration, note.
+   - Fields: activity + class (same searchable picker), date, start and end time (each with nudge buttons), resulting duration, note.
    - A running entry shows "Running" instead of an end.
    - Delete, with an Undo snackbar instead of a confirmation.
    - Save runs validation and then the overlap check.
@@ -162,21 +163,21 @@ Bottom navigation: **Track · Worklog · Stats · More** (DE: Erfassen · Protok
    - Switch between Day, Week and Month, with ‹ › to move between periods. Opens on the current week.
    - Total for the period as one large number.
    - Bar chart (one color, hairline grid at clean hour steps): days of the week in the week view, days of the month in the month view. Tapping a bar highlights it, shows its total and offers "Show day". Every bar has a screen-reader description.
-   - Breakdown list, toggled between "by account" (expandable to its activities) and "by activity", largest first, each with hours, share and a thin share bar. Account colors appear only as dots next to the name.
+   - Breakdown list, toggled between "by activity" (expandable to its classes) and "by class", largest first, each with hours, share and a thin share bar. Activity colors appear only as dots next to the name.
 6. **Export** (More › Export)
    - Period: this week, last week, this month (default), last month, or a custom range (date range picker).
    - Format: CSV (default), ODS or PDF, each with a one-line description.
    - A preview of what will be exported ("71 entries · 133:30 h").
    - **Save…** (system file dialog, file name suggested) or **Share…** (share sheet, also offers printing).
 7. **More**: a menu that links to the screens below, plus Export.
-8. **Manage accounts**
+8. **Manage activities**: the shared catalog.
    - List with drag to reorder, and an archive section.
-   - Edit an account: name, color, checklist of enabled activities, archive/unarchive.
+   - Edit an activity: name, color, per-class switch, archive/unarchive.
    - General is pinned at the top and cannot be archived.
-9. **Manage activities**: the shared catalog. Add, rename, reorder, archive.
+9. **Manage classes**: add, rename, reorder, archive.
 10. **Backup & restore** (More › Backup & restore)
    - "Create backup…" saves `LehrZeit-Backup_2026-10-26.zip` through the system file dialog; the screen shows when the last backup was made.
-   - "Restore backup…" picks a file, checks it, and asks for confirmation with a summary ("Backup from … with 2 accounts, 10 activities and 71 entries") before replacing everything.
+   - "Restore backup…" picks a file, checks it, and asks for confirmation with a summary ("Backup from … with 10 activities, 2 classes and 71 entries") before replacing everything.
    - Files that aren't backups, damaged backups and backups from newer app versions are refused with an explanation; the current data stays untouched.
    - The welcome setup offers "Restore a backup" too, so a new phone can start from a backup.
 11. **Settings**: discard short entries (on/off and minimum length), reminder on/off and after how many hours, and a shortcut to the system's per-app language setting.
@@ -185,28 +186,29 @@ Bottom navigation: **Track · Worklog · Stats · More** (DE: Erfassen · Protok
 ## Data model (Room)
 
 ```
-Account          id, name, color, isGeneral, archived, sortOrder
-Activity         id, name, archived, sortOrder              -- shared catalog
-AccountActivity  accountId, activityId                      -- activities an account offers
-Favorite         id, accountId, activityId?, sortOrder      -- pinned tiles
-Entry            id, accountId, activityId?, startUtc, endUtc?, note, createdAt, updatedAt
+Activity         id, name, color, isGeneral, perClass, archived, sortOrder   -- shared catalog
+SchoolClass      id, name, archived, sortOrder
+Favorite         id, activityId, classId?, sortOrder                         -- pinned tiles
+Entry            id, activityId, classId?, startUtc, endUtc?, note, createdAt, updatedAt
 ```
+
+- No version has been released, so milestone 12 starts the database over at version 1 instead of migrating the old account › activity data. Testers uninstall the old build first. Backups made before the change are refused.
 
 - Times are stored as UTC epoch millis and shown in the device's time zone. Durations come from the stored instants, so the summer/winter time change can't distort them. Day boundaries are calculated in local time.
 - `endUtc == null` means the entry is running. A partial unique index (`WHERE endUtc IS NULL`) guarantees there is never more than one running entry.
 - The paused state lives in DataStore: the last combination and the time it was paused. "Paused" just means nothing is running and that combination is remembered for Resume.
 - General is created on first launch. Its display name comes from string resources (Allgemein / General).
-- Archived accounts and activities disappear from the picker and tiles. Their entries stay in the worklog, stats and exports.
+- Archived activities and classes disappear from the picker and tiles. Their entries stay in the worklog, stats and exports.
 
 ## Export formats
 
-- **CSV and ODS columns:** Date, Start, End, Duration (h:mm), Hours (decimal), Account, Activity, Note.
+- **CSV and ODS columns:** Date, Start, End, Duration (h:mm), Hours (decimal), Activity, Class, Note.
 - **CSV encoding:** UTF-8 with a BOM, so Excel shows umlauts correctly, and CRLF line ends. Where the app language uses a decimal comma (German), the separator is `;` and the decimal mark `,`; otherwise `,` and `.`. Dates are ISO (2026-10-25) and times 24 h, which every spreadsheet program recognizes.
-- **ODS:** a sheet "Entries" plus a sheet "Summary" with totals per account and per activity. Written directly as a zip file (the `mimetype` entry first and uncompressed, then `content.xml`, `styles.xml` and `META-INF/manifest.xml`), with no library.
-- **PDF:** an A4 report built with Android's `PdfDocument`. It contains the period, the total, the per-account (with activities) and per-activity tables with hours, share and a share bar, the daily totals (bars compared with the busiest day), and the entry list with notes. Footer: creation date and "Page x of y".
+- **ODS:** a sheet "Entries" plus a sheet "Summary" with totals per activity and per class. Written directly as a zip file (the `mimetype` entry first and uncompressed, then `content.xml`, `styles.xml` and `META-INF/manifest.xml`), with no library.
+- **PDF:** an A4 report built with Android's `PdfDocument`. It contains the period, the total, the per-activity (with classes) and per-class tables with hours, share and a share bar, the daily totals (bars compared with the busiest day), and the entry list with notes. Footer: creation date and "Page x of y".
 - **What's included:** finished entries that start in the period. Each entry counts on its start day and is never split, so the rows always add up to the totals. (The Stats screen splits at midnight instead, so an entry crossing a period boundary can make the two differ slightly.)
 - **File names:** `LehrZeit_2026-10-01_2026-10-31.csv`.
-- **Backup:** a zip with one `backup.json` (kotlinx.serialization): format id, version, creation time, app version, all accounts, activities, links, favorites and entries (with their IDs), and the settings. The JSON is independent of the database schema; a version number lets later app versions read older backups, and unknown fields are ignored. Reading checks consistency (exactly one General, unique IDs, no dangling links, at most one running entry) and caps the size at 50 MB. Restoring runs in one database transaction.
+- **Backup:** a zip with one `backup.json` (kotlinx.serialization): format id, version, creation time, app version, all activities, classes, favorites and entries (with their IDs), and the settings. The JSON is independent of the database schema; a version number lets later app versions read older backups, and unknown fields are ignored. Reading checks consistency (exactly one General, unique IDs, no dangling links, at most one running entry) and caps the size at 50 MB. Restoring runs in one database transaction.
 
 ## Tech stack
 
@@ -231,6 +233,14 @@ Entry            id, accountId, activityId?, startUtc, endUtc?, note, createdAt,
 10. **(done 2026-10-26)** F-Droid metadata and a check that the build is reproducible.
     - The unsigned release APK is byte-identical across Windows with JDK 25 (two different folders, CRLF and LF checkouts) and Linux with JDK 17. Line endings don't matter because the Kotlin compiler normalizes them. The APK's only build-specific content is the git commit in `version-control-info.textproto`.
     - Still open before a first release: the About screen (screen 12: version, license, source link, library licenses) and the Settings shortcut to the per-app language were never assigned to a milestone. Both the About screen and the F-Droid recipe need the GitHub URL.
+11. **(done 2026-10-27)** Running card, after the first tester's feedback:
+    - The −5 / +5 min buttons sit on either side of the start time they change, so their direction is visible. "Since 10:15" becomes "Start".
+    - A button is greyed out when it can't move the start.
+    - −5 also moves the previous entry's end back if it's in the way, e.g. right after a switch, with Undo.
+    - A note for the running entry can be added and edited on the card, and shows there.
+12. Activity › class instead of account › activity (see [Booking model](#product-decisions)), with store texts and screenshots updated.
+
+Later, after 0.1.0: import teaching time from WebUntis. WebUntis can export a timetable as an iCalendar (.ics) file. Past lessons would be imported as "Teaching" entries, matched to classes by name, so cancellations and substitutions are already accounted for. This waits for a sample export of one week from the tester. Clocking in by location and a timetable that books automatically every week were ruled out: the first needs location access in the background, and the second goes wrong on every holiday, cancellation or short day.
 
 Unit tests cover the time arithmetic: midnight split, the summer/winter time change, overlap resolution and most-used ranking. They also cover the exporters: CSV escaping and ODS structure.
 
@@ -255,21 +265,23 @@ Unit tests cover the time arithmetic: midnight split, the summer/winter time cha
 - License wording is "GPL-3.0-or-later", the FSF's standard form, rather than "GPL-3.0-only".
 - App colors follow the wallpaper on Android 12+ (Material You). Android 10/11 use a fixed green palette that matches the icon.
 - Android's own backup (`allowBackup`) stays enabled as a bonus. It only does anything if the user has turned on backup on the phone.
-- Accounts and activities can be deleted only while they have no entries. After that they can only be archived.
-- A new activity starts out enabled for no account, consistent with new accounts. The exception is an activity created from the picker inside an account, which is enabled for that account.
-- Names are at most 40 characters. They must be unique among non-archived items, ignoring case, and an account can't be called "General"/"Allgemein". Archived items don't block a name, so next school year's "7b" can exist next to last year's archived one. Restoring a duplicate from the archive asks for a rename first.
+- Activities and classes can be deleted only while they have no entries. After that they can only be archived.
+- Colors belong to activities (tile edge, dots in the stats). Classes have none.
+- In the stats' "by class" view, entries without a class are listed as "Without class".
+- Names are at most 40 characters. They must be unique among non-archived items, ignoring case, and neither an activity nor a class can be called "General"/"Allgemein". Archived items don't block a name, so next school year's "7b" can exist next to last year's archived one. Restoring a duplicate from the archive asks for a rename first.
 - In the editors, *Archive* and *Restore from archive* also save the other changes on the screen. Leaving with unsaved changes asks first. An item restored from the archive goes to the end of its list.
 - The German UI addresses the user with "du".
-- While there is little history, free home tiles are filled with the accounts on their own (e.g. "7b"), so the home screen is useful from day one.
+- While there is little history, free home tiles are filled with the activities on their own (e.g. "Correcting"), so the home screen is useful from day one.
 - Tapping the tile that is already running does nothing.
-- The widget shows the same tiles as the Track screen (General, favorites, most used, accounts), as many as fit its size. It starts at 4 × 2 cells and can be made as small as one row, which shows only the timer.
+- The widget shows the same tiles as the Track screen (General, favorites, most used, activities), as many as fit its size. It starts at 4 × 2 cells and can be made as small as one row, which shows only the timer.
 - In the widget, a tile starts at once while nothing runs. While another timer runs, the "Stop A and start B?" question appears over the home screen.
 - When a timer stopped or paused from the notification or the widget was too short to keep, a short toast says so (in the app it's the snackbar).
 - On Android 10/11 the widget has square corners, and the widget picker shows the app icon instead of a preview.
 - Starting a timer from the widget doesn't ask for the notification permission (a widget can't); the widget shows the timer, and the app asks on the first start there.
 - Swiping away the paused notification also clears the paused card in the app.
 - The "notifications are off" banner only appears while a timer runs or is paused, so it never shows before the first permission prompt.
-- The −5/+5 min buttons on the running card can't move the start before the previous entry's end or after now. For anything else, tapping "Since …" opens the full editor.
+- The −5/+5 min buttons on the running card only work when the full 5 minutes fit, so they never move by less. +5 can't move the start past now, so it is greyed out during the first 5 minutes. −5 shortens the previous entry if it's in the way, but leaves it at least 1 minute long; otherwise it is greyed out. For anything else, tapping the start time opens the full editor.
+- The running entry's note is edited in a small dialog opened from the running card.
 - An entry crossing midnight appears in the worklog under both days; each day's total counts only its own part.
 - A new entry starts as the last full hour (rounded to 5 minutes) on General.
 - If the running entry is stopped (e.g. from the notification) while its editor is open, saving is refused instead of restarting it.

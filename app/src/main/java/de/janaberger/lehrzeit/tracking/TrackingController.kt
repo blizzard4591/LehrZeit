@@ -10,6 +10,7 @@ import de.janaberger.lehrzeit.data.ComboKey
 import de.janaberger.lehrzeit.data.EntryRepository
 import de.janaberger.lehrzeit.data.PausedState
 import de.janaberger.lehrzeit.data.ReminderState
+import de.janaberger.lehrzeit.data.StartNudge
 import de.janaberger.lehrzeit.data.comboKey
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.first
@@ -79,8 +80,13 @@ class TrackingController(
         preferences.setPaused(null)
     }
 
-    suspend fun adjustRunningStart(deltaMillis: Long) = change {
-        entries.adjustRunningStart(deltaMillis, now())
+    /** See [EntryRepository.nudgeRunningStart]. */
+    suspend fun nudgeRunningStart(deltaMillis: Long): StartNudge? = change {
+        entries.nudgeRunningStart(deltaMillis, now())
+    }
+
+    suspend fun undoNudge(nudge: StartNudge): Boolean = change {
+        entries.undoNudge(nudge, now())
     }
 
     /**
