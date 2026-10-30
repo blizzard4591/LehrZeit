@@ -8,7 +8,9 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import de.janaberger.lehrzeit.timetable.TimetableSchedule
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -53,6 +55,23 @@ class AppPreferences(private val context: Context) {
     private val reminderEntryKey = longPreferencesKey("reminder_entry")
     private val reminderAnchorKey = longPreferencesKey("reminder_anchor")
     private val reminderFiredKey = booleanPreferencesKey("reminder_fired")
+    private val timetableTimesKey = stringPreferencesKey("timetable_times")
+    private val timetableDaysKey = stringPreferencesKey("timetable_days")
+
+    /** Here rather than next to the timetable link, which is kept out of backups, so the times are backed up. */
+    val timetableSchedule: Flow<TimetableSchedule> = context.dataStore.data.map { prefs ->
+        val defaults = TimetableSchedule()
+        val times = prefs[timetableTimesKey]?.split(',')?.filter { it.isNotBlank() }
+        val days = prefs[timetableDaysKey]?.split(',')?.mapNotNull { it.toIntOrNull() }
+        TimetableSchedule.of(times ?: defaults.timeTexts(), days ?: defaults.dayNumbers())
+    }
+
+    suspend fun setTimetableSchedule(schedule: TimetableSchedule) {
+        context.dataStore.edit {
+            it[timetableTimesKey] = schedule.timeTexts().joinToString(",")
+            it[timetableDaysKey] = schedule.dayNumbers().joinToString(",")
+        }
+    }
 
     val reminder: Flow<ReminderSettings> = context.dataStore.data.map { prefs ->
         val defaults = ReminderSettings()

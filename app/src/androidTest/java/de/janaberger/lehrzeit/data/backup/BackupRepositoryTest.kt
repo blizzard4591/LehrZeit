@@ -15,6 +15,7 @@ import de.janaberger.lehrzeit.data.SaveResult
 import de.janaberger.lehrzeit.data.ShortEntrySettings
 import de.janaberger.lehrzeit.data.StarterActivity
 import de.janaberger.lehrzeit.data.db.LehrZeitDatabase
+import de.janaberger.lehrzeit.timetable.TimetableSchedule
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -25,6 +26,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.time.DayOfWeek
+import java.time.LocalTime
 
 @RunWith(AndroidJUnit4::class)
 class BackupRepositoryTest {
@@ -61,16 +64,20 @@ class BackupRepositoryTest {
         entries.start(ComboKey(activity.id, schoolClass.id), now = 0)
         entries.start(ComboKey(activity.id, null), now = 30 * 60_000L) // first entry finished, second running
         preferences.setShortEntries(ShortEntrySettings(enabled = false, minSeconds = 120))
+        val earlyMornings = TimetableSchedule(times = listOf(LocalTime.of(6, 45)), days = setOf(DayOfWeek.MONDAY, DayOfWeek.THURSDAY))
+        preferences.setTimetableSchedule(earlyMornings)
         val backup = backups.create(now = 1, appVersion = "test")
 
         // Change everything, then restore.
         catalog.saveActivity(null, "Fachschaft", color = 0, perClass = false)
         entries.stop(now = 40 * 60_000L)
         preferences.setShortEntries(ShortEntrySettings())
+        preferences.setTimetableSchedule(TimetableSchedule())
         backups.restore(backup)
 
         assertEquals(backup, backups.create(now = 1, appVersion = "test"))
         assertEquals(ShortEntrySettings(enabled = false, minSeconds = 120), preferences.shortEntries.first())
+        assertEquals(earlyMornings, preferences.timetableSchedule.first())
         assertEquals(activity.id, entries.getRunning()!!.entry.activityId)
         assertTrue(preferences.onboardingCompleted.first())
         // New rows still get fresh IDs after a restore.

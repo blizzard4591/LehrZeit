@@ -16,4 +16,4 @@ Start a timer with a tap on an activity such as "Supervision". For an activity p
 </ul>
 
 <b>Privacy</b>
-Your data stays on your phone. LehrZeit has no ads and no tracking, and it needs no account. It only goes online if you enter a timetable link (e.g. from WebUntis): it then downloads that timetable once a day and sends nothing else.
+Your data stays on your phone. LehrZeit has no ads and no tracking, and it needs no account. It only goes online if you enter a timetable link (e.g. from WebUntis): it then downloads that timetable at the times you choose (at first four times a day, Monday to Friday) and sends nothing else.

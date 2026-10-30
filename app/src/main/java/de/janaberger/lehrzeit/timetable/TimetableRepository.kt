@@ -21,11 +21,13 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import java.time.Instant
 import java.time.ZoneId
 
 /**
@@ -46,11 +48,32 @@ data class TimetableStatus(
     val isUpdating: Boolean = false,
 )
 
-/** Runs the timetable download: soon after a link was entered or "Update now" was tapped, and daily. */
+/**
+ * Runs the timetable download: soon after a link was entered or "Update" was tapped, and at the
+ * times of the [TimetableSchedule]. Only the next automatic update is planned; when it has run, it
+ * plans the one after it.
+ */
 interface TimetableScheduler {
     fun updateSoon()
-    fun scheduleDaily()
+
+    /** Plans the next automatic update for [atUtc]. */
+    fun planAt(atUtc: Long, mode: PlanMode)
+
+    fun cancelPlanned()
+
+    /** Both the soon and the planned update. */
     fun cancel()
+}
+
+enum class PlanMode {
+    /** Instead of the planned update, e.g. after the times changed. */
+    REPLACE,
+
+    /** Only if none is planned. At app start, the planned update may be the one that started the app. */
+    KEEP,
+
+    /** From within the planned update while it runs, which [REPLACE] would cancel. */
+    AFTER_RUNNING,
 }
 
 /**
@@ -64,6 +87,8 @@ class TimetableRepository(
     private val db: LehrZeitDatabase,
     private val fetcher: TimetableFetcher,
     private val scheduler: TimetableScheduler,
+    private val schedule: Flow<TimetableSchedule>,
+    private val clock: () -> Long = System::currentTimeMillis,
     private val zone: () -> ZoneId = ZoneId::systemDefault,
 ) {
     private val lessons = db.lessonDao()
@@ -90,14 +115,14 @@ class TimetableRepository(
 
     suspend fun getUrl(): String? = store.data.first()[urlKey]
 
-    /** Stores [url] (see [normalizeTimetableUrl]) and downloads it soon, then daily. */
+    /** Stores [url] (see [normalizeTimetableUrl]) and downloads it soon, then at the set times. */
     suspend fun setUrl(url: String) {
         store.edit { prefs ->
             prefs.clear()
             prefs[urlKey] = url
         }
         scheduler.updateSoon()
-        scheduler.scheduleDaily()
+        planNext(schedule.first(), PlanMode.REPLACE)
     }
 
     /** Forgets the link and deletes the stored lessons, even if the caller is cancelled meanwhile. */
@@ -112,9 +137,28 @@ class TimetableRepository(
 
     fun updateSoon() = scheduler.updateSoon()
 
-    /** Makes sure the daily update is scheduled, e.g. at app start. */
-    suspend fun ensureScheduled() {
-        if (getUrl() != null) scheduler.scheduleDaily()
+    /**
+     * Runs while the app does: at the start, makes sure an update is planned, and plans anew
+     * whenever the times change, in Settings or by restoring a backup.
+     */
+    suspend fun keepPlanned() {
+        var first = true
+        schedule.distinctUntilChanged().collect { current ->
+            planNext(current, if (first) PlanMode.KEEP else PlanMode.REPLACE)
+            first = false
+        }
+    }
+
+    /** Called by the planned update when it's done. */
+    suspend fun planNextAfterRun() = planNext(schedule.first(), PlanMode.AFTER_RUNNING)
+
+    private suspend fun planNext(current: TimetableSchedule, mode: PlanMode) {
+        val next = if (getUrl() == null) null else current.nextAfter(Instant.ofEpochMilli(clock()), zone())
+        when {
+            next != null -> scheduler.planAt(next.toEpochMilli(), mode)
+            // The running update is the only one planned, and cancelling would cancel it.
+            mode != PlanMode.AFTER_RUNNING -> scheduler.cancelPlanned()
+        }
     }
 
     /**

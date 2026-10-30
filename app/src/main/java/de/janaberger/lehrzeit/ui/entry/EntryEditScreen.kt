@@ -3,7 +3,6 @@
 
 package de.janaberger.lehrzeit.ui.entry
 
-import android.text.format.DateFormat
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -32,9 +31,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,7 +41,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -63,6 +59,7 @@ import de.janaberger.lehrzeit.ui.components.BackTopAppBar
 import de.janaberger.lehrzeit.ui.components.ColorDot
 import de.janaberger.lehrzeit.ui.components.DiscardChangesDialog
 import de.janaberger.lehrzeit.ui.components.SectionHeader
+import de.janaberger.lehrzeit.ui.components.TimePickerDialog
 import de.janaberger.lehrzeit.ui.components.formatDate
 import de.janaberger.lehrzeit.ui.components.label
 import de.janaberger.lehrzeit.ui.components.rememberNow
@@ -216,8 +213,10 @@ fun EntryEditScreen(
     }
     timePickerFor?.let { field ->
         val initial = if (field == TimeField.START) state.startUtc else state.endUtc ?: state.startUtc
+        val time = Instant.ofEpochMilli(initial).atZone(ZoneId.systemDefault())
         TimePickerDialog(
-            initialUtc = initial,
+            initialHour = time.hour,
+            initialMinute = time.minute,
             onConfirm = { hour, minute ->
                 timePickerFor = null
                 if (field == TimeField.START) viewModel.onStartTimeSelected(hour, minute) else viewModel.onEndTimeSelected(hour, minute)
@@ -322,23 +321,4 @@ private fun EntryDatePickerDialog(date: LocalDate, onConfirm: (LocalDate) -> Uni
     ) {
         DatePicker(pickerState)
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun TimePickerDialog(initialUtc: Long, onConfirm: (hour: Int, minute: Int) -> Unit, onDismiss: () -> Unit) {
-    val time = Instant.ofEpochMilli(initialUtc).atZone(ZoneId.systemDefault())
-    val pickerState = rememberTimePickerState(
-        initialHour = time.hour,
-        initialMinute = time.minute,
-        is24Hour = DateFormat.is24HourFormat(LocalContext.current),
-    )
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        text = { TimePicker(pickerState) },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(pickerState.hour, pickerState.minute) }) { Text(stringResource(R.string.action_ok)) }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
-    )
 }

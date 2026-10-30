@@ -12,6 +12,7 @@ import de.janaberger.lehrzeit.data.db.Entry
 import de.janaberger.lehrzeit.data.db.LehrZeitDatabase
 import de.janaberger.lehrzeit.data.db.SchoolClass
 import de.janaberger.lehrzeit.data.db.WorkActivity
+import de.janaberger.lehrzeit.timetable.TimetableSchedule
 import kotlinx.coroutines.flow.first
 
 class BackupRepository(
@@ -25,6 +26,7 @@ class BackupRepository(
     suspend fun create(now: Long, appVersion: String): Backup {
         val shortEntries = preferences.shortEntries.first()
         val reminder = preferences.reminder.first()
+        val timetable = preferences.timetableSchedule.first()
         return db.withTransaction {
             Backup(
                 createdAtUtc = now,
@@ -36,7 +38,14 @@ class BackupRepository(
                 entries = dao.entries().map {
                     BackupEntry(it.id, it.activityId, it.classId, it.startUtc, it.endUtc, it.note, it.createdAt, it.updatedAt)
                 },
-                settings = BackupSettings(shortEntries.enabled, shortEntries.minSeconds, reminder.enabled, reminder.hours),
+                settings = BackupSettings(
+                    discardShortEntries = shortEntries.enabled,
+                    minEntrySeconds = shortEntries.minSeconds,
+                    reminderEnabled = reminder.enabled,
+                    reminderHours = reminder.hours,
+                    timetableTimes = timetable.timeTexts(),
+                    timetableDays = timetable.dayNumbers(),
+                ),
             )
         }
     }
@@ -62,6 +71,8 @@ class BackupRepository(
         }
         preferences.setShortEntries(ShortEntrySettings(backup.settings.discardShortEntries, backup.settings.minEntrySeconds.coerceAtLeast(1)))
         preferences.setReminder(ReminderSettings(backup.settings.reminderEnabled, backup.settings.reminderHours.coerceAtLeast(1)))
+        // The timetable plans its next update for the restored times by itself.
+        preferences.setTimetableSchedule(TimetableSchedule.of(backup.settings.timetableTimes, backup.settings.timetableDays))
         preferences.setPaused(null)
         // Restored entries may reuse the ID of the timer that ran before, so start the reminder afresh.
         preferences.setReminderState(null)

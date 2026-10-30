@@ -4,6 +4,7 @@
 package de.janaberger.lehrzeit.data.backup
 
 import de.janaberger.lehrzeit.data.readAtMost
+import de.janaberger.lehrzeit.timetable.TimetableSchedule
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
@@ -74,13 +75,20 @@ data class BackupEntry(
     val updatedAt: Long,
 )
 
-/** New settings get a default, so older backups without them stay readable. */
+/**
+ * New settings get a default, so older backups without them stay readable. That needs no new
+ * [BACKUP_VERSION], since older versions of the app skip the fields they don't know.
+ */
 @Serializable
 data class BackupSettings(
     val discardShortEntries: Boolean = true,
     val minEntrySeconds: Int = 60,
     val reminderEnabled: Boolean = true,
     val reminderHours: Int = 3,
+    /** "07:00"; since 0.3.0. */
+    val timetableTimes: List<String> = TimetableSchedule().timeTexts(),
+    /** ISO day numbers, Monday = 1; since 0.3.0. */
+    val timetableDays: List<Int> = TimetableSchedule().dayNumbers(),
 )
 
 sealed interface BackupReadResult {

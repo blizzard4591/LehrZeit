@@ -13,7 +13,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -23,7 +27,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 import java.io.IOException
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -42,9 +48,17 @@ class TimetableRepositoryTest {
 
     private val scheduler = object : TimetableScheduler {
         override fun updateSoon() { scheduled += "soon" }
-        override fun scheduleDaily() { scheduled += "daily" }
+        override fun planAt(atUtc: Long, mode: PlanMode) {
+            scheduled += "plan ${Instant.ofEpochMilli(atUtc).atZone(berlin).toLocalDateTime()} $mode"
+        }
+        override fun cancelPlanned() { scheduled += "cancelPlanned" }
         override fun cancel() { scheduled += "cancel" }
     }
+
+    /** The update times, as the settings would provide them. */
+    private var schedules: Flow<TimetableSchedule> = flowOf(TimetableSchedule())
+
+    private var now = 0L
 
     @Before
     fun setUp() {
@@ -53,7 +67,15 @@ class TimetableRepositoryTest {
         storeScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
         val file = File(context.cacheDir, "timetable-test-${System.nanoTime()}.preferences_pb")
         val store = PreferenceDataStoreFactory.create(scope = storeScope, produceFile = { file })
-        timetable = TimetableRepository(store, db, fetcher = { download() }, scheduler = scheduler, zone = { berlin })
+        timetable = TimetableRepository(
+            store,
+            db,
+            fetcher = { download() },
+            scheduler = scheduler,
+            schedule = flow { emitAll(schedules) },
+            clock = { now },
+            zone = { berlin },
+        )
     }
 
     @After
@@ -87,8 +109,9 @@ class TimetableRepositoryTest {
 
     @Test
     fun updates_keepPastLessons_andReplaceTodayAndLater() = runTest {
+        now = utc("2026-11-02T06:00") // Monday
         timetable.setUrl(link)
-        assertEquals(listOf("soon", "daily"), scheduled)
+        assertEquals(listOf("soon", "plan 2026-11-02T07:00 REPLACE"), scheduled)
 
         // Monday: Monday's and Tuesday's lessons.
         download = { calendar(lesson("mon", "2026-11-02T08:00"), lesson("tue", "2026-11-03T08:00")) }
@@ -132,6 +155,36 @@ class TimetableRepositoryTest {
         assertEquals(TimetableProblem.HTTP, status.problem)
         assertEquals(401, status.httpCode)
         assertEquals(utc("2026-11-03T08:00"), status.problemAt)
+    }
+
+    @Test
+    fun onlyTheNextUpdateIsPlanned_andEachPlansTheOneAfterIt() = runTest {
+        now = utc("2026-11-02T07:30") // Monday
+        timetable.setUrl(link)
+        assertEquals("plan 2026-11-02T07:55 REPLACE", scheduled.last())
+
+        // The 07:55 update, a bit late, plans the next one without cancelling itself.
+        now = utc("2026-11-02T07:58")
+        timetable.planNextAfterRun()
+        assertEquals("plan 2026-11-02T08:30 AFTER_RUNNING", scheduled.last())
+        // After Friday's last update comes Monday's first.
+        now = utc("2026-11-06T17:01")
+        timetable.planNextAfterRun()
+        assertEquals("plan 2026-11-09T07:00 AFTER_RUNNING", scheduled.last())
+
+        // At app start, the planned update stays; when the times change, it's replaced.
+        now = utc("2026-11-09T06:00")
+        schedules = flowOf(TimetableSchedule(), TimetableSchedule(times = listOf(LocalTime.of(9, 0))))
+        timetable.keepPlanned()
+        assertEquals(listOf("plan 2026-11-09T07:00 KEEP", "plan 2026-11-09T09:00 REPLACE"), scheduled.takeLast(2))
+
+        // Without times, nothing is planned any more; a running update just ends.
+        schedules = flowOf(TimetableSchedule(times = emptyList()))
+        timetable.keepPlanned()
+        assertEquals("cancelPlanned", scheduled.last())
+        val before = scheduled.size
+        timetable.planNextAfterRun()
+        assertEquals(before, scheduled.size)
     }
 
     @Test

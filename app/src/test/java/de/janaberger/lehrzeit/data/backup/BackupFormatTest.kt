@@ -3,6 +3,9 @@
 
 package de.janaberger.lehrzeit.data.backup
 
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.io.ByteArrayInputStream
@@ -24,7 +27,7 @@ class BackupFormatTest {
             BackupEntry(100, activityId = 2, classId = 10, startUtc = 0, endUtc = 60_000, note = "Klausur „2“", createdAt = 0, updatedAt = 0),
             BackupEntry(101, activityId = 1, startUtc = 120_000, createdAt = 0, updatedAt = 0),
         ),
-        settings = BackupSettings(discardShortEntries = false, minEntrySeconds = 120),
+        settings = BackupSettings(discardShortEntries = false, minEntrySeconds = 120, timetableTimes = listOf("06:45"), timetableDays = listOf(1, 4)),
     )
 
     private fun roundTrip(backup: Backup) =
@@ -83,6 +86,20 @@ class BackupFormatTest {
             .replaceFirst("\"entries\":", "\"favorites\": [{\"id\": 5, \"activityId\": 2, \"classId\": 10, \"sortOrder\": 0}], \"entries\":")
 
         assertEquals(BackupReadResult.Ok(backup.copy(version = 2)), readBackup(zipWith("backup.json", version2)))
+    }
+
+    @Test
+    fun backupsWithoutUpdateTimes_getTheDefaults() {
+        val written = ByteArrayOutputStream().also { writeBackup(backup, it) }.toByteArray()
+        val json = Json.parseToJsonElement(ZipInputStream(ByteArrayInputStream(written)).use { it.nextEntry; it.readBytes().decodeToString() }).jsonObject
+        // As written before 0.3.0.
+        val settings = JsonObject(json.getValue("settings").jsonObject - "timetableTimes" - "timetableDays")
+        val older = JsonObject(json + ("settings" to settings))
+
+        val defaults = BackupSettings()
+        val expected = backup.copy(settings = backup.settings.copy(timetableTimes = defaults.timetableTimes, timetableDays = defaults.timetableDays))
+        assertEquals(BackupReadResult.Ok(expected), readBackup(zipWith("backup.json", older.toString())))
+        assertEquals(listOf("07:00", "07:55", "08:30", "17:00"), defaults.timetableTimes)
     }
 
     @Test

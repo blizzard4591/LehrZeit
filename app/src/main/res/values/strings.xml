@@ -270,8 +270,8 @@
     <!-- Timetable link -->
     <string name="settings_section_timetable">Timetable</string>
     <string name="timetable_link">Timetable link (iCal)</string>
-    <string name="timetable_link_none">Optional, e.g. your iCal link from WebUntis. LehrZeit then downloads your timetable once a day.</string>
-    <string name="timetable_dialog_text">Paste the iCal link of your timetable, e.g. from WebUntis. LehrZeit downloads it once a day and keeps the lessons on your phone. For this, the app goes online; it sends nothing.\n\nThe link works like a password, so don’t share it.</string>
+    <string name="timetable_link_none">Optional, e.g. your iCal link from WebUntis. LehrZeit then downloads your timetable at times you choose.</string>
+    <string name="timetable_dialog_text">Paste the iCal link of your timetable, e.g. from WebUntis. LehrZeit downloads it at times you can choose (at first four times a day, Monday to Friday) and keeps the lessons on your phone. For this, the app goes online; it sends nothing.\n\nThe link works like a password, so don’t share it.</string>
     <string name="timetable_link_placeholder" translatable="false">https://…</string>
     <string name="timetable_link_replace">Paste a new link</string>
     <string name="timetable_link_invalid">Enter a valid link starting with https://</string>
@@ -290,6 +290,16 @@
     <string name="timetable_problem_http">the server reported error %d</string>
     <string name="timetable_problem_not_calendar">the link doesn’t lead to a calendar file</string>
     <string name="timetable_problem_too_large">the file is too large</string>
+    <string name="timetable_schedule">Automatic updates</string>
+    <string name="timetable_schedule_summary">%1$s at %2$s</string>
+    <string name="timetable_schedule_every_day">Every day</string>
+    <string name="timetable_schedule_off">Off: only when you tap Update</string>
+    <string name="timetable_schedule_text">LehrZeit downloads your timetable at these times. Android may start a download a few minutes late, and it waits for an internet connection.</string>
+    <string name="timetable_schedule_days">Days</string>
+    <string name="timetable_schedule_times">Times</string>
+    <string name="timetable_schedule_add">Add time</string>
+    <string name="timetable_schedule_change">Change time</string>
+    <string name="timetable_schedule_remove">Remove %s</string>
 
     <!-- Seeded once at first launch; afterwards they are ordinary, editable data. -->
     <string-array name="starter_activities">

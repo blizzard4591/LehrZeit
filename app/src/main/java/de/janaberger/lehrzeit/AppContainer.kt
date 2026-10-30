@@ -48,6 +48,7 @@ class AppContainer(context: Context) {
         db = database,
         fetcher = HttpTimetableFetcher(),
         scheduler = WorkManagerTimetableScheduler(context),
+        schedule = preferences.timetableSchedule,
     )
 
     val exportWriter = ExportWriter(context, entries, catalog)
@@ -68,7 +69,7 @@ class AppContainer(context: Context) {
         generalName = { context.getString(R.string.activity_general) },
     )
 
-    /** Timer state and tiles for the widget; "most used" counts from the moment this is called. */
+    /** Timer state and tiles for the widget. */
     fun trackingOverview() = observeTrackingOverview(catalog, entries, preferences)
 }
 

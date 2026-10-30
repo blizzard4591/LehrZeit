@@ -39,6 +39,7 @@ import de.janaberger.lehrzeit.data.AppPreferences
 import de.janaberger.lehrzeit.data.ReminderSettings
 import de.janaberger.lehrzeit.data.ShortEntrySettings
 import de.janaberger.lehrzeit.timetable.TimetableRepository
+import de.janaberger.lehrzeit.timetable.TimetableSchedule
 import de.janaberger.lehrzeit.timetable.TimetableStatus
 import de.janaberger.lehrzeit.timetable.normalizeTimetableUrl
 import de.janaberger.lehrzeit.tracking.TrackingController
@@ -66,6 +67,9 @@ class SettingsViewModel(
     val timetableStatus: StateFlow<TimetableStatus?> =
         timetable.status.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
+    val timetableSchedule: StateFlow<TimetableSchedule?> =
+        preferences.timetableSchedule.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
     fun updateShortEntries(transform: (ShortEntrySettings) -> ShortEntrySettings) {
         val current = shortEntries.value ?: return
         viewModelScope.launch { preferences.setShortEntries(transform(current)) }
@@ -92,9 +96,14 @@ class SettingsViewModel(
     }
 
     fun updateTimetable() = timetable.updateSoon()
+
+    /** The timetable plans its next update by itself when the times change. */
+    fun setTimetableSchedule(schedule: TimetableSchedule) {
+        viewModelScope.launch { preferences.setTimetableSchedule(schedule) }
+    }
 }
 
-private enum class SettingsDialog { MIN_LENGTH, REMINDER_HOURS, TIMETABLE_LINK }
+private enum class SettingsDialog { MIN_LENGTH, REMINDER_HOURS, TIMETABLE_LINK, TIMETABLE_SCHEDULE }
 
 @Composable
 fun SettingsScreen(
@@ -104,12 +113,14 @@ fun SettingsScreen(
     val shortEntries by viewModel.shortEntries.collectAsStateWithLifecycle()
     val reminder by viewModel.reminder.collectAsStateWithLifecycle()
     val timetableStatus by viewModel.timetableStatus.collectAsStateWithLifecycle()
+    val timetableSchedule by viewModel.timetableSchedule.collectAsStateWithLifecycle()
     var dialog by rememberSaveable { mutableStateOf<SettingsDialog?>(null) }
 
     Scaffold(topBar = { BackTopAppBar(stringResource(R.string.settings_title), onBack) }) { padding ->
         val short = shortEntries ?: return@Scaffold
         val remind = reminder ?: return@Scaffold
         val timetable = timetableStatus ?: return@Scaffold
+        val schedule = timetableSchedule ?: return@Scaffold
         Column(
             Modifier
                 .padding(padding)
@@ -146,8 +157,10 @@ fun SettingsScreen(
             SectionHeader(stringResource(R.string.settings_section_timetable), Modifier.padding(top = 8.dp))
             TimetableSection(
                 status = timetable,
+                schedule = schedule,
                 onEditLink = { dialog = SettingsDialog.TIMETABLE_LINK },
                 onUpdate = viewModel::updateTimetable,
+                onEditSchedule = { dialog = SettingsDialog.TIMETABLE_SCHEDULE },
             )
         }
 
@@ -173,6 +186,11 @@ fun SettingsScreen(
                     viewModel.removeTimetableLink()
                     dialog = null
                 },
+                onDismiss = { dialog = null },
+            )
+            SettingsDialog.TIMETABLE_SCHEDULE -> TimetableScheduleDialog(
+                schedule = schedule,
+                onSave = viewModel::setTimetableSchedule,
                 onDismiss = { dialog = null },
             )
             null -> Unit
