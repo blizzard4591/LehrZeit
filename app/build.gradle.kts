@@ -1,3 +1,5 @@
+import com.android.build.api.artifact.SingleArtifact
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -19,6 +21,20 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // Only where the release key is set up, in ~/.gradle/gradle.properties (see RELEASING.md).
+    // Elsewhere, e.g. on F-Droid's build server, the release APK stays unsigned.
+    signingConfigs {
+        providers.gradleProperty("lehrzeit.storeFile").orNull?.let { path ->
+            create("release") {
+                storeFile = file(path)
+                storePassword = providers.gradleProperty("lehrzeit.storePassword").orNull
+                keyAlias = providers.gradleProperty("lehrzeit.keyAlias").orNull
+                // A PKCS12 keystore's key has the keystore's password.
+                keyPassword = storePassword
+            }
+        }
+    }
+
     buildTypes {
         // A separate package, so a test install and the released app can live side by side.
         debug {
@@ -26,6 +42,7 @@ android {
             versionNameSuffix = "-debug"
         }
         release {
+            signingConfig = signingConfigs.findByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -58,6 +75,33 @@ android {
 room {
     // Exported schemas are committed so that future migrations can be written and tested.
     schemaDirectory("$projectDir/schemas")
+}
+
+// APKs to hand out, named with version and commit: ./gradlew distDebug (or distRelease) writes e.g.
+// dist/LehrZeit-0.2.0-debug-9eaae7b.apk. Uncommitted changes add "-dirty"; without git, the commit is left out.
+androidComponents {
+    // Local, not top-level: the rename below must not capture the build script, or the configuration cache fails.
+    val commit = providers.exec {
+        commandLine("git", "describe", "--always", "--dirty", "--exclude=*")
+        isIgnoreExitValue = true
+    }.standardOutput.asText.map { it.trim() }
+
+    onVariants { variant ->
+        val baseName = "LehrZeit-${android.defaultConfig.versionName}-${variant.name}"
+        tasks.register<Copy>("dist${variant.name.replaceFirstChar(Char::uppercase)}") {
+            group = "distribution"
+            description = "Copies the ${variant.name} APK to dist/, named with its version and commit."
+            from(variant.artifacts.get(SingleArtifact.APK)) { include("*.apk") }
+            into(rootDir.resolve("dist"))
+            rename { file ->
+                // Without the release key (see signingConfigs), release APKs are unsigned and can't be installed.
+                val unsigned = if (file.endsWith("-unsigned.apk")) "-unsigned" else ""
+                val hash = runCatching { commit.get() }.getOrDefault("").let { if (it.isEmpty()) "" else "-$it" }
+                "$baseName$unsigned$hash.apk"
+            }
+            doNotTrackState("The commit can change while the APK stays the same.")
+        }
+    }
 }
 
 dependencies {

@@ -16,6 +16,8 @@ Requirements: JDK 17 or newer (Android Studio's bundled JDK works) and the Andro
 
 The APK is written to `app/build/outputs/apk/debug/`. Alternatively, open the folder in Android Studio and run the `app` configuration.
 
+To hand out a test build, use `./gradlew distDebug` instead. It copies the APK to `dist/`, named with the version and commit, e.g. `dist/LehrZeit-0.2.0-debug-9eaae7b.apk`. If there were uncommitted changes, the name ends in `-dirty`. A debug APK is signed with the debug key of the computer that built it, so an APK from another computer only installs after uninstalling the old one, which deletes its data. `./gradlew distRelease` works the same way. Its APK is signed only where the release key is set up (see RELEASING.md); otherwise its name has `-unsigned`, and it can't be installed.
+
 The release build is reproducible. [RELEASING.md](RELEASING.md) describes how to publish a version, on GitHub and on F-Droid.
 
 ## Development

@@ -11,7 +11,7 @@ Status: product decisions agreed on 2026-10-25 and revised on 2026-10-27 after t
 | Package name (`applicationId`) | `de.janaberger.lehrzeit` |
 | Copyright holder | Jana Berger |
 | License | GPL-3.0-or-later |
-| Source code | GitHub (public) |
+| Source code | <https://github.com/blizzard4591/LehrZeit> (public) |
 
 ## Glossary
 
@@ -244,7 +244,7 @@ Lesson           uid, startUtc, endUtc, summary, description, location   -- from
 9. **(done 2026-10-26)** Widget, plus `SwitchConfirmActivity`.
 10. **(done 2026-10-26)** F-Droid metadata and a check that the build is reproducible.
     - The unsigned release APK is byte-identical across Windows with JDK 25 (two different folders, CRLF and LF checkouts) and Linux with JDK 17. Line endings don't matter because the Kotlin compiler normalizes them. The APK's only build-specific content is the git commit in `version-control-info.textproto`.
-    - Still open before a first release: the About screen (screen 12: version, license, source link, library licenses) and the Settings shortcut to the per-app language were never assigned to a milestone. Both the About screen and the F-Droid recipe need the GitHub URL.
+    - Still open before a first release: the About screen (screen 12: version, license, source link, library licenses) and the Settings shortcut to the per-app language were never assigned to a milestone. The About screen's source link will be <https://github.com/blizzard4591/LehrZeit>.
 11. **(done 2026-10-27)** Running card, after the first tester's feedback:
     - The −5 / +5 min buttons sit on either side of the start time they change, so their direction is visible. "Since 10:15" becomes "Start".
     - A button is greyed out when it can't move the start.
