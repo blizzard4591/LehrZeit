@@ -1,11 +1,11 @@
 LehrZeit erfasst deine Arbeitszeit als Lehrkraft, schnell und ohne Konto.
 
-Starte einen Timer mit einem Tipp auf eine Kachel, zum Beispiel „Korrekturen › 7b“ oder einfach „Unterrichtsvorbereitung“. Pausieren und stoppen kannst du ihn in der Benachrichtigung oder im Widget auf dem Startbildschirm. Läuft ein vergessener Timer weiter, fragt LehrZeit nach einigen Stunden, ob du noch arbeitest.
+Starte einen Timer mit einem Tipp auf eine Tätigkeit wie „Aufsichten“. Bei einer Tätigkeit pro Klasse wählst du danach die Klasse, zum Beispiel „Korrekturen › 7b“. Pausieren und stoppen kannst du ihn in der Benachrichtigung oder im Widget auf dem Startbildschirm. Läuft ein vergessener Timer weiter, fragt LehrZeit nach einigen Stunden, ob du noch arbeitest.
 
 <b>Funktionen</b>
 <ul>
 <li>Tätigkeiten wie Unterrichtsvorbereitung, Korrekturen oder Konferenzen, auf Wunsch pro Klasse</li>
-<li>Eine Startseite mit „Allgemein“, deinen Favoriten und den Kombinationen, die du am häufigsten nutzt</li>
+<li>Eine Startseite mit all deinen Tätigkeiten, in der Reihenfolge, die du festlegst</li>
 <li>Eine dauerhafte Benachrichtigung mit laufendem Timer, Pause und Stopp</li>
 <li>Ein Widget für den Startbildschirm</li>
 <li>Protokoll: Start- und Endzeiten per Tipp korrigieren, vergessene Einträge und Notizen ergänzen</li>

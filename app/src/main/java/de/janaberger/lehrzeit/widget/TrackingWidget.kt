@@ -57,7 +57,8 @@ import androidx.glance.text.TextStyle
 import de.janaberger.lehrzeit.LehrZeitApplication
 import de.janaberger.lehrzeit.MainActivity
 import de.janaberger.lehrzeit.R
-import de.janaberger.lehrzeit.data.Combo
+import de.janaberger.lehrzeit.data.ComboKey
+import de.janaberger.lehrzeit.data.db.WorkActivity
 import de.janaberger.lehrzeit.time.formatTimeOfDay
 import de.janaberger.lehrzeit.tracking.PausedTimer
 import de.janaberger.lehrzeit.tracking.RunningTimer
@@ -72,8 +73,8 @@ import kotlinx.coroutines.flow.first
 
 /**
  * The home-screen widget: the timer with Pause and Stop (or Resume), and below it as many of the
- * Track screen's tiles as fit. Tapping a tile starts it; while another timer runs,
- * [SwitchConfirmActivity] asks first.
+ * Track screen's activity tiles as fit. Tapping a tile starts it, or [WidgetDialogActivity] asks
+ * which class, or whether to stop the running timer.
  */
 class TrackingWidget : GlanceAppWidget() {
     // The tile grid is laid out for the widget's actual size.
@@ -128,9 +129,10 @@ private fun WidgetContent(state: TrackingOverview) {
             Row(GlanceModifier.fillMaxWidth().padding(top = WidgetDimens.GAP.dp)) {
                 for (column in 0 until grid.columns) {
                     if (column > 0) Spacer(GlanceModifier.width(WidgetDimens.GAP.dp))
-                    val combo = row.getOrNull(column)
-                    if (combo != null) {
-                        Tile(combo, state.running, GlanceModifier.defaultWeight())
+                    val activity = row.getOrNull(column)
+                    if (activity != null) {
+                        val hasClasses = state.snapshot.activeClassesFor(activity.id).isNotEmpty()
+                        Tile(activity, hasClasses, state.running, GlanceModifier.defaultWeight())
                     } else {
                         Spacer(GlanceModifier.defaultWeight())
                     }
@@ -238,17 +240,20 @@ private fun ActionButton(@DrawableRes icon: Int, @StringRes label: Int, action: 
     )
 }
 
-/** Like the Track screen's tile: an activity-colored edge, the activity and the class. */
+/** Like the Track screen's tile: an activity-colored edge, the activity, and while it runs its class. */
 @Composable
-private fun Tile(combo: Combo, running: RunningTimer?, modifier: GlanceModifier) {
+private fun Tile(activity: WorkActivity, hasClasses: Boolean, running: RunningTimer?, modifier: GlanceModifier) {
     val context = LocalContext.current
-    val isRunning = running?.combo?.key == combo.key
+    val runningClass = running?.combo?.takeIf { it.activity.id == activity.id }
+    val isRunning = runningClass != null
+    val key = ComboKey(activity.id, null)
     val action: Action? = when {
+        hasClasses -> actionStartActivity(WidgetDialogActivity.chooseClass(context, activity.id))
         running == null -> actionSendBroadcast(
-            Intent(context, TrackingActionReceiver::class.java).setAction(TrackingNotifier.ACTION_START).putComboKey(combo.key),
+            Intent(context, TrackingActionReceiver::class.java).setAction(TrackingNotifier.ACTION_START).putComboKey(key),
         )
         isRunning -> null
-        else -> actionStartActivity(SwitchConfirmActivity.intent(context, combo.key))
+        else -> actionStartActivity(WidgetDialogActivity.confirmSwitch(context, key))
     }
     Row(
         modifier = modifier
@@ -258,10 +263,10 @@ private fun Tile(combo: Combo, running: RunningTimer?, modifier: GlanceModifier)
             .then(if (action != null) GlanceModifier.clickable(action) else GlanceModifier),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Spacer(GlanceModifier.width(4.dp).fillMaxHeight().background(Color(combo.activity.color)))
+        Spacer(GlanceModifier.width(4.dp).fillMaxHeight().background(Color(activity.color)))
         Column(GlanceModifier.defaultWeight().padding(horizontal = 8.dp)) {
             Text(
-                if (combo.activity.isGeneral) context.getString(R.string.activity_general) else combo.activity.name,
+                if (activity.isGeneral) context.getString(R.string.activity_general) else activity.name,
                 style = TextStyle(
                     color = if (isRunning) GlanceTheme.colors.onPrimaryContainer else GlanceTheme.colors.onSurface,
                     fontSize = 13.sp,
@@ -269,7 +274,7 @@ private fun Tile(combo: Combo, running: RunningTimer?, modifier: GlanceModifier)
                 ),
                 maxLines = 1,
             )
-            combo.schoolClass?.let {
+            runningClass?.schoolClass?.let {
                 Text(
                     it.name,
                     style = TextStyle(

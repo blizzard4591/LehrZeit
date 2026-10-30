@@ -55,8 +55,10 @@ Status: product decisions agreed on 2026-10-25 and revised on 2026-10-27 after t
 
 **Tracking**
 - Only one timer runs at a time.
-- Tapping a combination when nothing is running starts it immediately.
-- Tapping a different combination while one runs shows a confirmation: "Stop A and start B?" Confirming ends A and starts B at the same instant.
+- Booking takes one tap for an activity without classes, and two for one with classes: the activity, then the class (or "Without class") in the class sheet (revised 2026-10-30, milestone 14, after tester feedback; until then the tiles were combinations).
+- Tapping an activity without classes when nothing is running starts it immediately.
+- Tapping a different activity without classes while one runs shows a confirmation: "Stop A and start B?" Confirming ends A and starts B at the same instant.
+- Picking a class in the class sheet while another timer runs switches at once: the sheet already says "Stops A" under its title, and the pick is a second, deliberate tap.
 - **Pause** ends the current entry and remembers the combination, so **Resume** starts a new entry for it.
 - **Short entries:** an entry shorter than the minimum length (default 1 minute) is discarded when its timer is stopped, paused or switched, and the app says so. Under More › Settings this can be turned off or set from 30 seconds to 10 minutes. Entries added or edited by hand are never discarded.
 - **Forgotten timer:** after a configurable time, a reminder notification asks "Still on Correcting › 7b?" with *Stop* / *Keep going*. Nothing is changed automatically.
@@ -66,9 +68,9 @@ Status: product decisions agreed on 2026-10-25 and revised on 2026-10-27 after t
 - Actions: **Pause** and **Stop**, with the combination as the notification's title right above them (confirmed 2026-10-25; Android cuts off long button labels). When paused, the notification shows **Resume**.
 - If the user swipes the running notification away (always possible on Android 13+), tracking continues and the notification is posted again immediately.
 
-**Home tiles**
-- Each tile is a combination.
-- The General tile is always present. Then come pinned favorites, and any free slots fill with the most-used combinations.
+**Home tiles** (revised 2026-10-30, milestone 14; until then: General, pinned favorites and the most-used combinations)
+- Each tile is an activity. Every non-archived activity has one: General first, then in the order from Manage activities, where they can be dragged.
+- There are no favorites and no most-used ranking any more. The first tester found the classes under each activity in the old picker impractical: after choosing "Correcting" only its classes matter.
 
 **Worklog editing**
 - Tap a time to change it with a picker. Nudge buttons −15 / −5 / +5 / +15 min sit next to start and end (−15 added so a forgotten stop is one tap).
@@ -109,11 +111,11 @@ The app uses a single `Activity`: every screen is a Compose destination inside `
 | Component | Type | Purpose |
 |---|---|---|
 | `MainActivity` | `Activity` | Hosts all screens (Compose + Navigation). Tapping the notification or the widget's status bar opens it |
-| `SwitchConfirmActivity` | `Activity`, dialog theme, translucent | Shows the "Stop A and start B?" confirmation when a **widget** tile is tapped while another timer runs. A widget can't show a dialog itself, and opening the whole app for this would be slow |
+| `WidgetDialogActivity` | `Activity`, translucent | Shows the class sheet when a **widget** tile for an activity with classes is tapped, and the "Stop A and start B?" confirmation when another tile is tapped while a timer runs. A widget can't show a dialog itself, and opening the whole app for this would be slow (until milestone 14 it was `SwitchConfirmActivity`, with only the confirmation) |
 | `TrackingActionReceiver` | BroadcastReceiver | Handles Stop, Pause, Resume and Keep going without opening the app, the notifications being swiped away (the timer one is posted again), and the reminder alarm |
 | `AlarmReminderScheduler` | AlarmManager (`setWindow`, 10-minute window, no special permission) | Wakes `TrackingActionReceiver` when the "still working?" reminder is due. A plain inexact alarm could be up to 75 % of the waiting time late; in deep sleep (Doze) the alarm still waits until the phone is used |
 | `SystemEventsReceiver` | BroadcastReceiver | Runs on `BOOT_COMPLETED` and `MY_PACKAGE_REPLACED`. Posts the notification again, reschedules the reminder and refreshes the widget. Tracking state lives in the database, so it survives reboots and the process being killed |
-| `TrackingWidget` / `TrackingWidgetReceiver` | Glance app widget | Shows the running timer with Pause/Stop (or Resume), plus as many of the Track screen's tiles as fit. The timer is a system chronometer, so the widget needs no updates while it counts. `TrackingController` updates it on every change; edits in the app (names, favorites, most-used tiles) reach it through an observer that runs while the app process lives |
+| `TrackingWidget` / `TrackingWidgetReceiver` | Glance app widget | Shows the running timer with Pause/Stop (or Resume), plus as many of the Track screen's tiles as fit. The timer is a system chronometer, so the widget needs no updates while it counts. `TrackingController` updates it on every change; edits in the app (names, order, archiving) reach it through an observer that runs while the app process lives |
 | `FileProvider` | ContentProvider | Shares export and backup files with other apps |
 | `TimetableSyncWorker` | WorkManager worker | Downloads the timetable link: once right after it was entered or "Update now" was tapped, and then daily, each time only with a network connection |
 
@@ -145,24 +147,23 @@ Bottom navigation: **Track · Worklog · Stats · More** (DE: Erfassen · Protok
      - idle
      - running: combination, live timer, the start time with −5 / +5 min buttons on either side ("Start [−5] 10:15 [+5]"), the note, Pause, Stop
      - paused: Resume
-   - Tile grid: General, then favorites, then most-used.
-   - "All activities…" button, which opens the picker.
+   - Tile grid: one tile per activity, General first, then in the order from Manage activities. A running activity's tile is highlighted and shows the class.
+   - Tapping an activity with classes opens the class sheet.
+   - A "Manage activities" link below the tiles.
    - Today's total.
    - The switch confirmation dialog.
    - A banner if notifications are blocked.
-2. **Picker** (bottom sheet)
-   - Activities, each expandable to the classes if its per-class switch is on.
-   - Tapping an activity row books the activity alone. Tapping a class books the combination.
-   - Search.
-   - A star to pin a combination as a favorite.
-   - Link to "Manage…".
+2. **Class sheet** (bottom sheet, also over the home screen for the widget)
+   - The activity as the title; while a timer runs, "Stops A" below it.
+   - "Without class", then the non-archived classes in their order from Manage classes. The running class has a check mark; picking it changes nothing.
+   - Shown only for an activity whose per-class switch is on, and only if there are classes; otherwise the tile books the activity on its own.
 3. **Worklog**
    - Entries grouped by day, newest first, under sticky date headers that show the day total.
    - The running entry is on top with a live duration.
    - "+" adds an entry. Tapping an entry opens the editor.
    - Loads the last 60 days; "Show older entries" loads 90 more each time.
 4. **Edit entry** (full screen, like the other editors; also opened by tapping "Since …" on the Track screen's running card)
-   - Fields: activity + class (same searchable picker), date, start and end time (each with nudge buttons), resulting duration, note.
+   - Fields: activity + class (a picker in the same two steps as on the Track screen: the activities, then the activity's classes with a back arrow), date, start and end time (each with nudge buttons), resulting duration, note.
    - A running entry shows "Running" instead of an end.
    - Delete, with an Undo snackbar instead of a confirmation.
    - Save runs validation and then the overlap check.
@@ -195,13 +196,13 @@ Bottom navigation: **Track · Worklog · Stats · More** (DE: Erfassen · Protok
 ```
 Activity         id, name, color, isGeneral, perClass, archived, sortOrder   -- shared catalog
 SchoolClass      id, name, archived, sortOrder
-Favorite         id, activityId, classId?, sortOrder                         -- pinned tiles
 Entry            id, activityId, classId?, startUtc, endUtc?, note, createdAt, updatedAt
 Lesson           uid, startUtc, endUtc, summary, description, location   -- from the timetable link
 ```
 
 - Lessons are a local copy of the timetable link. Each update replaces the stored lessons from today on (or from the file's first day, if that is earlier) with the file's content. Older lessons are kept even after they drop out of the file, because WebUntis no longer provides them.
 - Milestone 13 raises the database to version 2 with an automatic migration that adds the lesson table, so installing over a milestone-12 build keeps the data.
+- Milestone 14 raises it to version 3, whose automatic migration drops the favorite table (pinned tiles).
 
 - No version has been released, so milestone 12 starts the database over at version 1 instead of migrating the old account › activity data. Testers uninstall the old build first. Backups made before the change are refused.
 
@@ -219,7 +220,7 @@ Lesson           uid, startUtc, endUtc, summary, description, location   -- from
 - **PDF:** an A4 report built with Android's `PdfDocument`. It contains the period, the total, the per-activity (with classes) and per-class tables with hours, share and a share bar, the daily totals (bars compared with the busiest day), and the entry list with notes. Footer: creation date and "Page x of y".
 - **What's included:** finished entries that start in the period. Each entry counts on its start day and is never split, so the rows always add up to the totals. (The Stats screen splits at midnight instead, so an entry crossing a period boundary can make the two differ slightly.)
 - **File names:** `LehrZeit_2026-10-01_2026-10-31.csv`.
-- **Backup:** a zip with one `backup.json` (kotlinx.serialization): format id, version, creation time, app version, all activities, classes, favorites and entries (with their IDs), and the settings. The JSON is independent of the database schema; a version number lets later app versions read older backups, and unknown fields are ignored. Reading checks consistency (exactly one General, unique IDs, no dangling links, at most one running entry) and caps the size at 50 MB. Restoring runs in one database transaction.
+- **Backup:** a zip with one `backup.json` (kotlinx.serialization): format id, version, creation time, app version, all activities, classes and entries (with their IDs), and the settings. Version 2 also had the pinned tiles; such backups still restore, and the pins are skipped. The JSON is independent of the database schema; a version number lets later app versions read older backups, and unknown fields are ignored. Reading checks consistency (exactly one General, unique IDs, no dangling links, at most one running entry) and caps the size at 50 MB. Restoring runs in one database transaction.
 
 ## Tech stack
 
@@ -251,6 +252,11 @@ Lesson           uid, startUtc, endUtc, summary, description, location   -- from
     - A note for the running entry can be added and edited on the card, and shows there.
 12. **(done 2026-10-27)** Activity › class instead of account › activity (see [Booking model](#product-decisions)), with store texts and screenshots updated. Backups from before this change are refused with their own message.
 13. **(done 2026-10-27)** Timetable link (see [Product decisions](#product-decisions)): enter an iCal link, download it daily, store the lessons, show the status in Settings. Store texts and README updated for the internet access. Checked with the first tester's real WebUntis link, in the debug and the minified release build.
+14. **(done 2026-10-30)** Activities first, then the class, after the first tester's feedback ("when I tap Correcting I don't need the other activities any more, but its classes"; see [Booking model](#product-decisions) and [Home tiles](#product-decisions)):
+    - The Track screen and the widget show one tile per activity, in the user's order. Favorites, the most-used ranking and the "All activities…" picker are gone.
+    - An activity with classes opens the class sheet: "Without class", then the classes. While a timer runs, picking a class switches at once.
+    - The entry editor's picker uses the same two steps instead of expandable rows, and has no search any more.
+    - Database version 3 drops the favorite table; backup version 3 leaves the pins out, and version-2 backups still restore. Store texts and screenshots updated.
 
 Later: book teaching time from the WebUntis timetable (see [Timetable from WebUntis](#timetable-from-webuntis)). Clocking in by location and a timetable typed into the app that books automatically every week were ruled out: the first needs location access in the background, and the second goes wrong on every holiday, cancellation or short day.
 
@@ -272,14 +278,13 @@ Findings from a real export of the first tester's timetable (downloaded 2026-10-
 - **Lengths:** lessons are 45 minutes and double lessons 95 (including the 5-minute break). Entries without a subject, of 30 or 5 minutes at break times, are probably break supervisions.
 - **Still unknown:** whether cancelled lessons disappear from the file or stay in it.
 
-Unit tests cover the time arithmetic: midnight split, the summer/winter time change, overlap resolution and most-used ranking. They also cover the exporters: CSV escaping and ODS structure.
+Unit tests cover the time arithmetic: midnight split, the summer/winter time change, and overlap resolution. They also cover the exporters: CSV escaping and ODS structure.
 
 ## Defaults (veto if wrong)
 
 - Weeks start on Monday.
 - An entry running past midnight is split between both days in the stats.
 - The running entry counts towards the stats up to "now". It is **not** included in exports.
-- The home screen shows 8 tiles including General. "Most used" means the number of entries per combination in the last 30 days.
 - A paused notification can be swiped away and stays away, because nothing is running.
 - The reminder fires after 3 h by default (choices: 1–12 h). After *Keep going* it fires again that long later; swiping the reminder away counts as *Keep going*. Without either, there is no second reminder for the same entry. Switching to another combination starts counting afresh.
 - The reminder notification has its own group, so Android doesn't bundle it with the timer notification and hide its buttons.
@@ -302,10 +307,9 @@ Unit tests cover the time arithmetic: midnight split, the summer/winter time cha
 - Names are at most 40 characters. They must be unique among non-archived items, ignoring case, and neither an activity nor a class can be called "General"/"Allgemein". Archived items don't block a name, so next school year's "7b" can exist next to last year's archived one. Restoring a duplicate from the archive asks for a rename first.
 - In the editors, *Archive* and *Restore from archive* also save the other changes on the screen. Leaving with unsaved changes asks first. An item restored from the archive goes to the end of its list.
 - The German UI addresses the user with "du".
-- While there is little history, free home tiles are filled with the activities on their own (e.g. "Correcting"), so the home screen is useful from day one.
-- Tapping the tile that is already running does nothing.
-- The widget shows the same tiles as the Track screen (General, favorites, most used, activities), as many as fit its size. It starts at 4 × 2 cells and can be made as small as one row, which shows only the timer.
-- In the widget, a tile starts at once while nothing runs. While another timer runs, the "Stop A and start B?" question appears over the home screen.
+- Tapping the running activity's tile does nothing if it has no classes; with classes, it opens the class sheet, so the class can be changed.
+- The widget shows the same activity tiles as the Track screen, as many as fit its size. It starts at 4 × 2 cells and can be made as small as one row, which shows only the timer.
+- In the widget, a tile without classes starts at once while nothing runs; while another timer runs, the "Stop A and start B?" question appears over the home screen. A tile with classes opens the class sheet there.
 - When a timer stopped or paused from the notification or the widget was too short to keep, a short toast says so (in the app it's the snackbar).
 - On Android 10/11 the widget has square corners, and the widget picker shows the app icon instead of a preview.
 - Starting a timer from the widget doesn't ask for the notification permission (a widget can't); the widget shows the timer, and the app asks on the first start there.

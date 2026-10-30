@@ -68,7 +68,6 @@ import de.janaberger.lehrzeit.ui.components.label
 import de.janaberger.lehrzeit.ui.components.rememberNow
 import de.janaberger.lehrzeit.ui.components.timeOfDay
 import de.janaberger.lehrzeit.ui.components.timeRange
-import de.janaberger.lehrzeit.ui.track.PickerSheet
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -196,13 +195,11 @@ fun EntryEditScreen(
         state.snapshot?.let { snapshot ->
             PickerSheet(
                 snapshot = snapshot,
-                favorites = state.favorites,
+                selected = state.combo?.key,
                 onSelect = { key ->
                     showPicker = false
                     viewModel.onComboSelected(key)
                 },
-                onToggleFavorite = null,
-                onManageActivities = null,
                 onDismiss = { showPicker = false },
             )
         }

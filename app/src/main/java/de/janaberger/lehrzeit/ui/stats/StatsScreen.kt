@@ -283,7 +283,7 @@ private fun LazyListScope.breakdownItems(
                         {
                             Icon(
                                 painterResource(if (isExpanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more),
-                                contentDescription = stringResource(if (isExpanded) R.string.picker_collapse else R.string.picker_expand),
+                                contentDescription = stringResource(if (isExpanded) R.string.stats_hide_classes else R.string.stats_show_classes),
                             )
                         }
                     } else {
@@ -317,7 +317,7 @@ private fun LazyListScope.breakdownItems(
 @Composable
 private fun className(snapshot: CatalogSnapshot, classId: Long?): String =
     classId?.let { id -> snapshot.classes.firstOrNull { it.id == id }?.name }
-        ?: stringResource(R.string.stats_without_class)
+        ?: stringResource(R.string.without_class)
 
 /** Label, value and share, over a thin meter of the share in one color on a lighter track. */
 @Composable

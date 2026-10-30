@@ -24,7 +24,7 @@ class LehrZeitApplication : Application() {
             container.timetable.ensureScheduled()
         }
         // Timer changes update the widget through the controller. This catches everything else
-        // shown in it while the app runs: renamed activities, new favorites, changed most-used tiles.
+        // shown in it while the app runs: renamed, reordered or archived activities and classes.
         container.applicationScope.launch {
             container.trackingOverview().distinctUntilChanged().drop(1).collect { container.widgetUpdater.update() }
         }

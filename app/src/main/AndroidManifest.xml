@@ -26,9 +26,9 @@
             </intent-filter>
         </activity>
 
-        <!-- The widget's "Stop A and start B?" dialog, shown over the home screen in its own task. -->
+        <!-- The widget's class sheet and "Stop A and start B?" dialog, shown over the home screen in its own task. -->
         <activity
-            android:name=".widget.SwitchConfirmActivity"
+            android:name=".widget.WidgetDialogActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:noHistory="true"

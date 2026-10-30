@@ -20,7 +20,6 @@ class BackupFormatTest {
             BackupActivity(2, "Korrekturen", color = -2, isGeneral = false, perClass = true, archived = false, sortOrder = 1),
         ),
         classes = listOf(BackupClass(10, "7b", archived = false, sortOrder = 0)),
-        favorites = listOf(BackupFavorite(5, activityId = 2, classId = 10, sortOrder = 0)),
         entries = listOf(
             BackupEntry(100, activityId = 2, classId = 10, startUtc = 0, endUtc = 60_000, note = "Klausur „2“", createdAt = 0, updatedAt = 0),
             BackupEntry(101, activityId = 1, startUtc = 120_000, createdAt = 0, updatedAt = 0),
@@ -76,10 +75,21 @@ class BackupFormatTest {
     }
 
     @Test
+    fun version2_isRestored_withoutItsPinnedTiles() {
+        val written = ByteArrayOutputStream().also { writeBackup(backup, it) }.toByteArray()
+        val jsonText = ZipInputStream(ByteArrayInputStream(written)).use { it.nextEntry; it.readBytes().decodeToString() }
+        val version2 = jsonText
+            .replaceFirst("\"version\": $BACKUP_VERSION,", "\"version\": 2,")
+            .replaceFirst("\"entries\":", "\"favorites\": [{\"id\": 5, \"activityId\": 2, \"classId\": 10, \"sortOrder\": 0}], \"entries\":")
+
+        assertEquals(BackupReadResult.Ok(backup.copy(version = 2)), readBackup(zipWith("backup.json", version2)))
+    }
+
+    @Test
     fun inconsistentContent_isDamaged() {
         val damaged = listOf(
             backup.copy(activities = backup.activities.map { it.copy(isGeneral = false) }), // no General
-            backup.copy(favorites = listOf(BackupFavorite(5, activityId = 2, classId = 99, sortOrder = 0))), // unknown class
+            backup.copy(entries = backup.entries + BackupEntry(102, activityId = 2, classId = 99, startUtc = 0, endUtc = 1, createdAt = 0, updatedAt = 0)), // unknown class
             backup.copy(entries = backup.entries + BackupEntry(102, activityId = 99, startUtc = 0, endUtc = 1, createdAt = 0, updatedAt = 0)),
             backup.copy(entries = backup.entries + BackupEntry(102, activityId = 2, startUtc = 200_000, createdAt = 0, updatedAt = 0)), // two running
             backup.copy(entries = listOf(BackupEntry(103, activityId = 2, startUtc = 10, endUtc = 10, createdAt = 0, updatedAt = 0))),

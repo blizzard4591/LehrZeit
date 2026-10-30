@@ -88,6 +88,7 @@ import de.janaberger.lehrzeit.R
 import de.janaberger.lehrzeit.data.Combo
 import de.janaberger.lehrzeit.data.ComboKey
 import de.janaberger.lehrzeit.data.MAX_NOTE_LENGTH
+import de.janaberger.lehrzeit.data.db.WorkActivity
 import de.janaberger.lehrzeit.data.nudgedStart
 import de.janaberger.lehrzeit.time.formatElapsed
 import de.janaberger.lehrzeit.time.formatHoursMinutes
@@ -96,6 +97,7 @@ import de.janaberger.lehrzeit.time.totalWithin
 import de.janaberger.lehrzeit.tracking.RunningTimer
 import de.janaberger.lehrzeit.tracking.TrackingNotifier
 import de.janaberger.lehrzeit.ui.AppViewModelProvider
+import de.janaberger.lehrzeit.ui.components.ClassSheet
 import de.janaberger.lehrzeit.ui.components.ColorDot
 import de.janaberger.lehrzeit.ui.components.DeletedEntryUndoEffect
 import de.janaberger.lehrzeit.ui.components.SwitchDialog
@@ -122,11 +124,12 @@ fun TrackScreen(
         if (granted) viewModel.refreshNotification()
     }
     // Asks for the notification permission when tracking starts for the first time (Android 13+).
-    val select: (ComboKey) -> Unit = { key ->
+    val withPermission: (() -> Unit) -> Unit = { action ->
         if (needsNotificationPermission(context)) permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-        viewModel.onSelect(key)
+        action()
     }
-    var showPicker by rememberSaveable { mutableStateOf(false) }
+    // The activity whose class sheet is open.
+    var classSheetFor by rememberSaveable { mutableStateOf<Long?>(null) }
     val now by rememberNow(ticking = state.running != null)
     val snackbarHostState = remember { SnackbarHostState() }
     val deleted by viewModel.recentlyDeleted.collectAsStateWithLifecycle()
@@ -197,38 +200,46 @@ fun TrackScreen(
                     )
                 }
             }
-            items(state.tiles, key = { "${it.key.activityId}-${it.key.classId}" }) { combo ->
-                ComboTile(
-                    combo = combo,
-                    isRunning = state.running?.combo?.key == combo.key,
-                    onClick = { select(combo.key) },
+            items(state.tiles, key = { it.id }) { activity ->
+                ActivityTile(
+                    activity = activity,
+                    running = state.running?.combo?.takeIf { it.activity.id == activity.id },
+                    onClick = {
+                        if (state.snapshot?.activeClassesFor(activity.id).isNullOrEmpty()) {
+                            withPermission { viewModel.onSelect(ComboKey(activity.id, null)) }
+                        } else {
+                            classSheetFor = activity.id
+                        }
+                    },
                 )
             }
             item(span = { GridItemSpan(maxLineSpan) }) {
-                OutlinedButton(onClick = { showPicker = true }, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.track_all_activities))
+                TextButton(onClick = onManageActivities, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.track_manage_activities))
                 }
             }
         }
     }
 
-    if (showPicker) {
-        state.snapshot?.let { snapshot ->
-            PickerSheet(
-                snapshot = snapshot,
-                favorites = state.favorites,
-                onSelect = { key ->
-                    showPicker = false
-                    select(key)
-                },
-                onToggleFavorite = viewModel::toggleFavorite,
-                onManageActivities = {
-                    showPicker = false
-                    onManageActivities()
-                },
-                onDismiss = { showPicker = false },
-            )
+    classSheetFor?.let { id ->
+        val snapshot = state.snapshot ?: return@let
+        val activity = snapshot.activeActivities.firstOrNull { it.id == id }
+        val classes = snapshot.activeClassesFor(id)
+        if (activity == null || classes.isEmpty()) {
+            // Archived, or its classes were, while the sheet was open (e.g. from a backup restore).
+            LaunchedEffect(id) { classSheetFor = null }
+            return@let
         }
+        ClassSheet(
+            activity = activity,
+            classes = classes,
+            running = state.running?.combo,
+            onSelect = { key ->
+                classSheetFor = null
+                withPermission { viewModel.onClassChosen(key) }
+            },
+            onDismiss = { classSheetFor = null },
+        )
     }
 
     val running = state.running
@@ -413,8 +424,10 @@ private fun ComboHeadline(combo: Combo) {
     }
 }
 
+/** An activity; while it runs, the tile is highlighted and shows the class it runs for. */
 @Composable
-private fun ComboTile(combo: Combo, isRunning: Boolean, onClick: () -> Unit) {
+private fun ActivityTile(activity: WorkActivity, running: Combo?, onClick: () -> Unit) {
+    val isRunning = running != null
     val runningDescription = stringResource(R.string.track_running)
     Card(
         onClick = onClick,
@@ -432,7 +445,7 @@ private fun ComboTile(combo: Combo, isRunning: Boolean, onClick: () -> Unit) {
                 Modifier
                     .width(6.dp)
                     .fillMaxHeight()
-                    .background(Color(combo.activity.color)),
+                    .background(Color(activity.color)),
             )
             Column(
                 verticalArrangement = Arrangement.Center,
@@ -441,13 +454,13 @@ private fun ComboTile(combo: Combo, isRunning: Boolean, onClick: () -> Unit) {
                     .padding(horizontal = 12.dp),
             ) {
                 Text(
-                    combo.activity.displayName(),
+                    activity.displayName(),
                     // Long German words like "Unterrichtsvorbereitung" need a hyphen to fit two lines.
                     style = MaterialTheme.typography.titleMedium.copy(hyphens = Hyphens.Auto),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                combo.schoolClass?.let {
+                running?.schoolClass?.let {
                     Text(
                         it.name,
                         style = MaterialTheme.typography.bodyMedium,

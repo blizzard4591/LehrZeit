@@ -81,7 +81,7 @@
     <string name="track_idle_hint">Tippe auf eine Kachel, um zu starten.</string>
     <string name="track_paused">Pausiert</string>
     <string name="track_today">Heute: %s h</string>
-    <string name="track_all_activities">Alle Tätigkeiten…</string>
+    <string name="track_manage_activities">Tätigkeiten verwalten</string>
     <string name="track_running">Läuft</string>
     <string name="track_start">Beginn</string>
     <string name="nudge_earlier_description">5 Minuten früher beginnen</string>
@@ -91,13 +91,7 @@
     <string name="switch_title">Wechseln?</string>
     <string name="switch_text">Damit endet %1$s und %2$s beginnt.</string>
     <string name="notifications_off">Benachrichtigungen sind aus, deshalb erscheint der laufende Timer nicht in der Benachrichtigungsleiste.</string>
-    <string name="picker_search">Suchen</string>
-    <string name="picker_no_results">Nichts gefunden</string>
-    <string name="picker_manage">Tätigkeiten verwalten</string>
-    <string name="picker_pin">Auf der Startseite anheften</string>
-    <string name="picker_unpin">Von der Startseite lösen</string>
-    <string name="picker_expand">Klassen anzeigen</string>
-    <string name="picker_collapse">Klassen ausblenden</string>
+    <string name="class_sheet_stops">Stoppt %1$s</string>
     <string name="channel_tracking_name">Laufender Timer</string>
     <string name="channel_tracking_description">Zeigt den laufenden Timer mit Pause und Stopp.</string>
 
@@ -157,7 +151,9 @@
     <string name="stats_total">Gesamt</string>
     <string name="stats_by_activity">Nach Tätigkeit</string>
     <string name="stats_by_class">Nach Klasse</string>
-    <string name="stats_without_class">Ohne Klasse</string>
+    <string name="without_class">Ohne Klasse</string>
+    <string name="stats_show_classes">Klassen anzeigen</string>
+    <string name="stats_hide_classes">Klassen ausblenden</string>
     <string name="stats_empty">In diesem Zeitraum wurde keine Zeit erfasst.</string>
     <string name="stats_tap_bar">Tippe auf einen Balken, um den Tag zu sehen.</string>
     <string name="stats_open_day">Tag anzeigen</string>
@@ -256,8 +252,8 @@
     </plurals>
 
     <!-- Widget -->
-    <string name="widget_description">Der laufende Timer und deine Kacheln, um direkt vom Startbildschirm zu starten und zu stoppen.</string>
-    <string name="widget_preview_activity">Korrekturen</string>
+    <string name="widget_description">Der laufende Timer und deine Tätigkeiten, um direkt vom Startbildschirm zu starten und zu stoppen.</string>
+    <string name="widget_preview_activity">Unterricht</string>
 
     <!-- Settings -->
     <string name="settings_title">Einstellungen</string>

@@ -7,7 +7,7 @@ import de.janaberger.lehrzeit.data.db.Entry
 import de.janaberger.lehrzeit.data.db.SchoolClass
 import de.janaberger.lehrzeit.data.db.WorkActivity
 
-/** What time is booked on: an activity plus an optional class. Also used as a Room result row. */
+/** What time is booked on: an activity plus an optional class. */
 data class ComboKey(val activityId: Long, val classId: Long?)
 
 val Entry.comboKey: ComboKey get() = ComboKey(activityId, classId)
@@ -44,16 +44,10 @@ data class CatalogSnapshot(
     /** Non-archived classes. */
     val activeClasses: List<SchoolClass> get() = classes.filter { !it.archived }
 
-    /** The classes that can be chosen under the activity: all non-archived ones if it's booked per class, else none. */
+    /**
+     * The classes that can be chosen under the activity: all non-archived ones if it's booked per class, else none.
+     * Tapping an activity with classes asks for one; without, it is booked on its own straight away.
+     */
     fun activeClassesFor(activityId: Long): List<SchoolClass> =
         if (activitiesById[activityId]?.perClass == true) activeClasses else emptyList()
-
-    /** True if time can be booked on [key] right now: nothing archived, and a class only under a per-class activity. */
-    fun isBookable(key: ComboKey): Boolean {
-        val activity = activitiesById[key.activityId] ?: return false
-        if (activity.archived) return false
-        val classId = key.classId ?: return true
-        val schoolClass = classesById[classId] ?: return false
-        return activity.perClass && !schoolClass.archived
-    }
 }

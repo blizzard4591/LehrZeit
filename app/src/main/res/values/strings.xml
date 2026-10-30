@@ -83,7 +83,7 @@
     <string name="track_idle_hint">Tap a tile to start.</string>
     <string name="track_paused">Paused</string>
     <string name="track_today">Today: %s h</string>
-    <string name="track_all_activities">All activities…</string>
+    <string name="track_manage_activities">Manage activities</string>
     <string name="track_running">Running</string>
     <string name="track_start">Start</string>
     <string name="nudge_earlier" translatable="false">−5</string>
@@ -95,13 +95,7 @@
     <string name="switch_title">Switch?</string>
     <string name="switch_text">This stops %1$s and starts %2$s.</string>
     <string name="notifications_off">Notifications are off, so the running timer won’t appear in the notification bar.</string>
-    <string name="picker_search">Search</string>
-    <string name="picker_no_results">Nothing found</string>
-    <string name="picker_manage">Manage activities</string>
-    <string name="picker_pin">Pin to home screen</string>
-    <string name="picker_unpin">Unpin from home screen</string>
-    <string name="picker_expand">Show classes</string>
-    <string name="picker_collapse">Hide classes</string>
+    <string name="class_sheet_stops">Stops %1$s</string>
     <string name="channel_tracking_name">Running timer</string>
     <string name="channel_tracking_description">Shows the running timer with Pause and Stop.</string>
 
@@ -161,7 +155,9 @@
     <string name="stats_total">Total</string>
     <string name="stats_by_activity">By activity</string>
     <string name="stats_by_class">By class</string>
-    <string name="stats_without_class">Without class</string>
+    <string name="without_class">Without class</string>
+    <string name="stats_show_classes">Show classes</string>
+    <string name="stats_hide_classes">Hide classes</string>
     <string name="stats_empty">No time recorded in this period.</string>
     <string name="stats_tap_bar">Tap a bar to see that day.</string>
     <string name="stats_open_day">Show day</string>
@@ -260,9 +256,8 @@
     </plurals>
 
     <!-- Widget -->
-    <string name="widget_description">The running timer and your tiles, to start and stop tracking from the home screen.</string>
-    <string name="widget_preview_activity">Correcting</string>
-    <string name="widget_preview_class" translatable="false">7b</string>
+    <string name="widget_description">The running timer and your activities, to start and stop tracking from the home screen.</string>
+    <string name="widget_preview_activity">Teaching</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>

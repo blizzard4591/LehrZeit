@@ -10,7 +10,6 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import de.janaberger.lehrzeit.data.ComboKey
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -137,16 +136,6 @@ interface EntryDao {
     @Query("SELECT * FROM entry WHERE startUtc < :toUtc AND (endUtc IS NULL OR endUtc > :fromUtc) ORDER BY startUtc")
     fun observeOverlapping(fromUtc: Long, toUtc: Long): Flow<List<Entry>>
 
-    /** Combinations used since [sinceUtc], most entries first, ties broken by most recent use. */
-    @Query(
-        """
-        SELECT activityId, classId FROM entry
-        WHERE startUtc >= :sinceUtc
-        GROUP BY activityId, classId
-        ORDER BY COUNT(*) DESC, MAX(startUtc) DESC
-        """
-    )
-    fun observeMostUsed(sinceUtc: Long): Flow<List<ComboKey>>
 }
 
 /** Whole-table access for backup and restore. */
@@ -158,17 +147,11 @@ interface BackupDao {
     @Query("SELECT * FROM school_class")
     suspend fun classes(): List<SchoolClass>
 
-    @Query("SELECT * FROM favorite")
-    suspend fun favorites(): List<Favorite>
-
     @Query("SELECT * FROM entry")
     suspend fun entries(): List<Entry>
 
     @Query("DELETE FROM entry")
     suspend fun deleteEntries()
-
-    @Query("DELETE FROM favorite")
-    suspend fun deleteFavorites()
 
     @Query("DELETE FROM school_class")
     suspend fun deleteClasses()
@@ -183,28 +166,7 @@ interface BackupDao {
     suspend fun insertClasses(classes: List<SchoolClass>)
 
     @Insert
-    suspend fun insertFavorites(favorites: List<Favorite>)
-
-    @Insert
     suspend fun insertEntries(entries: List<Entry>)
-}
-
-@Dao
-interface FavoriteDao {
-    @Query("SELECT * FROM favorite ORDER BY sortOrder, id")
-    fun observeAll(): Flow<List<Favorite>>
-
-    @Query("SELECT COUNT(*) FROM favorite WHERE activityId = :activityId AND classId IS :classId")
-    suspend fun count(activityId: Long, classId: Long?): Int
-
-    @Query("DELETE FROM favorite WHERE activityId = :activityId AND classId IS :classId")
-    suspend fun delete(activityId: Long, classId: Long?)
-
-    @Query("SELECT COALESCE(MAX(sortOrder), -1) FROM favorite")
-    suspend fun maxSortOrder(): Int
-
-    @Insert
-    suspend fun insert(favorite: Favorite)
 }
 
 @Dao

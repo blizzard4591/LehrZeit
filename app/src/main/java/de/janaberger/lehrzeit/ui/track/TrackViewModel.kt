@@ -16,6 +16,7 @@ import de.janaberger.lehrzeit.data.ShortEntrySettings
 import de.janaberger.lehrzeit.data.StartNudge
 import de.janaberger.lehrzeit.data.comboKey
 import de.janaberger.lehrzeit.data.db.Entry
+import de.janaberger.lehrzeit.data.db.WorkActivity
 import de.janaberger.lehrzeit.time.DayBounds
 import de.janaberger.lehrzeit.time.currentDayFlow
 import de.janaberger.lehrzeit.tracking.PausedTimer
@@ -39,9 +40,8 @@ data class TrackUiState(
     val isLoading: Boolean = true,
     val running: RunningTimer? = null,
     val paused: PausedTimer? = null,
-    val tiles: List<Combo> = emptyList(),
+    val tiles: List<WorkActivity> = emptyList(),
     val snapshot: CatalogSnapshot? = null,
-    val favorites: Set<ComboKey> = emptySet(),
     /** Today's entries; the screen sums them up with the current time so the total ticks. */
     val today: DayBounds? = null,
     val todayEntries: List<Entry> = emptyList(),
@@ -91,7 +91,6 @@ class TrackViewModel(
             paused = overview.paused,
             tiles = overview.tiles,
             snapshot = overview.snapshot,
-            favorites = overview.favorites.toSet(),
             today = today,
             todayEntries = todayEntries,
             beforeRunning = beforeRunning,
@@ -110,7 +109,7 @@ class TrackViewModel(
 
     fun forgetDeleted(deleted: DeletedEntry) = entries.forgetDeleted(deleted)
 
-    /** A tile or picker row was tapped. Switching away from a running combination asks first. */
+    /** A tile without classes was tapped. Switching away from a running combination asks first. */
     fun onSelect(key: ComboKey) {
         val running = uiState.value.running
         when {
@@ -118,6 +117,12 @@ class TrackViewModel(
             running.combo.key == key -> Unit
             else -> pendingSwitch.value = key
         }
+    }
+
+    /** A row in the class sheet was picked: that was the second tap, so a running entry is switched without asking. */
+    fun onClassChosen(key: ComboKey) {
+        if (uiState.value.running?.combo?.key == key) return
+        viewModelScope.launch { notifyIfDiscarded(controller.start(key)) }
     }
 
     fun confirmSwitch() {
@@ -161,10 +166,6 @@ class TrackViewModel(
 
     fun setNote(entryId: Long, note: String) {
         viewModelScope.launch { entries.setNote(entryId, note, System.currentTimeMillis()) }
-    }
-
-    fun toggleFavorite(key: ComboKey) {
-        viewModelScope.launch { entries.toggleFavorite(key) }
     }
 
     private fun notifyIfDiscarded(discarded: Boolean) {

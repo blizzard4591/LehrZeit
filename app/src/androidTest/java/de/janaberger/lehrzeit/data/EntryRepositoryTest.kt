@@ -132,27 +132,6 @@ class EntryRepositoryTest {
     }
 
     @Test
-    fun mostUsed_ordersByCountThenRecency() = runTest {
-        tracking.start(a, now = 1 * minute)
-        tracking.start(b, now = 2 * minute)
-        tracking.start(a, now = 3 * minute)
-        tracking.stop(now = 4 * minute)
-
-        assertEquals(listOf(a, b), tracking.observeMostUsed(sinceUtc = 0).first())
-        assertEquals(listOf(a), tracking.observeMostUsed(sinceUtc = 3 * minute).first())
-    }
-
-    @Test
-    fun toggleFavorite_addsAndRemovesIncludingActivityOnlyCombos() = runTest {
-        tracking.toggleFavorite(b)
-        tracking.toggleFavorite(a)
-        assertEquals(listOf(b, a), tracking.observeFavorites().first())
-
-        tracking.toggleFavorite(a)
-        assertEquals(listOf(b), tracking.observeFavorites().first())
-    }
-
-    @Test
     fun overlappingQuery_includesRunningAndCrossingEntries() = runTest {
         tracking.start(a, now = 0)
         tracking.start(b, now = 100)

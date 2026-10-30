@@ -9,7 +9,6 @@ import de.janaberger.lehrzeit.data.EntryRepository
 import de.janaberger.lehrzeit.data.ReminderSettings
 import de.janaberger.lehrzeit.data.ShortEntrySettings
 import de.janaberger.lehrzeit.data.db.Entry
-import de.janaberger.lehrzeit.data.db.Favorite
 import de.janaberger.lehrzeit.data.db.LehrZeitDatabase
 import de.janaberger.lehrzeit.data.db.SchoolClass
 import de.janaberger.lehrzeit.data.db.WorkActivity
@@ -34,7 +33,6 @@ class BackupRepository(
                     BackupActivity(it.id, it.name, it.color, it.isGeneral, it.perClass, it.archived, it.sortOrder)
                 },
                 classes = dao.classes().map { BackupClass(it.id, it.name, it.archived, it.sortOrder) },
-                favorites = dao.favorites().map { BackupFavorite(it.id, it.activityId, it.classId, it.sortOrder) },
                 entries = dao.entries().map {
                     BackupEntry(it.id, it.activityId, it.classId, it.startUtc, it.endUtc, it.note, it.createdAt, it.updatedAt)
                 },
@@ -52,14 +50,12 @@ class BackupRepository(
         db.withTransaction {
             // Children before parents, because of the foreign keys.
             dao.deleteEntries()
-            dao.deleteFavorites()
             dao.deleteClasses()
             dao.deleteActivities()
             dao.insertActivities(
                 backup.activities.map { WorkActivity(it.id, it.name, it.color, it.isGeneral, it.perClass, it.archived, it.sortOrder) },
             )
             dao.insertClasses(backup.classes.map { SchoolClass(it.id, it.name, it.archived, it.sortOrder) })
-            dao.insertFavorites(backup.favorites.map { Favorite(it.id, it.activityId, it.classId, it.sortOrder) })
             dao.insertEntries(
                 backup.entries.map { Entry(it.id, it.activityId, it.classId, it.startUtc, it.endUtc, it.note, it.createdAt, it.updatedAt) },
             )

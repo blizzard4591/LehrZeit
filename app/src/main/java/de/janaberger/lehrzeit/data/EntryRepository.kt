@@ -6,22 +6,19 @@ package de.janaberger.lehrzeit.data
 import androidx.room.withTransaction
 import de.janaberger.lehrzeit.data.db.Entry
 import de.janaberger.lehrzeit.data.db.EntryWithCombo
-import de.janaberger.lehrzeit.data.db.Favorite
 import de.janaberger.lehrzeit.data.db.LehrZeitDatabase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
 
 /**
- * Running and finished entries, plus the pinned favorites.
+ * Running and finished entries.
  * At most one entry runs at a time; it is the one without an end.
  * Changes to a running entry must be followed by [de.janaberger.lehrzeit.tracking.TrackingController.refreshNotification].
  */
 class EntryRepository(private val db: LehrZeitDatabase) {
     private val entries = db.entryDao()
-    private val favorites = db.favoriteDao()
 
     fun observeRunning(): Flow<EntryWithCombo?> = entries.observeRunningWithCombo()
 
@@ -29,21 +26,6 @@ class EntryRepository(private val db: LehrZeitDatabase) {
 
     fun observeEntriesOverlapping(fromUtc: Long, toUtc: Long): Flow<List<Entry>> =
         entries.observeOverlapping(fromUtc, toUtc)
-
-    fun observeMostUsed(sinceUtc: Long): Flow<List<ComboKey>> = entries.observeMostUsed(sinceUtc)
-
-    fun observeFavorites(): Flow<List<ComboKey>> =
-        favorites.observeAll().map { list -> list.map { ComboKey(it.activityId, it.classId) } }
-
-    suspend fun toggleFavorite(key: ComboKey) {
-        db.withTransaction {
-            if (favorites.count(key.activityId, key.classId) > 0) {
-                favorites.delete(key.activityId, key.classId)
-            } else {
-                favorites.insert(Favorite(activityId = key.activityId, classId = key.classId, sortOrder = favorites.maxSortOrder() + 1))
-            }
-        }
-    }
 
     /**
      * Starts [key] at [now]. A running entry for another combination ends at the same instant

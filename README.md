@@ -2,7 +2,7 @@
 
 A quick time tracker for teachers, for Android.
 
-Start a timer with one tap on an activity, optionally for a class (e.g. "Correcting › 7b"). Stop or pause it from the notification or the home-screen widget. Fix start and end times in the worklog, see daily, weekly and monthly totals, and export to CSV, ODS or PDF. All data stays on the phone, and there is no account. The app only goes online if you enter a timetable link (e.g. from WebUntis), to download that timetable once a day.
+Start a timer with a tap on an activity, and pick the class next if it's booked per class (e.g. "Correcting › 7b"). Stop or pause it from the notification or the home-screen widget. Fix start and end times in the worklog, see daily, weekly and monthly totals, and export to CSV, ODS or PDF. All data stays on the phone, and there is no account. The app only goes online if you enter a timetable link (e.g. from WebUntis), to download that timetable once a day.
 
 > **Status:** in development and not released yet. See [PLAN.md](PLAN.md) for the screens, data model and milestones.
 

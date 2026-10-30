@@ -9,7 +9,6 @@
     <color name="widget_background">#CEE9DC</color>
     <color name="widget_surface">#F5FBF6</color>
     <color name="widget_on_surface">#171D1A</color>
-    <color name="widget_on_surface_variant">#404944</color>
     <color name="widget_on_primary_container">#002118</color>
 
     <!-- Activity edges in the widget preview: General’s blue grey and the palette’s red. -->

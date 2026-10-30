@@ -81,14 +81,6 @@
                     android:text="@string/widget_preview_activity"
                     android:textColor="@color/widget_on_surface"
                     android:textSize="13sp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:singleLine="true"
-                    android:text="@string/widget_preview_class"
-                    android:textColor="@color/widget_on_surface_variant"
-                    android:textSize="12sp" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

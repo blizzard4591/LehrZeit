@@ -37,32 +37,6 @@ data class SchoolClass(
     val sortOrder: Int = 0,
 )
 
-/** A pinned home-screen tile: an activity plus an optional class. */
-@Entity(
-    tableName = "favorite",
-    foreignKeys = [
-        ForeignKey(
-            entity = WorkActivity::class,
-            parentColumns = ["id"],
-            childColumns = ["activityId"],
-            onDelete = ForeignKey.CASCADE,
-        ),
-        ForeignKey(
-            entity = SchoolClass::class,
-            parentColumns = ["id"],
-            childColumns = ["classId"],
-            onDelete = ForeignKey.CASCADE,
-        ),
-    ],
-    indices = [Index("activityId"), Index("classId")],
-)
-data class Favorite(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val activityId: Long,
-    val classId: Long?,
-    val sortOrder: Int = 0,
-)
-
 /**
  * One booked time span. Times are UTC epoch milliseconds; [endUtc] is null while the entry is running.
  * Activities and classes with entries cannot be deleted (RESTRICT), only archived.

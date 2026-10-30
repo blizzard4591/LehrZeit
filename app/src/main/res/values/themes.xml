@@ -5,7 +5,7 @@
         <item name="android:windowNoTitle">true</item>
     </style>
 
-    <!-- For SwitchConfirmActivity: only its dialog is visible, over whatever was on screen. -->
+    <!-- For WidgetDialogActivity: only its sheet or dialog is visible, over whatever was on screen. -->
     <style name="Theme.LehrZeit.Transparent">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>

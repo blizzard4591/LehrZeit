@@ -54,7 +54,7 @@ class ExportWriter(
             lastDay = lastDay,
             zone = zone,
             generalName = context.getString(R.string.activity_general),
-            withoutClass = context.getString(R.string.stats_without_class),
+            withoutClass = context.getString(R.string.without_class),
         )
     }
 
@@ -85,7 +85,7 @@ class ExportWriter(
             byActivity = getString(R.string.stats_by_activity),
             byClass = getString(R.string.stats_by_class),
             perDay = getString(R.string.export_per_day),
-            withoutClass = getString(R.string.stats_without_class),
+            withoutClass = getString(R.string.without_class),
             reportTitle = getString(R.string.export_report_title),
             time = getString(R.string.export_col_time),
             bookedOn = getString(R.string.entry_booked_on),

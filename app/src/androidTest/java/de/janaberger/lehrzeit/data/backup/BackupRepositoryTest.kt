@@ -58,7 +58,6 @@ class BackupRepositoryTest {
         catalog.createInitialClasses(listOf("7b", "9a"))
         val activity = catalog.activeRegularActivities().first()
         val schoolClass = catalog.activeClasses().first()
-        entries.toggleFavorite(ComboKey(activity.id, schoolClass.id))
         entries.start(ComboKey(activity.id, schoolClass.id), now = 0)
         entries.start(ComboKey(activity.id, null), now = 30 * 60_000L) // first entry finished, second running
         preferences.setShortEntries(ShortEntrySettings(enabled = false, minSeconds = 120))
@@ -67,7 +66,6 @@ class BackupRepositoryTest {
         // Change everything, then restore.
         catalog.saveActivity(null, "Fachschaft", color = 0, perClass = false)
         entries.stop(now = 40 * 60_000L)
-        entries.toggleFavorite(ComboKey(activity.id, schoolClass.id))
         preferences.setShortEntries(ShortEntrySettings())
         backups.restore(backup)
 

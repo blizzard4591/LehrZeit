@@ -30,7 +30,6 @@ import de.janaberger.lehrzeit.ui.navigation.EntryEditRoute
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -57,7 +56,6 @@ data class EntryEditUiState(
     /** Saving is impossible because the entry would lie inside this one. */
     val blockedBy: Entry? = null,
     val snapshot: CatalogSnapshot? = null,
-    val favorites: Set<ComboKey> = emptySet(),
     val isSaving: Boolean = false,
     /** Set once the entry was saved or deleted; the screen then closes. */
     val isFinished: Boolean = false,
@@ -85,8 +83,7 @@ class EntryEditViewModel(
     init {
         viewModelScope.launch { load() }
         viewModelScope.launch {
-            combine(catalog.observeSnapshot(), entries.observeFavorites()) { snapshot, favorites -> snapshot to favorites }
-                .collect { (snapshot, favorites) -> _uiState.update { it.copy(snapshot = snapshot, favorites = favorites.toSet()) } }
+            catalog.observeSnapshot().collect { snapshot -> _uiState.update { it.copy(snapshot = snapshot) } }
         }
     }
 

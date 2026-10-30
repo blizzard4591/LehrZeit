@@ -23,8 +23,9 @@ const val BACKUP_FORMAT = "de.janaberger.lehrzeit.backup"
 /**
  * Raise when the content changes; older versions must stay readable (migrate them in [readBackup]).
  * Version 1 came from test builds before 0.1.0, which booked on account › activity; it can't be restored.
+ * Version 2 also had pinned tiles ("favorites"); they are skipped like any unknown field.
  */
-const val BACKUP_VERSION = 2
+const val BACKUP_VERSION = 3
 
 private const val BACKUP_ENTRY = "backup.json"
 
@@ -43,7 +44,6 @@ data class Backup(
     val appVersion: String,
     val activities: List<BackupActivity>,
     val classes: List<BackupClass>,
-    val favorites: List<BackupFavorite>,
     val entries: List<BackupEntry>,
     val settings: BackupSettings,
 )
@@ -61,9 +61,6 @@ data class BackupActivity(
 
 @Serializable
 data class BackupClass(val id: Long, val name: String, val archived: Boolean, val sortOrder: Int)
-
-@Serializable
-data class BackupFavorite(val id: Long, val activityId: Long, val classId: Long? = null, val sortOrder: Int)
 
 @Serializable
 data class BackupEntry(
@@ -148,9 +145,7 @@ internal fun Backup.isConsistent(): Boolean {
     return activities.count { it.isGeneral } == 1 &&
         activityIds.size == activities.size &&
         classIds.size == classes.size &&
-        favorites.map { it.id }.toSet().size == favorites.size &&
         entries.map { it.id }.toSet().size == entries.size &&
-        favorites.all { it.activityId in activityIds && knownClass(it.classId) } &&
         entries.all { it.activityId in activityIds && knownClass(it.classId) && (it.endUtc == null || it.endUtc > it.startUtc) } &&
         entries.count { it.endUtc == null } <= 1
 }

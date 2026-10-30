@@ -1,11 +1,11 @@
 LehrZeit records your working time as a teacher, quickly and without an account.
 
-Start a timer with one tap on a tile, for example "Correcting › 7b" or simply "Lesson prep". Pause and stop it from the notification or the home-screen widget. If a timer keeps running because you forgot it, LehrZeit asks after a few hours whether you're still working.
+Start a timer with a tap on an activity such as "Supervision". For an activity per class, pick the class next, for example "Correcting › 7b". Pause and stop it from the notification or the home-screen widget. If a timer keeps running because you forgot it, LehrZeit asks after a few hours whether you're still working.
 
 <b>Features</b>
 <ul>
 <li>Activities such as lesson prep, correcting or meetings, optionally per class</li>
-<li>A home screen with General, your favorites and the combinations you use most</li>
+<li>A home screen with all your activities, in the order you choose</li>
 <li>An ongoing notification with a live timer, Pause and Stop</li>
 <li>A home-screen widget</li>
 <li>Worklog: correct start and end times with a tap, add missed entries and notes</li>
